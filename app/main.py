@@ -1,54 +1,59 @@
-"""FastAPI application factory."""
+"""FastAPI application factory and configuration."""
 
 from contextlib import asynccontextmanager
-from typing import AsyncGenerator
+from typing import AsyncIterator
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import ORJSONResponse
 
-from app.api.health import router as health_router
-from app.core.config import get_settings
+from app.api import health
+from app.core.config import settings
+from app.core.database import sessionmanager
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
-    """Application lifespan events."""
+async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+    """Manage application lifespan events.
+
+    Handles startup and shutdown operations including:
+    - Database connection initialization and cleanup
+    """
     # Startup
-    settings = get_settings()
-    app.state.settings = settings
+    sessionmanager.init(settings.DATABASE_URL)
 
     yield
 
     # Shutdown
-    pass
+    await sessionmanager.close()
 
 
 def create_app() -> FastAPI:
-    """Create and configure FastAPI application."""
-    settings = get_settings()
+    """Create and configure FastAPI application.
 
+    Returns:
+        Configured FastAPI application instance
+    """
     app = FastAPI(
-        title=settings.APP_NAME,
-        version=settings.APP_VERSION,
-        debug=settings.DEBUG,
-        lifespan=lifespan,
+        title=settings.PROJECT_NAME,
+        version=settings.VERSION,
+        docs_url="/docs" if settings.ENVIRONMENT != "production" else None,
+        redoc_url="/redoc" if settings.ENVIRONMENT != "production" else None,
         default_response_class=ORJSONResponse,
-        docs_url="/docs" if settings.DEBUG else None,
-        redoc_url="/redoc" if settings.DEBUG else None,
+        lifespan=lifespan,
     )
 
     # CORS middleware
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=settings.CORS_ORIGINS,
-        allow_credentials=settings.CORS_ALLOW_CREDENTIALS,
-        allow_methods=settings.CORS_ALLOW_METHODS,
-        allow_headers=settings.CORS_ALLOW_HEADERS,
+        allow_origins=settings.ALLOWED_ORIGINS,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
     )
 
-    # Include routers
-    app.include_router(health_router)
+    # Register routers
+    app.include_router(health.router, prefix="/health", tags=["health"])
 
     return app
 

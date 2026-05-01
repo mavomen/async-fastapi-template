@@ -1,71 +1,52 @@
-"""Application configuration using pydantic-settings."""
+"""Application configuration management."""
 
 from functools import lru_cache
 from typing import Literal
 
-from pydantic import Field, PostgresDsn, RedisDsn, field_validator
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    """Application settings with environment variable support."""
+    """Application settings loaded from environment variables."""
 
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
-        case_sensitive=False,
+        case_sensitive=True,
         extra="ignore",
     )
 
     # Application
-    APP_NAME: str = "Async FastAPI Template"
-    APP_VERSION: str = "0.1.0"
-    DEBUG: bool = False
+    PROJECT_NAME: str = "FastAPI Async Template"
+    VERSION: str = "0.1.0"
     ENVIRONMENT: Literal["development", "staging", "production", "test"] = "development"
-
-    # API
-    API_V1_PREFIX: str = "/api/v1"
-    ALLOWED_HOSTS: list[str] = Field(default_factory=lambda: ["*"])
 
     # Security
     SECRET_KEY: str = Field(..., min_length=32)
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
-    REFRESH_TOKEN_EXPIRE_DAYS: int = 7
-
-    # Database
-    DATABASE_URL: PostgresDsn = Field(
-        default="postgresql+asyncpg://postgres:postgres@localhost:5432/app"
-    )
-    DB_ECHO: bool = False
-    DB_POOL_SIZE: int = 5
-    DB_MAX_OVERFLOW: int = 10
-
-    # Redis
-    REDIS_URL: RedisDsn = Field(default="redis://localhost:6379/0")
 
     # CORS
-    CORS_ORIGINS: list[str] = Field(default_factory=lambda: ["http://localhost:3000"])
-    CORS_ALLOW_CREDENTIALS: bool = True
-    CORS_ALLOW_METHODS: list[str] = Field(default_factory=lambda: ["*"])
-    CORS_ALLOW_HEADERS: list[str] = Field(default_factory=lambda: ["*"])
+    ALLOWED_ORIGINS: list[str] = ["http://localhost:3000", "http://localhost:8000"]
 
-    # Celery
-    CELERY_BROKER_URL: str = "redis://localhost:6379/1"
-    CELERY_RESULT_BACKEND: str = "redis://localhost:6379/2"
+    # Database
+    DATABASE_URL: str = Field(
+        default="postgresql+asyncpg://postgres:postgres@localhost:5432/fastapi_db",
+        description="PostgreSQL connection string with asyncpg driver",
+    )
 
-    # Logging
-    LOG_LEVEL: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = "INFO"
-
-    @field_validator("DATABASE_URL", mode="before")
+    @field_validator("ENVIRONMENT")
     @classmethod
-    def validate_database_url(cls, v: str) -> str:
-        """Ensure asyncpg driver for PostgreSQL."""
-        if isinstance(v, str) and v.startswith("postgresql://"):
-            return v.replace("postgresql://", "postgresql+asyncpg://")
+    def validate_environment(cls, v: str) -> str:
+        """Validate environment value."""
+        valid_envs = {"development", "staging", "production", "test"}
+        if v not in valid_envs:
+            raise ValueError(f"ENVIRONMENT must be one of {valid_envs}")
         return v
+
+
+settings = Settings()
 
 
 @lru_cache
 def get_settings() -> Settings:
-    """Cached settings instance."""
     return Settings()
