@@ -1,5 +1,6 @@
 """Application configuration management."""
 
+from functools import lru_cache
 from typing import Literal
 
 from pydantic import Field, field_validator
@@ -44,3 +45,8 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+
+
+@lru_cache
+def get_settings() -> Settings:
+    return Settings()

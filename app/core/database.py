@@ -1,14 +1,11 @@
 """Database configuration and session management."""
 
 from collections.abc import AsyncGenerator
+from contextlib import asynccontextmanager
 from typing import AsyncIterator
 
-from sqlalchemy.ext.asyncio import (
-    AsyncEngine,
-    AsyncSession,
-    async_sessionmaker,
-    create_async_engine,
-)
+from sqlalchemy.ext.asyncio import (AsyncEngine, AsyncSession,
+                                    async_sessionmaker, create_async_engine)
 from sqlalchemy.pool import NullPool
 
 from app.core.config import settings
@@ -49,6 +46,7 @@ class DatabaseSessionManager:
         self._engine = None
         self._sessionmaker = None
 
+    @asynccontextmanager
     async def session(self) -> AsyncIterator[AsyncSession]:
         """Provide async database session.
 
