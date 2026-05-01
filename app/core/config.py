@@ -21,7 +21,7 @@ class Settings(BaseSettings):
     APP_NAME: str = "Async FastAPI Template"
     APP_VERSION: str = "0.1.0"
     DEBUG: bool = False
-    ENVIRONMENT: Literal["development", "staging", "production"] = "development"
+    ENVIRONMENT: Literal["development", "staging", "production", "test"] = "development"
 
     # API
     API_V1_PREFIX: str = "/api/v1"
