@@ -1,0 +1,57 @@
+# docker-compose.dev.yml
+version: "3.8"
+
+services:
+  db:
+    image: postgres:18.3-alpine
+    container_name: fastapi_postgres_dev
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: fastapi_dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+    networks:
+      - dev-network
+
+  redis:
+    image: redis:7.4-alpine
+    container_name: fastapi_redis_dev
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_dev_data:/data
+    networks:
+      - dev-network
+
+  adminer:
+    image: adminer:latest
+    container_name: fastapi_adminer
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    networks:
+      - dev-network
+
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: fastapi_redis_commander
+    environment:
+      REDIS_HOSTS: local:redis:6379
+    ports:
+      - "8081:8081"
+    depends_on:
+      - redis
+    networks:
+      - dev-network
+
+volumes:
+  postgres_dev_data:
+  redis_dev_data:
+
+networks:
+  dev-network:
+    driver: bridge
