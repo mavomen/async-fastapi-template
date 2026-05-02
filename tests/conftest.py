@@ -47,12 +47,13 @@ async def db_engine(test_db_url: str) -> AsyncGenerator[Any, None]:
 @pytest.fixture(scope="function")
 async def db_session(db_engine: Any) -> AsyncGenerator[AsyncSession, None]:
     """Provide test database session."""
+    # Ensure the session manager points to the test database
     sessionmanager.init(os.environ["DATABASE_URL"])
 
     async with sessionmanager.session() as session:
         yield session
 
-    await sessionmanager.close()
+    # Do NOT close the sessionmanager here – it might still be used by other fixtures.
 
 
 @pytest.fixture(scope="module")
