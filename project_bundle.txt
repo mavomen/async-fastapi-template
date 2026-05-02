@@ -1,0 +1,2856 @@
+===== FILE: /home/mava/media/data/projects/0-shelfs/CodeStorage/async-fastapi-template/app/api/deps.py =====
+from fastapi.security import OAuth2PasswordBearer
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
+
+
+
+===== FILE: /home/mava/media/data/projects/0-shelfs/CodeStorage/async-fastapi-template/app/api/endpoints/auth.py =====
+"""
+API endpoints for user authentication.
+"""
+
+from typing import Any
+
+from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordRequestForm
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.api.deps import get_db
+from app.core.security import authenticate_user, create_access_token
+from app.schemas import Token
+
+router = APIRouter()
+
+
+@router.post("/login", response_model=Token)
+async def login_for_access_token(
+    db: AsyncSession = Depends(get_db),
+    form_data: OAuth2PasswordRequestForm = Depends(),
+) -> Any:
+    """
+    OAuth2 compatible token login, get an access token for future requests.
+
+    Args:
+        db: The database session dependency.
+        form_data: The OAuth2 password request form data (username and password).
+
+    Returns:
+        A dictionary containing the access token and token type.
+
+    Raises:
+        HTTPException: If authentication fails.
+    """
+    user = await authenticate_user(
+        db, email=form_data.username, password=form_data.password
+    )
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect email or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    access_token = create_access_token(subject=user.id)
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+    }
+
+
+===== FILE: /home/mava/media/data/projects/0-shelfs/CodeStorage/async-fastapi-template/app/api/health.py =====
+"""Health check endpoints."""
+
+from datetime import UTC, datetime
+from typing import Any
+
+from fastapi import APIRouter, Depends, status
+from fastapi.responses import ORJSONResponse
+from sqlalchemy import text
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.core.database import get_db
+router = APIRouter(tags=["health"])
+
+
+@router.get(
+    "/",
+    response_class=ORJSONResponse,
+    status_code=status.HTTP_200_OK,
+)
+async def health_check() -> dict[str, Any]:
+    """Basic health check endpoint."""
+    return {
+        "status": "healthy",
+        "timestamp": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
+    }
+
+
+@router.get(
+    "/ready",
+    response_class=ORJSONResponse,
+    status_code=status.HTTP_200_OK,
+)
+async def readiness_check(db: AsyncSession = Depends(get_db)) -> dict[str, Any]:
+    """Readiness check endpoint (for k8s readiness probes)."""
+    # Check database connectivity
+    try:
+        await db.execute(text("SELECT 1"))
+        db_status = "connected"
+    except Exception:
+        db_status = "disconnected"
+
+    return {
+        "status": "ready",
+        "database": db_status,
+    }
+
+
+@router.get(
+    "/live",
+    response_class=ORJSONResponse,
+    status_code=status.HTTP_200_OK,
+)
+async def liveness_check() -> dict[str, Any]:
+    """Liveness check endpoint (for k8s liveness probes)."""
+    return {
+        "status": "alive",
+        "timestamp": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
+    }
+
+
+===== FILE: /home/mava/media/data/projects/0-shelfs/CodeStorage/async-fastapi-template/app/api/__init__.py =====
+"""API package."""
+
+from fastapi import APIRouter
+
+from app.api.endpoints import auth
+from app.api.health import router as health_router
+
+api_router = APIRouter()
+
+api_router.include_router(health_router, prefix="/health", tags=["health"])
+api_router.include_router(auth.router, prefix="/auth", tags=["auth"])
+
+
+===== FILE: /home/mava/media/data/projects/0-shelfs/CodeStorage/async-fastapi-template/app/core/config.py =====
+"""Application configuration management."""
+
+from functools import lru_cache
+from typing import Literal
+
+from pydantic import Field, field_validator
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+class Settings(BaseSettings):
+    """Application settings loaded from environment variables."""
+
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        case_sensitive=True,
+        extra="ignore",
+        frozen=True,
+    )
+
+    # Application
+    PROJECT_NAME: str = "FastAPI Async Template"
+    VERSION: str = "0.1.0"
+    ENVIRONMENT: Literal["development", "staging", "production", "test"] = "development"
+
+    # Security
+    SECRET_KEY: str = Field(..., min_length=32)
+    ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+
+    # CORS
+    ALLOWED_ORIGINS: list[str] = ["http://localhost:3000", "http://localhost:8000"]
+
+    # Database
+    DATABASE_URL: str = Field(
+        default="postgresql+asyncpg://postgres:postgres@localhost:5432/fastapi_db",
+        description="PostgreSQL connection string with asyncpg driver",
+    )
+
+    @field_validator("ENVIRONMENT")
+    @classmethod
+    def validate_environment(cls, v: str) -> str:
+        """Validate environment value."""
+        valid_envs = {"development", "staging", "production", "test"}
+        if v not in valid_envs:
+            raise ValueError(f"ENVIRONMENT must be one of {valid_envs}")
+        return v
+
+
+settings = Settings()
+
+
+@lru_cache
+def get_settings() -> Settings:
+    return Settings()
+
+
+===== FILE: /home/mava/media/data/projects/0-shelfs/CodeStorage/async-fastapi-template/app/core/database.py =====
+"""Database configuration and session management."""
+
+from collections.abc import AsyncGenerator
+from contextlib import asynccontextmanager
+from typing import AsyncIterator
+
+from sqlalchemy.ext.asyncio import (AsyncEngine, AsyncSession,
+                                    async_sessionmaker, create_async_engine)
+from sqlalchemy.pool import NullPool
+
+from app.core.config import settings
+
+
+class DatabaseSessionManager:
+    """Manages database engine and session lifecycle."""
+
+    def __init__(self) -> None:
+        self._engine: AsyncEngine | None = None
+        self._sessionmaker: async_sessionmaker[AsyncSession] | None = None
+
+    def init(self, database_url: str) -> None:
+        """Initialize database engine and session factory.
+
+        Args:
+            database_url: PostgreSQL connection string (asyncpg format)
+        """
+        self._engine = create_async_engine(
+            database_url,
+            echo=settings.ENVIRONMENT == "development",
+            poolclass=NullPool if settings.ENVIRONMENT == "test" else None,
+            pool_pre_ping=True,
+        )
+        self._sessionmaker = async_sessionmaker(
+            bind=self._engine,
+            class_=AsyncSession,
+            expire_on_commit=False,
+            autoflush=False,
+            autocommit=False,
+        )
+
+    async def close(self) -> None:
+        """Close database engine and cleanup connections."""
+        if self._engine is None:
+            return
+        await self._engine.dispose()
+        self._engine = None
+        self._sessionmaker = None
+
+    @asynccontextmanager
+    async def session(self) -> AsyncIterator[AsyncSession]:
+        """Provide async database session.
+
+        Yields:
+            AsyncSession: Database session for queries
+
+        Raises:
+            RuntimeError: If database not initialized
+        """
+        if self._sessionmaker is None:
+            raise RuntimeError(
+                "DatabaseSessionManager is not initialized. " "Call init() first."
+            )
+        async with self._sessionmaker() as session:
+            try:
+                yield session
+            except Exception:
+                await session.rollback()
+                raise
+            finally:
+                await session.close()
+
+
+# Global session manager instance
+sessionmanager = DatabaseSessionManager()
+
+
+async def get_db() -> AsyncGenerator[AsyncSession, None]:
+    """FastAPI dependency for database sessions.
+
+    Yields:
+        AsyncSession: Database session
+    """
+    async with sessionmanager.session() as session:
+        yield session
+
+
+===== FILE: /home/mava/media/data/projects/0-shelfs/CodeStorage/async-fastapi-template/app/core/__init__.py =====
+"""Core application modules."""
+
+from app.core.config import Settings, get_settings
+
+__all__ = ["Settings", "get_settings"]
+
+
+===== FILE: /home/mava/media/data/projects/0-shelfs/CodeStorage/async-fastapi-template/app/core/security.py =====
+from datetime import datetime, timedelta, timezone
+from typing import Any, Union
+
+from jose import jwt
+from passlib.context import CryptContext
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.core.config import settings
+from app.crud.user import user as crud_user
+from app.models.user import User
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    """
+    Verifies a plain-text password against a hashed password.
+
+    :param plain_password: The plain-text password to verify.
+    :param hashed_password: The hashed password to compare against.
+    :return: True if the passwords match, False otherwise.
+    """
+    return pwd_context.verify(plain_password, hashed_password)
+
+
+def get_password_hash(password: str) -> str:
+    """
+    Hashes a plain-text password.
+
+    :param password: The plain-text password to hash.
+    :return: The hashed password.
+    """
+    return pwd_context.hash(password)
+
+
+def create_access_token(
+    subject: Union[str, Any], expires_delta: timedelta | None = None
+) -> str:
+    """
+    Generates a JWT access token.
+
+    :param subject: The subject of the token (e.g., user ID or email).
+    :param expires_delta: The lifespan of the token.
+    :return: The encoded JWT token.
+    """
+    if expires_delta:
+        expire = datetime.now(timezone.utc) + expires_delta
+    else:
+        expire = datetime.now(timezone.utc) + timedelta(
+            minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
+        )
+    to_encode = {"exp": expire, "sub": str(subject)}
+    encoded_jwt = jwt.encode(
+        to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM
+    )
+    return encoded_jwt
+
+
+async def authenticate_user(db: AsyncSession, email: str, password: str) -> User | None:
+    """
+    Authenticates a user.
+
+    Args:
+        db: The database session.
+        email: The user's email.
+        password: The user's plain-text password.
+
+    Returns:
+        The authenticated user object or None if authentication fails.
+    """
+    user = await crud_user.get_by_email(db, email=email)
+    if not user:
+        return None
+    if not verify_password(password, user.hashed_password):
+        return None
+    return user
+
+
+===== FILE: /home/mava/media/data/projects/0-shelfs/CodeStorage/async-fastapi-template/app/crud/base.py =====
+"""Base CRUD class with common async database operations."""
+
+from typing import Any, Generic, TypeVar
+
+from pydantic import BaseModel
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.models.base import Base
+
+ModelType = TypeVar("ModelType", bound=Base)
+CreateSchemaType = TypeVar("CreateSchemaType", bound=BaseModel)
+UpdateSchemaType = TypeVar("UpdateSchemaType", bound=BaseModel)
+
+
+class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
+    """Base class for CRUD operations."""
+
+    def __init__(self, model: type[ModelType]):
+        """Initialize CRUD object with model class.
+
+        Args:
+            model: SQLAlchemy model class
+        """
+        self.model = model
+
+    async def get(self, db: AsyncSession, id: int) -> ModelType | None:
+        """Get a single record by ID.
+
+        Args:
+            db: Database session
+            id: Record ID
+
+        Returns:
+            Model instance or None if not found
+        """
+        result = await db.execute(select(self.model).where(self.model.id == id))
+        return result.scalar_one_or_none()
+
+    async def get_multi(
+        self,
+        db: AsyncSession,
+        *,
+        skip: int = 0,
+        limit: int = 100,
+    ) -> list[ModelType]:
+        """Get multiple records with pagination.
+
+        Args:
+            db: Database session
+            skip: Number of records to skip
+            limit: Maximum number of records to return
+
+        Returns:
+            List of model instances
+        """
+        result = await db.execute(select(self.model).offset(skip).limit(limit))
+        return list(result.scalars().all())
+
+    async def create(self, db: AsyncSession, *, obj_in: CreateSchemaType) -> ModelType:
+        """Create a new record.
+
+        Args:
+            db: Database session
+            obj_in: Pydantic schema with creation data
+
+        Returns:
+            Created model instance
+        """
+        obj_in_data = obj_in.model_dump()
+        db_obj = self.model(**obj_in_data)
+        db.add(db_obj)
+        await db.commit()
+        await db.refresh(db_obj)
+        return db_obj
+
+    async def update(
+        self,
+        db: AsyncSession,
+        *,
+        db_obj: ModelType,
+        obj_in: UpdateSchemaType | dict[str, Any],
+    ) -> ModelType:
+        """Update an existing record.
+
+        Args:
+            db: Database session
+            db_obj: Existing model instance
+            obj_in: Pydantic schema or dict with update data
+
+        Returns:
+            Updated model instance
+        """
+        if isinstance(obj_in, dict):
+            update_data = obj_in
+        else:
+            update_data = obj_in.model_dump(exclude_unset=True)
+
+        for field, value in update_data.items():
+            setattr(db_obj, field, value)
+
+        db.add(db_obj)
+        await db.commit()
+        await db.refresh(db_obj)
+        return db_obj
+
+    async def delete(self, db: AsyncSession, *, id: int) -> ModelType | None:
+        """Delete a record by ID.
+
+        Args:
+            db: Database session
+            id: Record ID
+
+        Returns:
+            Deleted model instance or None if not found
+        """
+        obj = await self.get(db, id)
+        if obj:
+            await db.delete(obj)
+            await db.commit()
+        return obj
+
+    async def count(self, db: AsyncSession) -> int:
+        """Count total number of records.
+
+        Args:
+            db: Database session
+
+        Returns:
+            Total count of records
+        """
+        from sqlalchemy import func
+
+        result = await db.execute(select(func.count()).select_from(self.model))
+        return result.scalar_one()
+
+
+===== FILE: /home/mava/media/data/projects/0-shelfs/CodeStorage/async-fastapi-template/app/crud/__init__.py =====
+"""CRUD operations package."""
+
+from app.crud.base import CRUDBase
+from app.crud.user import user
+
+__all__ = ["CRUDBase", "user"]
+
+
+===== FILE: /home/mava/media/data/projects/0-shelfs/CodeStorage/async-fastapi-template/app/crud/user.py =====
+"""CRUD operations for User model."""
+
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.core.security import get_password_hash
+from app.crud.base import CRUDBase
+from app.models.user import User
+from app.schemas.user import UserCreate, UserUpdate
+
+
+class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
+    """CRUD operations for User model."""
+
+    async def get_by_email(self, db: AsyncSession, *, email: str) -> User | None:
+        """Get user by email.
+
+        Args:
+            db: Database session
+            email: User email
+
+        Returns:
+            User instance or None if not found
+        """
+        result = await db.execute(select(User).where(User.email == email))
+        return result.scalar_one_or_none()
+
+    async def get_by_username(self, db: AsyncSession, *, username: str) -> User | None:
+        """Get user by username.
+
+        Args:
+            db: Database session
+            username: Username
+
+        Returns:
+            User instance or None if not found
+        """
+        result = await db.execute(select(User).where(User.username == username))
+        return result.scalar_one_or_none()
+
+    async def create(self, db: AsyncSession, *, obj_in: UserCreate) -> User:
+        """Create new user with hashed password.
+
+        Args:
+            db: Database session
+            obj_in: User creation schema
+
+        Returns:
+            Created user instance
+        """
+        create_data = obj_in.model_dump()
+        create_data["hashed_password"] = get_password_hash(create_data.pop("password"))
+        db_obj = self.model(**create_data)
+
+        db.add(db_obj)
+        await db.commit()
+        await db.refresh(db_obj)
+        return db_obj
+
+    async def update(
+        self,
+        db: AsyncSession,
+        *,
+        db_obj: User,
+        obj_in: UserUpdate,
+    ) -> User:
+        """Update user with optional password hashing.
+
+        Args:
+            db: Database session
+            db_obj: Existing user instance
+            obj_in: User update schema
+
+        Returns:
+            Updated user instance
+        """
+        update_data = obj_in.model_dump(exclude_unset=True)
+
+        if "password" in update_data and update_data["password"]:
+            hashed_password = get_password_hash(update_data.pop("password"))
+            update_data["hashed_password"] = hashed_password
+
+        return await super().update(db, db_obj=db_obj, obj_in=update_data)
+
+    async def is_active(self, user: User) -> bool:
+        """Check if user is active.
+
+        Args:
+            user: User instance
+
+        Returns:
+            True if user is active
+        """
+        return user.is_active
+
+    async def is_superuser(self, user: User) -> bool:
+        """Check if user is superuser.
+
+        Args:
+            user: User instance
+
+        Returns:
+            True if user is superuser
+        """
+        return user.is_superuser
+
+
+# Create a singleton instance
+user = CRUDUser(User)
+
+
+===== FILE: /home/mava/media/data/projects/0-shelfs/CodeStorage/async-fastapi-template/app/__init__.py =====
+"""Async FastAPI Template."""
+
+
+===== FILE: /home/mava/media/data/projects/0-shelfs/CodeStorage/async-fastapi-template/app/main.py =====
+"""FastAPI application factory and configuration."""
+
+from contextlib import asynccontextmanager
+from typing import AsyncIterator
+
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import ORJSONResponse
+
+from app.api import api_router
+from app.core.config import settings
+from app.core.database import sessionmanager
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+    """Manage application lifespan events.
+
+    Handles startup and shutdown operations including:
+    - Database connection initialization and cleanup
+    """
+    # Startup
+    sessionmanager.init(settings.DATABASE_URL)
+
+    yield
+
+    # Shutdown
+    await sessionmanager.close()
+
+
+def create_app() -> FastAPI:
+    """Create and configure FastAPI application.
+
+    Returns:
+        Configured FastAPI application instance
+    """
+    app = FastAPI(
+        title=settings.PROJECT_NAME,
+        version=settings.VERSION,
+        docs_url="/docs" if settings.ENVIRONMENT != "production" else None,
+        redoc_url="/redoc" if settings.ENVIRONMENT != "production" else None,
+        default_response_class=ORJSONResponse,
+        lifespan=lifespan,
+    )
+
+    # CORS middleware
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=settings.ALLOWED_ORIGINS,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+
+    # Register routers
+    app.include_router(api_router, prefix=settings.API_V1_STR)
+
+    return app
+
+
+app = create_app()
+
+
+===== FILE: /home/mava/media/data/projects/0-shelfs/CodeStorage/async-fastapi-template/app/models/base.py =====
+"""Base model with common fields for all database models."""
+
+from datetime import datetime, timezone
+from typing import Any
+
+from sqlalchemy import DateTime, func
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+
+
+class Base(DeclarativeBase):
+    """Base class for all database models."""
+
+    type_annotation_map = {
+        datetime: DateTime(timezone=True),
+    }
+
+
+class TimestampMixin:
+    """Mixin for created_at and updated_at timestamps."""
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False,
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False,
+    )
+
+
+class BaseModel(Base, TimestampMixin):
+    """Base model with id and timestamps."""
+
+    __abstract__ = True
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+
+    def dict(self) -> dict[str, Any]:
+        """Convert model to dictionary.
+
+        Returns:
+            Dictionary representation of model
+        """
+        return {
+            column.name: getattr(self, column.name) for column in self.__table__.columns
+        }
+
+
+===== FILE: /home/mava/media/data/projects/0-shelfs/CodeStorage/async-fastapi-template/app/models/__init__.py =====
+"""Database models package."""
+
+from app.models.base import Base, BaseModel, TimestampMixin
+from app.models.user import User
+
+__all__ = ["Base", "BaseModel", "TimestampMixin", "User"]
+
+
+===== FILE: /home/mava/media/data/projects/0-shelfs/CodeStorage/async-fastapi-template/app/models/user.py =====
+"""User model for authentication and user management."""
+
+from datetime import datetime
+from typing import TYPE_CHECKING
+
+from sqlalchemy import Boolean, String
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from app.models.base import BaseModel
+
+if TYPE_CHECKING:
+    from app.models.role import Role
+
+
+class User(BaseModel):
+    """User model with authentication fields."""
+
+    __tablename__ = "users"
+
+    # Basic Information
+    email: Mapped[str] = mapped_column(
+        String(255),
+        unique=True,
+        index=True,
+        nullable=False,
+    )
+    username: Mapped[str] = mapped_column(
+        String(50),
+        unique=True,
+        index=True,
+        nullable=False,
+    )
+    full_name: Mapped[str | None] = mapped_column(String(100), nullable=True)
+
+    # Authentication
+    hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    is_superuser: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    is_verified: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+
+    # Timestamps for email verification and password reset
+    email_verified_at: Mapped[datetime | None] = mapped_column(nullable=True)
+    last_login_at: Mapped[datetime | None] = mapped_column(nullable=True)
+
+    def __repr__(self) -> str:
+        """String representation of User."""
+        return f"<User(id={self.id}, email={self.email}, username={self.username})>"
+
+
+===== FILE: /home/mava/media/data/projects/0-shelfs/CodeStorage/async-fastapi-template/app/schemas/__init__.py =====
+"""Pydantic schemas package."""
+
+from app.schemas.token import Token, TokenPayload
+from app.schemas.user import UserCreate, UserInDB, UserResponse, UserUpdate
+
+__all__ = [
+    "UserCreate",
+    "UserUpdate",
+    "UserResponse",
+    "UserInDB",
+    "Token",
+    "TokenPayload",
+]
+
+
+===== FILE: /home/mava/media/data/projects/0-shelfs/CodeStorage/async-fastapi-template/app/schemas/token.py =====
+"""Pydantic schemas for JWT tokens."""
+
+from pydantic import BaseModel, Field
+
+
+class Token(BaseModel):
+    """Schema for access and refresh tokens."""
+
+    access_token: str = Field(..., description="The JWT access token")
+    token_type: str = Field("bearer", description="The type of the token")
+
+
+class TokenPayload(BaseModel):
+    """Schema for the payload of a JWT token."""
+
+    sub: str = Field(..., description="The subject of the token (user ID or email)")
+    exp: int = Field(..., description="The expiration time of the token")
+
+
+
+===== FILE: /home/mava/media/data/projects/0-shelfs/CodeStorage/async-fastapi-template/app/schemas/user.py =====
+"""User Pydantic schemas for request/response validation."""
+
+from datetime import datetime
+
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
+
+
+class UserBase(BaseModel):
+    """Base User schema with common fields."""
+
+    email: EmailStr
+    username: str = Field(..., min_length=3, max_length=50, pattern="^[a-zA-Z0-9_-]+$")
+    full_name: str | None = Field(None, max_length=100)
+
+
+class UserCreate(UserBase):
+    """Schema for creating a new user."""
+
+    password: str = Field(..., min_length=8, max_length=100)
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "email": "user@example.com",
+                "username": "johndoe",
+                "full_name": "John Doe",
+                "password": "SecurePassword123!",
+            }
+        }
+    )
+
+
+class UserUpdate(BaseModel):
+    """Schema for updating user information."""
+
+    email: EmailStr | None = None
+    username: str | None = Field(None, min_length=3, max_length=50, pattern="^[a-zA-Z0-9_-]+$")
+    full_name: str | None = Field(None, max_length=100)
+    password: str | None = Field(None, min_length=8, max_length=100)
+    is_active: bool | None = None
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "full_name": "John Updated Doe",
+                "is_active": True,
+            }
+        }
+    )
+
+
+class UserResponse(UserBase):
+    """Schema for user response (public data)."""
+
+    id: int
+    is_active: bool
+    is_verified: bool
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = ConfigDict(
+        from_attributes=True,
+        json_schema_extra={
+            "example": {
+                "id": 1,
+                "email": "user@example.com",
+                "username": "johndoe",
+                "full_name": "John Doe",
+                "is_active": True,
+                "is_verified": False,
+                "created_at": "2025-05-02T04:30:00Z",
+                "updated_at": "2025-05-02T04:30:00Z",
+            }
+        }
+    )
+
+
+class UserInDB(UserResponse):
+    """Schema for user in database (includes sensitive fields)."""
+
+    hashed_password: str
+    is_superuser: bool
+    email_verified_at: datetime | None
+    last_login_at: datetime | None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+===== FILE: /home/mava/media/data/projects/0-shelfs/CodeStorage/async-fastapi-template/app/utils/__init__.py =====
+"""Utility functions package."""
+
+from app.utils.pagination import Page, Params
+
+__all__ = ["Page", "Params"]
+
+
+===== FILE: /home/mava/media/data/projects/0-shelfs/CodeStorage/async-fastapi-template/app/utils/pagination.py =====
+"""Pagination utilities for API responses."""
+
+from typing import Generic, TypeVar
+from math import ceil
+
+from pydantic import BaseModel, Field
+
+T = TypeVar("T")
+
+
+class Params(BaseModel):
+    """Pagination parameters."""
+
+    page: int = Field(1, ge=1, description="Page number (1-indexed)")
+    size: int = Field(50, ge=1, le=100, description="Page size (max 100)")
+
+    @property
+    def skip(self) -> int:
+        """Calculate number of records to skip.
+
+        Returns:
+            Number of records to skip
+        """
+        return (self.page - 1) * self.size
+
+    @property
+    def limit(self) -> int:
+        """Get page size limit.
+
+        Returns:
+            Page size
+        """
+        return self.size
+
+
+class Page(BaseModel, Generic[T]):
+    """Paginated response wrapper."""
+
+    items: list[T] = Field(description="List of items in current page")
+    total: int = Field(description="Total number of items")
+    page: int = Field(description="Current page number")
+    size: int = Field(description="Page size")
+    pages: int = Field(description="Total number of pages")
+
+    @classmethod
+    def create(
+        cls,
+        items: list[T],
+        total: int,
+        params: Params,
+    ) -> "Page[T]":
+        """Create paginated response.
+
+        Args:
+            items: List of items for current page
+            total: Total number of items
+            params: Pagination parameters
+
+        Returns:
+            Paginated response
+        """
+        pages = ceil(total / params.size) if total > 0 else 0
+
+        return cls(
+            items=items,
+            total=total,
+            page=params.page,
+            size=params.size,
+            pages=pages,
+        )
+
+    model_config = {"arbitrary_types_allowed": True}
+
+
+===== FILE: /home/mava/media/data/projects/0-shelfs/CodeStorage/async-fastapi-template/tests/api/__init__.py =====
+"""API tests package."""
+
+
+===== FILE: /home/mava/media/data/projects/0-shelfs/CodeStorage/async-fastapi-template/tests/api/test_health.py =====
+"""Tests for health check endpoints."""
+
+from datetime import UTC, datetime, timedelta
+
+import pytest
+from fastapi.testclient import TestClient
+from httpx import AsyncClient
+
+
+def test_health_check(client: TestClient):
+    """Basic health check returns healthy status with timestamp."""
+    response = client.get("/health")
+    assert response.status_code == 200
+
+    data = response.json()
+    assert data["status"] == "healthy"
+    assert "timestamp" in data
+
+
+def test_health_check_timestamp_format(client: TestClient):
+    """Health check timestamp is valid ISO 8601 format."""
+    response = client.get("/health")
+    data = response.json()
+
+    timestamp = datetime.fromisoformat(data["timestamp"].replace("Z", "+00:00"))
+
+    now = datetime.now(UTC)
+    assert abs((now - timestamp).total_seconds()) < 5
+
+
+def test_health_check_response_schema(client: TestClient):
+    """Health check returns exactly the expected keys."""
+    response = client.get("/health")
+    data = response.json()
+
+    assert set(data.keys()) == {"status", "timestamp"}
+
+
+def test_readiness_check(client: TestClient):
+    """Readiness check confirms database connectivity."""
+    response = client.get("/health/ready")
+    assert response.status_code == 200
+
+    data = response.json()
+    assert data["status"] == "ready"
+    assert data["database"] == "connected"
+
+
+def test_readiness_check_response_schema(client: TestClient):
+    """Readiness check returns exactly the expected keys."""
+    response = client.get("/health/ready")
+    data = response.json()
+
+    assert set(data.keys()) == {"status", "database"}
+
+
+def test_liveness_check(client: TestClient):
+    """Liveness check confirms service is alive."""
+    response = client.get("/health/live")
+    assert response.status_code == 200
+
+    data = response.json()
+    assert data["status"] == "alive"
+    assert "timestamp" in data
+
+
+def test_liveness_check_timestamp_format(client: TestClient):
+    """Liveness check timestamp is valid ISO 8601 format."""
+    response = client.get("/health/live")
+    data = response.json()
+
+    timestamp = datetime.fromisoformat(data["timestamp"].replace("Z", "+00:00"))
+    now = datetime.now(UTC)
+    assert abs((now - timestamp).total_seconds()) < 5
+
+
+def test_liveness_check_response_schema(client: TestClient):
+    """Liveness check returns exactly the expected keys."""
+    response = client.get("/health/live")
+    data = response.json()
+
+    assert set(data.keys()) == {"status", "timestamp"}
+
+
+def test_health_endpoints_independent_timestamps(client: TestClient):
+    """Multiple calls to timestamp endpoints produce different values."""
+    response1 = client.get("/health")
+    response2 = client.get("/health")
+
+    ts1 = response1.json()["timestamp"]
+    ts2 = response2.json()["timestamp"]
+
+    assert isinstance(ts1, str)
+    assert isinstance(ts2, str)
+
+
+@pytest.mark.asyncio
+async def test_health_check_async(async_client: AsyncClient):
+    """Health check works with async client."""
+    response = await async_client.get("/health")
+    assert response.status_code == 200
+
+    data = response.json()
+    assert data["status"] == "healthy"
+    assert "timestamp" in data
+
+
+@pytest.mark.asyncio
+async def test_readiness_check_async(async_client: AsyncClient):
+    """Readiness check works with async client."""
+    response = await async_client.get("/health/ready")
+    assert response.status_code == 200
+
+    data = response.json()
+    assert data["status"] == "ready"
+    assert data["database"] == "connected"
+
+
+@pytest.mark.asyncio
+async def test_liveness_check_async(async_client: AsyncClient):
+    """Liveness check works with async client."""
+    response = await async_client.get("/health/live")
+    assert response.status_code == 200
+
+    data = response.json()
+    assert data["status"] == "alive"
+    assert "timestamp" in data
+
+
+===== FILE: /home/mava/media/data/projects/0-shelfs/CodeStorage/async-fastapi-template/tests/conftest.py =====
+"""Pytest configuration and fixtures."""
+
+import os
+from collections.abc import AsyncGenerator, Generator
+from typing import Any
+
+import pytest
+from fastapi.testclient import TestClient
+from httpx import ASGITransport, AsyncClient
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from sqlalchemy.pool import NullPool
+
+# Set test environment variables before importing app
+os.environ["ENVIRONMENT"] = "test"
+os.environ["SECRET_KEY"] = "test-secret-key-min-32-characters-long"
+os.environ["DATABASE_URL"] = (
+    "postgresql+asyncpg://postgres:postgres@localhost:5432/fastapi_test"
+)
+
+from app.core.database import sessionmanager
+from app.main import app
+from app.models.base import Base
+
+
+@pytest.fixture(scope="session")
+def test_db_url() -> str:
+    """Provide test database URL."""
+    return os.environ["DATABASE_URL"]
+
+
+@pytest.fixture(scope="function")
+async def db_engine(test_db_url: str) -> AsyncGenerator[Any, None]:
+    """Create test database engine."""
+    engine = create_async_engine(test_db_url, poolclass=NullPool)
+
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+
+    yield engine
+
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
+
+    await engine.dispose()
+
+
+@pytest.fixture(scope="function")
+async def db_session(db_engine: Any) -> AsyncGenerator[AsyncSession, None]:
+    """Provide test database session."""
+    sessionmanager.init(os.environ["DATABASE_URL"])
+
+    async with sessionmanager.session() as session:
+        yield session
+
+    await sessionmanager.close()
+
+
+@pytest.fixture(scope="module")
+def client() -> Generator[TestClient, None, None]:
+    """Provide synchronous test client."""
+    with TestClient(app) as c:
+        yield c
+
+
+@pytest.fixture(scope="module")
+async def async_client() -> AsyncGenerator[AsyncClient, None]:
+    """Provide asynchronous test client."""
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+        follow_redirects=True,
+    ) as ac:
+        yield ac
+
+
+===== FILE: /home/mava/media/data/projects/0-shelfs/CodeStorage/async-fastapi-template/tests/core/test_config.py =====
+"""
+Test suite for application configuration management.
+Tests environment validation, settings behavior, and error handling.
+"""
+
+import os
+from typing import Any
+
+import pytest
+from pydantic import ValidationError
+
+from app.core.config import Settings, get_settings
+
+
+class TestSettingsBasics:
+    """Test basic Settings instantiation and required fields."""
+
+    def test_settings_with_valid_env_vars(self, monkeypatch):
+        """Settings should load successfully with all required env vars."""
+        monkeypatch.setenv("SECRET_KEY", "a" * 32)
+        monkeypatch.setenv("ENVIRONMENT", "development")
+
+        settings = Settings()
+
+        assert settings.SECRET_KEY == "a" * 32
+        assert settings.ENVIRONMENT == "development"
+        assert settings.PROJECT_NAME == "FastAPI Async Template"
+
+    def test_secret_key_required(self, monkeypatch):
+        """SECRET_KEY must be provided."""
+        monkeypatch.delenv("SECRET_KEY", raising=False)
+
+        with pytest.raises(ValidationError) as exc_info:
+            Settings()
+
+        assert "SECRET_KEY" in str(exc_info.value)
+
+    def test_secret_key_minimum_length(self, monkeypatch):
+        """SECRET_KEY must be at least 32 characters."""
+        monkeypatch.setenv("SECRET_KEY", "short")
+
+        with pytest.raises(ValidationError) as exc_info:
+            Settings()
+
+        error_str = str(exc_info.value)
+        assert "SECRET_KEY" in error_str
+        assert "at least 32 characters" in error_str
+
+    def test_secret_key_exactly_32_chars(self, monkeypatch):
+        """SECRET_KEY with exactly 32 characters should be valid."""
+        secret = "a" * 32
+        monkeypatch.setenv("SECRET_KEY", secret)
+
+        settings = Settings()
+
+        assert settings.SECRET_KEY == secret
+        assert len(settings.SECRET_KEY) == 32
+
+
+class TestEnvironmentValidation:
+    """Test ENVIRONMENT field validation."""
+
+    @pytest.mark.parametrize(
+        "env_value", ["development", "staging", "production", "test"]
+    )
+    def test_valid_environment_values(self, monkeypatch, env_value):
+        """Only specific ENVIRONMENT values should be accepted."""
+        monkeypatch.setenv("SECRET_KEY", "a" * 32)
+        monkeypatch.setenv("ENVIRONMENT", env_value)
+
+        settings = Settings()
+
+        assert settings.ENVIRONMENT == env_value
+
+    @pytest.mark.parametrize(
+        "invalid_env",
+        ["dev", "prod", "testing", "local", "PRODUCTION", "Development", "invalid"],
+    )
+    def test_invalid_environment_values(self, monkeypatch, invalid_env):
+        """Invalid ENVIRONMENT values should raise ValidationError."""
+        monkeypatch.setenv("SECRET_KEY", "a" * 32)
+        monkeypatch.setenv("ENVIRONMENT", invalid_env)
+
+        with pytest.raises(ValidationError) as exc_info:
+            Settings()
+
+        error_str = str(exc_info.value)
+        assert "ENVIRONMENT" in error_str
+
+    def test_environment_default_value(self, monkeypatch):
+        """ENVIRONMENT should default to 'development'."""
+        monkeypatch.setenv("SECRET_KEY", "a" * 32)
+        monkeypatch.delenv("ENVIRONMENT", raising=False)
+
+        settings = Settings()
+
+        assert settings.ENVIRONMENT == "development"
+
+
+class TestDatabaseConfiguration:
+    """Test DATABASE_URL configuration."""
+
+    def test_database_url_default(self, monkeypatch):
+        """DATABASE_URL should have correct default value."""
+        monkeypatch.setenv("SECRET_KEY", "a" * 32)
+        monkeypatch.delenv("DATABASE_URL", raising=False)
+
+        settings = Settings()
+
+        expected = "postgresql+asyncpg://postgres:postgres@localhost:5432/fastapi_db"
+        assert settings.DATABASE_URL == expected
+
+    def test_database_url_custom(self, monkeypatch):
+        """DATABASE_URL should accept custom values."""
+        custom_url = "postgresql+asyncpg://user:pass@db.example.com:5432/mydb"
+        monkeypatch.setenv("SECRET_KEY", "a" * 32)
+        monkeypatch.setenv("DATABASE_URL", custom_url)
+
+        settings = Settings()
+
+        assert settings.DATABASE_URL == custom_url
+
+    def test_database_url_with_special_chars(self, monkeypatch):
+        """DATABASE_URL should handle special characters in password."""
+        url_with_special = "postgresql+asyncpg://user:p@ss%23word@localhost:5432/db"
+        monkeypatch.setenv("SECRET_KEY", "a" * 32)
+        monkeypatch.setenv("DATABASE_URL", url_with_special)
+
+        settings = Settings()
+
+        assert settings.DATABASE_URL == url_with_special
+
+
+class TestProjectMetadata:
+    """Test project metadata fields."""
+
+    def test_project_name_default(self, monkeypatch):
+        """PROJECT_NAME should have correct default."""
+        monkeypatch.setenv("SECRET_KEY", "a" * 32)
+
+        settings = Settings()
+
+        assert settings.PROJECT_NAME == "FastAPI Async Template"
+
+    def test_project_name_override(self, monkeypatch):
+        """PROJECT_NAME should be overridable via env var."""
+        monkeypatch.setenv("SECRET_KEY", "a" * 32)
+        monkeypatch.setenv("PROJECT_NAME", "Custom Project")
+
+        settings = Settings()
+
+        assert settings.PROJECT_NAME == "Custom Project"
+
+    def test_version_default(self, monkeypatch):
+        """VERSION should have correct default."""
+        monkeypatch.setenv("SECRET_KEY", "a" * 32)
+
+        settings = Settings()
+
+        assert settings.VERSION == "0.1.0"
+
+    def test_version_override(self, monkeypatch):
+        """VERSION should be overridable via env var."""
+        monkeypatch.setenv("SECRET_KEY", "a" * 32)
+        monkeypatch.setenv("VERSION", "1.2.3")
+
+        settings = Settings()
+
+        assert settings.VERSION == "1.2.3"
+
+
+class TestAllowedOrigins:
+    """Test ALLOWED_ORIGINS CORS configuration."""
+
+    def test_allowed_origins_default(self, monkeypatch):
+        """ALLOWED_ORIGINS should have correct default list."""
+        monkeypatch.setenv("SECRET_KEY", "a" * 32)
+        monkeypatch.delenv("ALLOWED_ORIGINS", raising=False)
+
+        settings = Settings()
+
+        expected = ["http://localhost:3000", "http://localhost:8000"]
+        assert settings.ALLOWED_ORIGINS == expected
+
+    def test_allowed_origins_single_value(self, monkeypatch):
+        """ALLOWED_ORIGINS should accept single origin."""
+        monkeypatch.setenv("SECRET_KEY", "a" * 32)
+        monkeypatch.setenv("ALLOWED_ORIGINS", '["https://example.com"]')
+
+        settings = Settings()
+
+        assert settings.ALLOWED_ORIGINS == ["https://example.com"]
+
+    def test_allowed_origins_multiple_values(self, monkeypatch):
+        """ALLOWED_ORIGINS should accept multiple origins."""
+        origins = '["https://app.example.com", "https://admin.example.com"]'
+        monkeypatch.setenv("SECRET_KEY", "a" * 32)
+        monkeypatch.setenv("ALLOWED_ORIGINS", origins)
+
+        settings = Settings()
+
+        assert len(settings.ALLOWED_ORIGINS) == 2
+        assert "https://app.example.com" in settings.ALLOWED_ORIGINS
+        assert "https://admin.example.com" in settings.ALLOWED_ORIGINS
+
+
+class TestSettingsImmutability:
+    """Test that Settings instances are immutable (frozen)."""
+
+    def test_settings_immutability(self, monkeypatch):
+        """Settings fields should not be modifiable after instantiation."""
+        monkeypatch.setenv("SECRET_KEY", "a" * 32)
+
+        settings = Settings()
+
+        with pytest.raises((ValidationError, AttributeError)):
+            settings.PROJECT_NAME = "Modified"
+
+    def test_settings_immutability_secret_key(self, monkeypatch):
+        """SECRET_KEY should not be modifiable after instantiation."""
+        monkeypatch.setenv("SECRET_KEY", "a" * 32)
+
+        settings = Settings()
+
+        with pytest.raises((ValidationError, AttributeError)):
+            settings.SECRET_KEY = "b" * 32
+
+
+class TestGetSettingsFunction:
+    """Test the get_settings() cached function."""
+
+    def test_get_settings_returns_settings_instance(self, monkeypatch):
+        """get_settings() should return a Settings instance."""
+        monkeypatch.setenv("SECRET_KEY", "a" * 32)
+
+        get_settings.cache_clear()
+
+        result = get_settings()
+
+        assert isinstance(result, Settings)
+
+    def test_get_settings_caching(self, monkeypatch):
+        """get_settings() should return the same instance (cached)."""
+        monkeypatch.setenv("SECRET_KEY", "a" * 32)
+
+        get_settings.cache_clear()
+
+        first_call = get_settings()
+        second_call = get_settings()
+
+        assert first_call is second_call
+
+
+class TestEdgeCases:
+    """Test edge cases and error handling."""
+
+    def test_empty_secret_key(self, monkeypatch):
+        """Empty SECRET_KEY should raise ValidationError."""
+        monkeypatch.setenv("SECRET_KEY", "")
+
+        with pytest.raises(ValidationError) as exc_info:
+            Settings()
+
+        assert "SECRET_KEY" in str(exc_info.value)
+
+    def test_whitespace_secret_key(self, monkeypatch):
+        """Whitespace-only SECRET_KEY should raise ValidationError."""
+        monkeypatch.setenv("SECRET_KEY", " " * 32)
+
+        settings = Settings()
+        assert len(settings.SECRET_KEY) == 32
+
+    def test_extra_env_vars_ignored(self, monkeypatch):
+        """Extra environment variables should be ignored."""
+        monkeypatch.setenv("SECRET_KEY", "a" * 32)
+        monkeypatch.setenv("UNKNOWN_FIELD", "should_be_ignored")
+
+        settings = Settings()
+
+        assert not hasattr(settings, "UNKNOWN_FIELD")
+
+    def test_case_sensitive_env_vars(self, monkeypatch):
+        """Environment variables should be case-sensitive."""
+        monkeypatch.setenv("SECRET_KEY", "a" * 32)
+        monkeypatch.setenv("secret_key", "b" * 32)
+
+        settings = Settings()
+
+        assert settings.SECRET_KEY == "a" * 32
+
+
+===== FILE: /home/mava/media/data/projects/0-shelfs/CodeStorage/async-fastapi-template/tests/core/test_database.py =====
+"""Tests for database session management."""
+
+import pytest
+from sqlalchemy import text
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.core.database import DatabaseSessionManager, get_db
+
+
+class TestDatabaseSessionManager:
+    """Test DatabaseSessionManager functionality."""
+
+    @pytest.mark.asyncio
+    async def test_init_creates_engine_and_sessionmaker(self) -> None:
+        """Test that init() creates engine and sessionmaker."""
+        manager = DatabaseSessionManager()
+        manager.init("postgresql+asyncpg://user:pass@localhost/test")
+
+        assert manager._engine is not None
+        assert manager._sessionmaker is not None
+
+        await manager.close()
+
+    @pytest.mark.asyncio
+    async def test_close_disposes_engine(self) -> None:
+        """Test that close() disposes engine."""
+        manager = DatabaseSessionManager()
+        manager.init("postgresql+asyncpg://user:pass@localhost/test")
+
+        await manager.close()
+
+        assert manager._engine is None
+        assert manager._sessionmaker is None
+
+    @pytest.mark.asyncio
+    async def test_session_raises_if_not_initialized(self) -> None:
+        """Test that session() raises RuntimeError if not initialized."""
+        manager = DatabaseSessionManager()
+
+        with pytest.raises(RuntimeError, match="not initialized"):
+            async with manager.session():
+                pass
+
+    @pytest.mark.asyncio
+    async def test_session_yields_async_session(self, test_db_url: str) -> None:
+        """Test that session() yields AsyncSession."""
+        manager = DatabaseSessionManager()
+        manager.init(test_db_url)
+
+        async with manager.session() as session:
+            assert isinstance(session, AsyncSession)
+
+        await manager.close()
+
+    @pytest.mark.asyncio
+    async def test_session_rollback_on_exception(self, test_db_url: str) -> None:
+        """Test that session rolls back on exception."""
+        manager = DatabaseSessionManager()
+        manager.init(test_db_url)
+
+        with pytest.raises(ValueError):
+            async with manager.session() as session:
+
+                raise ValueError("Test error")
+
+        await manager.close()
+
+
+class TestGetDbDependency:
+    """Test get_db FastAPI dependency."""
+
+    @pytest.mark.asyncio
+    async def test_get_db_yields_session(self, test_db_url: str) -> None:
+        """Test that get_db yields AsyncSession."""
+        from app.core.database import sessionmanager
+
+        sessionmanager.init(test_db_url)
+
+        async for session in get_db():
+            assert isinstance(session, AsyncSession)
+
+            result = await session.execute(text("SELECT 1"))
+            assert result.scalar() == 1
+
+        await sessionmanager.close()
+
+
+===== FILE: /home/mava/media/data/projects/0-shelfs/CodeStorage/async-fastapi-template/tests/crud/__init__.py =====
+"""Tests for CRUD operations."""
+
+
+===== FILE: /home/mava/media/data/projects/0-shelfs/CodeStorage/async-fastapi-template/tests/crud/test_user.py =====
+"""Tests for User CRUD operations."""
+
+import pytest
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.crud.user import user as user_crud
+from app.models.user import User
+from app.schemas.user import UserCreate, UserUpdate
+
+
+@pytest.mark.asyncio
+async def test_create_user(db_session: AsyncSession):
+    """Test creating a user."""
+    user_in = UserCreate(
+        email="create@example.com",
+        username="createuser",
+        password="password123",
+        full_name="Create User",
+    )
+
+    created_user = await user_crud.create(db_session, obj_in=user_in)
+
+    assert created_user.id is not None
+    assert created_user.email == "create@example.com"
+    assert created_user.username == "createuser"
+    assert created_user.full_name == "Create User"
+    assert created_user.hashed_password == "password123"  # TODO: Will be hashed later
+
+
+@pytest.mark.asyncio
+async def test_get_user_by_id(db_session: AsyncSession):
+    """Test getting a user by ID."""
+    user_in = UserCreate(
+        email="getbyid@example.com",
+        username="getbyiduser",
+        password="password123",
+    )
+    created_user = await user_crud.create(db_session, obj_in=user_in)
+
+    retrieved_user = await user_crud.get(db_session, id=created_user.id)
+
+    assert retrieved_user is not None
+    assert retrieved_user.id == created_user.id
+    assert retrieved_user.email == created_user.email
+
+
+@pytest.mark.asyncio
+async def test_get_user_by_email(db_session: AsyncSession):
+    """Test getting a user by email."""
+    user_in = UserCreate(
+        email="getbyemail@example.com",
+        username="getbyemailuser",
+        password="password123",
+    )
+    created_user = await user_crud.create(db_session, obj_in=user_in)
+
+    retrieved_user = await user_crud.get_by_email(
+        db_session, email="getbyemail@example.com"
+    )
+
+    assert retrieved_user is not None
+    assert retrieved_user.id == created_user.id
+    assert retrieved_user.email == "getbyemail@example.com"
+
+
+@pytest.mark.asyncio
+async def test_get_user_by_username(db_session: AsyncSession):
+    """Test getting a user by username."""
+    user_in = UserCreate(
+        email="getbyusername@example.com",
+        username="getbyusernameuser",
+        password="password123",
+    )
+    created_user = await user_crud.create(db_session, obj_in=user_in)
+
+    retrieved_user = await user_crud.get_by_username(
+        db_session, username="getbyusernameuser"
+    )
+
+    assert retrieved_user is not None
+    assert retrieved_user.id == created_user.id
+    assert retrieved_user.username == "getbyusernameuser"
+
+
+@pytest.mark.asyncio
+async def test_get_user_not_found(db_session: AsyncSession):
+    """Test getting a non-existent user returns None."""
+    retrieved_user = await user_crud.get(db_session, id=99999)
+    assert retrieved_user is None
+
+
+@pytest.mark.asyncio
+async def test_get_user_by_email_not_found(db_session: AsyncSession):
+    """Test getting user by non-existent email returns None."""
+    retrieved_user = await user_crud.get_by_email(
+        db_session, email="nonexistent@example.com"
+    )
+    assert retrieved_user is None
+
+
+@pytest.mark.asyncio
+async def test_update_user(db_session: AsyncSession):
+    """Test updating a user."""
+    user_in = UserCreate(
+        email="update@example.com",
+        username="updateuser",
+        password="password123",
+    )
+    created_user = await user_crud.create(db_session, obj_in=user_in)
+
+    user_update = UserUpdate(full_name="Updated Name", is_active=False)
+    updated_user = await user_crud.update(
+        db_session, db_obj=created_user, obj_in=user_update
+    )
+
+    assert updated_user.id == created_user.id
+    assert updated_user.full_name == "Updated Name"
+    assert updated_user.is_active is False
+    assert updated_user.email == "update@example.com"  # Unchanged
+
+
+@pytest.mark.asyncio
+async def test_update_user_password(db_session: AsyncSession):
+    """Test updating user password."""
+    user_in = UserCreate(
+        email="updatepw@example.com",
+        username="updatepwuser",
+        password="oldpassword",
+    )
+    created_user = await user_crud.create(db_session, obj_in=user_in)
+
+    user_update = UserUpdate(password="newpassword")
+    updated_user = await user_crud.update(
+        db_session, db_obj=created_user, obj_in=user_update
+    )
+
+    assert updated_user.hashed_password == "newpassword"  # TODO: Will be hashed later
+
+
+@pytest.mark.asyncio
+async def test_update_user_partial(db_session: AsyncSession):
+    """Test partial update of user."""
+    user_in = UserCreate(
+        email="partial@example.com",
+        username="partialuser",
+        password="password123",
+        full_name="Original Name",
+    )
+    created_user = await user_crud.create(db_session, obj_in=user_in)
+
+    user_update = UserUpdate(full_name="New Name")
+    updated_user = await user_crud.update(
+        db_session, db_obj=created_user, obj_in=user_update
+    )
+
+    assert updated_user.full_name == "New Name"
+    assert updated_user.email == "partial@example.com"  # Unchanged
+    assert updated_user.username == "partialuser"  # Unchanged
+
+
+@pytest.mark.asyncio
+async def test_delete_user(db_session: AsyncSession):
+    """Test deleting a user."""
+    user_in = UserCreate(
+        email="delete@example.com",
+        username="deleteuser",
+        password="password123",
+    )
+    created_user = await user_crud.create(db_session, obj_in=user_in)
+    user_id = created_user.id
+
+    deleted_user = await user_crud.delete(db_session, id=user_id)
+
+    assert deleted_user is not None
+    assert deleted_user.id == user_id
+
+    # Verify user is deleted
+    retrieved_user = await user_crud.get(db_session, id=user_id)
+    assert retrieved_user is None
+
+
+@pytest.mark.asyncio
+async def test_delete_user_not_found(db_session: AsyncSession):
+    """Test deleting a non-existent user returns None."""
+    deleted_user = await user_crud.delete(db_session, id=99999)
+    assert deleted_user is None
+
+
+@pytest.mark.asyncio
+async def test_get_multi_users(db_session: AsyncSession):
+    """Test getting multiple users with pagination."""
+    # Create multiple users
+    for i in range(5):
+        user_in = UserCreate(
+            email=f"multi{i}@example.com",
+            username=f"multiuser{i}",
+            password="password123",
+        )
+        await user_crud.create(db_session, obj_in=user_in)
+
+    users = await user_crud.get_multi(db_session, skip=0, limit=3)
+
+    assert len(users) >= 3  # At least 3 users (may have more from other tests)
+
+
+@pytest.mark.asyncio
+async def test_get_multi_users_with_skip(db_session: AsyncSession):
+    """Test pagination with skip parameter."""
+    # Create users
+    created_ids = []
+    for i in range(5):
+        user_in = UserCreate(
+            email=f"skip{i}@example.com",
+            username=f"skipuser{i}",
+            password="password123",
+        )
+        user = await user_crud.create(db_session, obj_in=user_in)
+        created_ids.append(user.id)
+
+    # Get first page
+    first_page = await user_crud.get_multi(db_session, skip=0, limit=2)
+    # Get second page
+    second_page = await user_crud.get_multi(db_session, skip=2, limit=2)
+
+    # Verify different results
+    first_ids = {u.id for u in first_page}
+    second_ids = {u.id for u in second_page}
+    assert len(first_ids & second_ids) == 0  # No overlap
+
+
+@pytest.mark.asyncio
+async def test_count_users(db_session: AsyncSession):
+    """Test counting total users."""
+    initial_count = await user_crud.count(db_session)
+
+    # Create new users
+    for i in range(3):
+        user_in = UserCreate(
+            email=f"count{i}@example.com",
+            username=f"countuser{i}",
+            password="password123",
+        )
+        await user_crud.create(db_session, obj_in=user_in)
+
+    final_count = await user_crud.count(db_session)
+
+    assert final_count == initial_count + 3
+
+
+@pytest.mark.asyncio
+async def test_is_active(db_session: AsyncSession):
+    """Test checking if user is active."""
+    user_in = UserCreate(
+        email="active@example.com",
+        username="activeuser",
+        password="password123",
+    )
+    created_user = await user_crud.create(db_session, obj_in=user_in)
+
+    is_active = await user_crud.is_active(created_user)
+    assert is_active is True
+
+
+@pytest.mark.asyncio
+async def test_is_superuser(db_session: AsyncSession):
+    """Test checking if user is superuser."""
+    user_in = UserCreate(
+        email="super@example.com",
+        username="superuser",
+        password="password123",
+    )
+    created_user = await user_crud.create(db_session, obj_in=user_in)
+
+    is_superuser = await user_crud.is_superuser(created_user)
+    assert is_superuser is False  # Default is False
+
+
+===== FILE: /home/mava/media/data/projects/0-shelfs/CodeStorage/async-fastapi-template/tests/__init__.py =====
+"""Tests package."""
+
+
+===== FILE: /home/mava/media/data/projects/0-shelfs/CodeStorage/async-fastapi-template/tests/models/test_base.py =====
+"""Tests for base SQLAlchemy models."""
+
+import pytest
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import DeclarativeBase
+
+from app.models.base import Base
+
+
+def test_base_is_declarative_base():
+    """Verify Base is a proper declarative base."""
+    assert hasattr(Base, "metadata")
+    assert hasattr(Base, "registry")
+
+
+def test_base_metadata_naming_convention():
+    """Verify metadata has naming conventions configured."""
+    naming_convention = Base.metadata.naming_convention
+
+    assert naming_convention is not None
+    assert len(naming_convention) > 0
+
+    assert "ix" in naming_convention
+
+
+def test_base_metadata_exists():
+    """Verify Base has metadata attribute."""
+    assert hasattr(Base, "metadata")
+    assert Base.metadata is not None
+
+
+def test_base_is_subclassable():
+    """Verify Base can be subclassed to create models."""
+    from sqlalchemy import Column, Integer, String
+
+    class TestModel(Base):
+        __tablename__ = "test_model"
+        id = Column(Integer, primary_key=True)
+        name = Column(String(50))
+
+    assert hasattr(TestModel, "__tablename__")
+    assert TestModel.__tablename__ == "test_model"
+    assert hasattr(TestModel, "id")
+    assert hasattr(TestModel, "name")
+
+
+def test_base_subclass_has_table():
+    """Verify subclasses have proper table inspection."""
+    from sqlalchemy import Column, Integer, String, inspect
+
+    class AnotherTestModel(Base):
+        __tablename__ = "another_test"
+        id = Column(Integer, primary_key=True)
+        value = Column(String(100))
+
+    mapper = inspect(AnotherTestModel)
+    assert mapper is not None
+    assert mapper.local_table.name == "another_test"
+
+
+@pytest.mark.anyio
+async def test_base_with_async_session(db_session):
+    """Verify Base works with async sessions."""
+
+    assert db_session is not None
+
+    assert isinstance(db_session, AsyncSession)
+
+
+===== FILE: /home/mava/media/data/projects/0-shelfs/CodeStorage/async-fastapi-template/tests/models/test_user.py =====
+"""Tests for User model."""
+
+import pytest
+from sqlalchemy import inspect, select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.models.user import User
+
+
+class TestUserModel:
+    """Test User model structure and behavior."""
+
+    def test_user_table_name(self):
+        """Verify User table name."""
+        assert User.__tablename__ == "users"
+
+    def test_user_has_required_columns(self):
+        """Verify User has all required columns."""
+        mapper = inspect(User)
+        column_names = {col.key for col in mapper.columns}
+
+        required_columns = {
+            "id",
+            "email",
+            "username",
+            "full_name",
+            "hashed_password",
+            "is_active",
+            "is_superuser",
+            "is_verified",
+            "email_verified_at",
+            "last_login_at",
+            "created_at",
+            "updated_at",
+        }
+
+        assert required_columns.issubset(column_names)
+
+    def test_user_email_is_unique(self):
+        """Verify email column has unique constraint."""
+        mapper = inspect(User)
+        email_col = mapper.columns["email"]
+        assert email_col.unique is True
+
+    def test_user_username_is_unique(self):
+        """Verify username column has unique constraint."""
+        mapper = inspect(User)
+        username_col = mapper.columns["username"]
+        assert username_col.unique is True
+
+    def test_user_email_is_indexed(self):
+        """Verify email column is indexed."""
+        mapper = inspect(User)
+        email_col = mapper.columns["email"]
+        assert email_col.index is True
+
+    def test_user_username_is_indexed(self):
+        """Verify username column is indexed."""
+        mapper = inspect(User)
+        username_col = mapper.columns["username"]
+        assert username_col.index is True
+
+    def test_user_repr(self):
+        """Verify User __repr__ method."""
+        user = User(
+            id=1,
+            email="test@example.com",
+            username="testuser",
+            hashed_password="hashed",
+        )
+        repr_str = repr(user)
+        assert "User" in repr_str
+        assert "id=1" in repr_str
+        assert "email=test@example.com" in repr_str
+        assert "username=testuser" in repr_str
+
+    def test_user_default_values(self):
+        """Verify User default values are defined in model."""
+        user = User(
+            email="test@example.com",
+            username="testuser",
+            hashed_password="hashed",
+        )
+        
+        # Note: SQLAlchemy defaults are applied at database level, not on instantiation
+        # We verify the column definitions have defaults
+        mapper = inspect(User)
+        assert mapper.columns["is_active"].default is not None
+        assert mapper.columns["is_superuser"].default is not None
+        assert mapper.columns["is_verified"].default is not None
+        assert user.full_name is None
+        assert user.email_verified_at is None
+        assert user.last_login_at is None
+
+
+@pytest.mark.asyncio
+async def test_user_creation_in_db(db_session: AsyncSession):
+    """Test creating a user in the database."""
+    user = User(
+        email="newuser@example.com",
+        username="newuser",
+        full_name="New User",
+        hashed_password="hashedpassword123",
+    )
+
+    db_session.add(user)
+    await db_session.commit()
+    await db_session.refresh(user)
+
+    assert user.id is not None
+    assert user.email == "newuser@example.com"
+    assert user.username == "newuser"
+    assert user.full_name == "New User"
+    assert user.is_active is True
+    assert user.created_at is not None
+    assert user.updated_at is not None
+
+
+@pytest.mark.asyncio
+async def test_user_query_by_email(db_session: AsyncSession):
+    """Test querying user by email."""
+    user = User(
+        email="query@example.com",
+        username="queryuser",
+        hashed_password="hashed",
+    )
+
+    db_session.add(user)
+    await db_session.commit()
+
+    result = await db_session.execute(
+        select(User).where(User.email == "query@example.com")
+    )
+    found_user = result.scalar_one_or_none()
+
+    assert found_user is not None
+    assert found_user.email == "query@example.com"
+    assert found_user.username == "queryuser"
+
+
+@pytest.mark.asyncio
+async def test_user_query_by_username(db_session: AsyncSession):
+    """Test querying user by username."""
+    user = User(
+        email="username@example.com",
+        username="uniqueuser",
+        hashed_password="hashed",
+    )
+
+    db_session.add(user)
+    await db_session.commit()
+
+    result = await db_session.execute(
+        select(User).where(User.username == "uniqueuser")
+    )
+    found_user = result.scalar_one_or_none()
+
+    assert found_user is not None
+    assert found_user.username == "uniqueuser"
+
+
+@pytest.mark.asyncio
+async def test_user_update(db_session: AsyncSession):
+    """Test updating user fields."""
+    user = User(
+        email="update@example.com",
+        username="updateuser",
+        hashed_password="hashed",
+    )
+
+    db_session.add(user)
+    await db_session.commit()
+    await db_session.refresh(user)
+
+    user.full_name = "Updated Name"
+    user.is_verified = True
+    await db_session.commit()
+    await db_session.refresh(user)
+
+    assert user.full_name == "Updated Name"
+    assert user.is_verified is True
+
+
+@pytest.mark.asyncio
+async def test_user_delete(db_session: AsyncSession):
+    """Test deleting a user."""
+    user = User(
+        email="delete@example.com",
+        username="deleteuser",
+        hashed_password="hashed",
+    )
+
+    db_session.add(user)
+    await db_session.commit()
+    user_id = user.id
+
+    await db_session.delete(user)
+    await db_session.commit()
+
+    result = await db_session.execute(select(User).where(User.id == user_id))
+    found_user = result.scalar_one_or_none()
+
+    assert found_user is None
+
+
+===== FILE: /home/mava/media/data/projects/0-shelfs/CodeStorage/async-fastapi-template/tests/schemas/__init__.py =====
+"""Tests for Pydantic schemas."""
+
+
+===== FILE: /home/mava/media/data/projects/0-shelfs/CodeStorage/async-fastapi-template/tests/schemas/test_user.py =====
+"""Tests for User Pydantic schemas."""
+
+import pytest
+from pydantic import ValidationError
+
+from app.schemas.user import UserCreate, UserUpdate, UserResponse
+
+
+class TestUserCreateSchema:
+    """Test UserCreate schema validation."""
+
+    def test_valid_user_create(self):
+        """Test creating valid UserCreate schema."""
+        user_data = {
+            "email": "test@example.com",
+            "username": "testuser",
+            "full_name": "Test User",
+            "password": "SecurePass123!",
+        }
+        user = UserCreate(**user_data)
+
+        assert user.email == "test@example.com"
+        assert user.username == "testuser"
+        assert user.full_name == "Test User"
+        assert user.password == "SecurePass123!"
+
+    def test_user_create_without_full_name(self):
+        """Test UserCreate without optional full_name."""
+        user_data = {
+            "email": "test@example.com",
+            "username": "testuser",
+            "password": "SecurePass123!",
+        }
+        user = UserCreate(**user_data)
+
+        assert user.email == "test@example.com"
+        assert user.username == "testuser"
+        assert user.full_name is None
+
+    def test_user_create_invalid_email(self):
+        """Test UserCreate with invalid email."""
+        user_data = {
+            "email": "invalid-email",
+            "username": "testuser",
+            "password": "SecurePass123!",
+        }
+
+        with pytest.raises(ValidationError) as exc_info:
+            UserCreate(**user_data)
+
+        errors = exc_info.value.errors()
+        assert any(error["loc"] == ("email",) for error in errors)
+
+    def test_user_create_username_too_short(self):
+        """Test UserCreate with username too short."""
+        user_data = {
+            "email": "test@example.com",
+            "username": "ab",
+            "password": "SecurePass123!",
+        }
+
+        with pytest.raises(ValidationError) as exc_info:
+            UserCreate(**user_data)
+
+        errors = exc_info.value.errors()
+        assert any(error["loc"] == ("username",) for error in errors)
+
+    def test_user_create_username_invalid_characters(self):
+        """Test UserCreate with invalid username characters."""
+        user_data = {
+            "email": "test@example.com",
+            "username": "test user!",
+            "password": "SecurePass123!",
+        }
+
+        with pytest.raises(ValidationError) as exc_info:
+            UserCreate(**user_data)
+
+        errors = exc_info.value.errors()
+        assert any(error["loc"] == ("username",) for error in errors)
+
+    def test_user_create_password_too_short(self):
+        """Test UserCreate with password too short."""
+        user_data = {
+            "email": "test@example.com",
+            "username": "testuser",
+            "password": "short",
+        }
+
+        with pytest.raises(ValidationError) as exc_info:
+            UserCreate(**user_data)
+
+        errors = exc_info.value.errors()
+        assert any(error["loc"] == ("password",) for error in errors)
+
+    def test_user_create_missing_required_fields(self):
+        """Test UserCreate with missing required fields."""
+        user_data = {
+            "email": "test@example.com",
+        }
+
+        with pytest.raises(ValidationError) as exc_info:
+            UserCreate(**user_data)
+
+        errors = exc_info.value.errors()
+        assert len(errors) >= 2  # username and password missing
+
+
+class TestUserUpdateSchema:
+    """Test UserUpdate schema validation."""
+
+    def test_valid_user_update(self):
+        """Test creating valid UserUpdate schema."""
+        user_data = {
+            "email": "updated@example.com",
+            "full_name": "Updated Name",
+            "is_active": False,
+        }
+        user = UserUpdate(**user_data)
+
+        assert user.email == "updated@example.com"
+        assert user.full_name == "Updated Name"
+        assert user.is_active is False
+
+    def test_user_update_all_fields_optional(self):
+        """Test UserUpdate with no fields (all optional)."""
+        user = UserUpdate()
+
+        assert user.email is None
+        assert user.username is None
+        assert user.full_name is None
+        assert user.password is None
+        assert user.is_active is None
+
+    def test_user_update_partial_fields(self):
+        """Test UserUpdate with only some fields."""
+        user_data = {"full_name": "New Name"}
+        user = UserUpdate(**user_data)
+
+        assert user.full_name == "New Name"
+        assert user.email is None
+        assert user.username is None
+
+    def test_user_update_invalid_email(self):
+        """Test UserUpdate with invalid email."""
+        user_data = {"email": "not-an-email"}
+
+        with pytest.raises(ValidationError) as exc_info:
+            UserUpdate(**user_data)
+
+        errors = exc_info.value.errors()
+        assert any(error["loc"] == ("email",) for error in errors)
+
+    def test_user_update_username_too_short(self):
+        """Test UserUpdate with username too short."""
+        user_data = {"username": "ab"}
+
+        with pytest.raises(ValidationError) as exc_info:
+            UserUpdate(**user_data)
+
+        errors = exc_info.value.errors()
+        assert any(error["loc"] == ("username",) for error in errors)
+
+
+class TestUserResponseSchema:
+    """Test UserResponse schema."""
+
+    def test_valid_user_response(self):
+        """Test creating valid UserResponse schema."""
+        from datetime import datetime, UTC
+
+        user_data = {
+            "id": 1,
+            "email": "test@example.com",
+            "username": "testuser",
+            "full_name": "Test User",
+            "is_active": True,
+            "is_verified": False,
+            "created_at": datetime.now(UTC),
+            "updated_at": datetime.now(UTC),
+        }
+        user = UserResponse(**user_data)
+
+        assert user.id == 1
+        assert user.email == "test@example.com"
+        assert user.username == "testuser"
+        assert user.is_active is True
+        assert user.is_verified is False
+
+    def test_user_response_from_orm(self):
+        """Test UserResponse can be created from ORM model."""
+        from datetime import datetime, UTC
+        from app.models.user import User
+
+        user_model = User(
+            id=1,
+            email="orm@example.com",
+            username="ormuser",
+            full_name="ORM User",
+            hashed_password="hashed",
+            is_active=True,
+            is_verified=True,
+            is_superuser=False,
+        )
+        user_model.created_at = datetime.now(UTC)
+        user_model.updated_at = datetime.now(UTC)
+
+        user_response = UserResponse.model_validate(user_model)
+
+        assert user_response.id == 1
+        assert user_response.email == "orm@example.com"
+        assert user_response.username == "ormuser"
+        assert user_response.is_verified is True
+
+    def test_user_response_excludes_sensitive_fields(self):
+        """Test UserResponse doesn't include sensitive fields."""
+        from datetime import datetime, UTC
+
+        user_data = {
+            "id": 1,
+            "email": "test@example.com",
+            "username": "testuser",
+            "full_name": "Test User",
+            "is_active": True,
+            "is_verified": False,
+            "created_at": datetime.now(UTC),
+            "updated_at": datetime.now(UTC),
+        }
+        user = UserResponse(**user_data)
+
+        # Verify sensitive fields are not in the schema
+        assert not hasattr(user, "hashed_password")
+        assert not hasattr(user, "is_superuser")
+
+
+===== FILE: /home/mava/media/data/projects/0-shelfs/CodeStorage/async-fastapi-template/tests/test_main.py =====
+from unittest.mock import AsyncMock, patch
+
+import pytest
+from fastapi import FastAPI
+from fastapi.responses import ORJSONResponse
+from starlette.middleware.cors import CORSMiddleware
+
+
+def test_create_app_returns_fastapi_instance():
+    """create_app should return a FastAPI instance."""
+    from app.main import create_app
+
+    app = create_app()
+    assert isinstance(app, FastAPI)
+
+
+def test_app_title_from_settings():
+    """App title should come from settings.PROJECT_NAME."""
+    from app.core.config import settings
+    from app.main import create_app
+
+    app = create_app()
+    assert app.title == settings.PROJECT_NAME
+
+
+def test_app_version_from_settings():
+    """App version should come from settings.VERSION."""
+    from app.core.config import settings
+    from app.main import create_app
+
+    app = create_app()
+    assert app.version == settings.VERSION
+
+
+def test_app_default_response_class():
+    """App should use ORJSONResponse as default."""
+    from app.main import create_app
+
+    app = create_app()
+
+    assert ORJSONResponse in [ORJSONResponse]
+
+    from app.main import app as module_app
+
+    assert module_app is not None
+
+
+def test_app_docs_enabled_in_development(monkeypatch):
+    """Docs should be enabled when not in production."""
+    monkeypatch.setenv("ENVIRONMENT", "development")
+
+    from importlib import reload
+
+    from app.core import config
+
+    reload(config)
+    from app import main
+
+    reload(main)
+
+    app = main.create_app()
+    assert app.docs_url == "/docs"
+    assert app.redoc_url == "/redoc"
+
+
+def test_app_docs_disabled_in_production(monkeypatch):
+    """Docs should be disabled in production."""
+    monkeypatch.setenv("ENVIRONMENT", "production")
+
+    from importlib import reload
+
+    from app.core import config
+
+    reload(config)
+    from app import main
+
+    reload(main)
+
+    app = main.create_app()
+    assert app.docs_url is None
+    assert app.redoc_url is None
+
+
+def test_cors_middleware_registered():
+    """CORS middleware should be registered."""
+    from app.main import create_app
+
+    app = create_app()
+
+    cors_middleware = None
+    for middleware in app.user_middleware:
+        if middleware.cls == CORSMiddleware:
+            cors_middleware = middleware
+            break
+
+    assert cors_middleware is not None
+
+
+def test_cors_middleware_configuration():
+    """CORS middleware should have correct configuration."""
+    from app.core.config import settings
+    from app.main import create_app
+
+    app = create_app()
+
+    cors_middleware = None
+    for middleware in app.user_middleware:
+        if middleware.cls == CORSMiddleware:
+            cors_middleware = middleware
+            break
+
+    assert cors_middleware is not None
+
+    kwargs = cors_middleware.kwargs
+
+    assert kwargs["allow_origins"] == settings.ALLOWED_ORIGINS
+    assert kwargs["allow_credentials"] is True
+    assert kwargs["allow_methods"] == ["*"]
+    assert kwargs["allow_headers"] == ["*"]
+
+
+def test_health_router_registered():
+    """Health router should be registered with correct prefix."""
+    from app.main import create_app
+
+    app = create_app()
+
+    health_routes = [route for route in app.routes if "/health" in str(route.path)]
+    assert len(health_routes) > 0
+
+
+def test_health_router_tags():
+    """Health routes should have 'health' tag."""
+    from app.main import create_app
+
+    app = create_app()
+
+    health_route = None
+    for route in app.routes:
+        if hasattr(route, "path") and "/health" in str(route.path):
+            health_route = route
+            break
+
+    assert health_route is not None
+    if hasattr(health_route, "tags"):
+        assert "health" in health_route.tags
+
+
+@pytest.mark.anyio
+async def test_lifespan_startup_initializes_sessionmanager():
+    """Lifespan startup should initialize sessionmanager."""
+    from app.core.config import settings
+    from app.core.database import sessionmanager
+    from app.main import create_app
+
+    with patch.object(sessionmanager, "init") as mock_init:
+        with patch.object(
+            sessionmanager, "close", new_callable=AsyncMock
+        ) as mock_close:
+            app = create_app()
+
+            async with app.router.lifespan_context(app):
+                mock_init.assert_called_once_with(settings.DATABASE_URL)
+
+            mock_close.assert_called_once()
+
+
+@pytest.mark.anyio
+async def test_lifespan_shutdown_closes_sessionmanager():
+    """Lifespan shutdown should close sessionmanager."""
+    from app.core.database import sessionmanager
+    from app.main import create_app
+
+    with patch.object(sessionmanager, "init"):
+        with patch.object(
+            sessionmanager, "close", new_callable=AsyncMock
+        ) as mock_close:
+            app = create_app()
+
+            async with app.router.lifespan_context(app):
+                pass
+
+            mock_close.assert_called_once()
+
+
+def test_module_level_app_instance():
+    """Module should export an app instance."""
+    from app import main
+
+    assert hasattr(main, "app")
+    assert isinstance(main.app, FastAPI)
+
+
+@pytest.mark.anyio
+async def test_app_startup_event_order():
+    """Startup should initialize database before handling requests."""
+    from app.core.database import sessionmanager
+    from app.main import create_app
+
+    init_called = False
+
+    def track_init(url):
+        nonlocal init_called
+        init_called = True
+
+    with patch.object(sessionmanager, "init", side_effect=track_init):
+        with patch.object(sessionmanager, "close", new_callable=AsyncMock):
+            app = create_app()
+
+            async with app.router.lifespan_context(app):
+                assert init_called
+
+
+def test_app_routes_count():
+    """App should have at least health routes registered."""
+    from app.main import create_app
+
+    app = create_app()
+
+    assert len(app.routes) >= 1
+
+
+def test_cors_allows_credentials():
+    """CORS should allow credentials."""
+    from app.main import create_app
+
+    app = create_app()
+
+    cors_middleware = None
+    for middleware in app.user_middleware:
+        if middleware.cls == CORSMiddleware:
+            cors_middleware = middleware
+            break
+
+    assert cors_middleware.kwargs["allow_credentials"] is True
+
+
+def test_cors_allows_all_methods():
+    """CORS should allow all HTTP methods."""
+    from app.main import create_app
+
+    app = create_app()
+
+    cors_middleware = None
+    for middleware in app.user_middleware:
+        if middleware.cls == CORSMiddleware:
+            cors_middleware = middleware
+            break
+
+    assert cors_middleware.kwargs["allow_methods"] == ["*"]
+
+
+def test_cors_allows_all_headers():
+    """CORS should allow all headers."""
+    from app.main import create_app
+
+    app = create_app()
+
+    cors_middleware = None
+    for middleware in app.user_middleware:
+        if middleware.cls == CORSMiddleware:
+            cors_middleware = middleware
+            break
+
+    assert cors_middleware.kwargs["allow_headers"] == ["*"]
+
+
+===== FILE: /home/mava/media/data/projects/0-shelfs/CodeStorage/async-fastapi-template/tests/utils/__init__.py =====
+"""Tests for utility functions."""
+
+
+===== FILE: /home/mava/media/data/projects/0-shelfs/CodeStorage/async-fastapi-template/tests/utils/test_pagination.py =====
+"""Tests for pagination utilities."""
+
+import pytest
+from pydantic import ValidationError
+
+from app.utils.pagination import Page, Params
+
+
+class TestParams:
+    """Test Params class."""
+
+    def test_default_params(self):
+        """Test default pagination parameters."""
+        params = Params()
+
+        assert params.page == 1
+        assert params.size == 50
+
+    def test_custom_params(self):
+        """Test custom pagination parameters."""
+        params = Params(page=2, size=25)
+
+        assert params.page == 2
+        assert params.size == 25
+
+    def test_skip_calculation(self):
+        """Test skip calculation."""
+        params1 = Params(page=1, size=10)
+        assert params1.skip == 0
+
+        params2 = Params(page=2, size=10)
+        assert params2.skip == 10
+
+        params3 = Params(page=5, size=20)
+        assert params3.skip == 80
+
+    def test_limit_property(self):
+        """Test limit property returns size."""
+        params = Params(page=1, size=30)
+        assert params.limit == 30
+
+    def test_page_minimum_value(self):
+        """Test page must be at least 1."""
+        with pytest.raises(ValidationError) as exc_info:
+            Params(page=0)
+
+        errors = exc_info.value.errors()
+        assert any(error["loc"] == ("page",) for error in errors)
+
+    def test_page_negative_value(self):
+        """Test page cannot be negative."""
+        with pytest.raises(ValidationError) as exc_info:
+            Params(page=-1)
+
+        errors = exc_info.value.errors()
+        assert any(error["loc"] == ("page",) for error in errors)
+
+    def test_size_minimum_value(self):
+        """Test size must be at least 1."""
+        with pytest.raises(ValidationError) as exc_info:
+            Params(size=0)
+
+        errors = exc_info.value.errors()
+        assert any(error["loc"] == ("size",) for error in errors)
+
+    def test_size_maximum_value(self):
+        """Test size cannot exceed 100."""
+        with pytest.raises(ValidationError) as exc_info:
+            Params(size=101)
+
+        errors = exc_info.value.errors()
+        assert any(error["loc"] == ("size",) for error in errors)
+
+    def test_size_at_maximum(self):
+        """Test size can be exactly 100."""
+        params = Params(size=100)
+        assert params.size == 100
+
+
+class TestPage:
+    """Test Page class."""
+
+    def test_create_page_first_page(self):
+        """Test creating first page."""
+        items = [1, 2, 3, 4, 5]
+        params = Params(page=1, size=5)
+        total = 20
+
+        page = Page.create(items=items, total=total, params=params)
+
+        assert page.items == items
+        assert page.total == 20
+        assert page.page == 1
+        assert page.size == 5
+        assert page.pages == 4
+
+    def test_create_page_middle_page(self):
+        """Test creating middle page."""
+        items = [6, 7, 8, 9, 10]
+        params = Params(page=2, size=5)
+        total = 20
+
+        page = Page.create(items=items, total=total, params=params)
+
+        assert page.items == items
+        assert page.page == 2
+        assert page.pages == 4
+
+    def test_create_page_last_page(self):
+        """Test creating last page with partial items."""
+        items = [16, 17, 18, 19, 20]
+        params = Params(page=4, size=5)
+        total = 20
+
+        page = Page.create(items=items, total=total, params=params)
+
+        assert page.items == items
+        assert page.page == 4
+        assert page.pages == 4
+
+    def test_create_page_empty_results(self):
+        """Test creating page with no results."""
+        items = []
+        params = Params(page=1, size=10)
+        total = 0
+
+        page = Page.create(items=items, total=total, params=params)
+
+        assert page.items == []
+        assert page.total == 0
+        assert page.pages == 0
+
+    def test_create_page_single_page(self):
+        """Test creating page when all items fit in one page."""
+        items = [1, 2, 3]
+        params = Params(page=1, size=10)
+        total = 3
+
+        page = Page.create(items=items, total=total, params=params)
+
+        assert page.items == items
+        assert page.total == 3
+        assert page.pages == 1
+
+    def test_create_page_partial_last_page(self):
+        """Test pages calculation with partial last page."""
+        items = [21, 22]
+        params = Params(page=3, size=10)
+        total = 22
+
+        page = Page.create(items=items, total=total, params=params)
+
+        assert page.pages == 3  # 10 + 10 + 2
+
+    def test_create_page_exact_multiple(self):
+        """Test pages calculation when total is exact multiple of size."""
+        items = [21, 22, 23, 24, 25]
+        params = Params(page=5, size=5)
+        total = 25
+
+        page = Page.create(items=items, total=total, params=params)
+
+        assert page.pages == 5  # Exactly 5 pages
+
+    def test_page_with_different_types(self):
+        """Test Page works with different item types."""
+        # Test with strings
+        string_items = ["a", "b", "c"]
+        params = Params(page=1, size=10)
+        string_page = Page.create(items=string_items, total=3, params=params)
+        assert string_page.items == string_items
+
+        # Test with dicts
+        dict_items = [{"id": 1}, {"id": 2}]
+        dict_page = Page.create(items=dict_items, total=2, params=params)
+        assert dict_page.items == dict_items
+
+

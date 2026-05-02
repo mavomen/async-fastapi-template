@@ -24,7 +24,8 @@ async def test_create_user(db_session: AsyncSession):
     assert created_user.email == "create@example.com"
     assert created_user.username == "createuser"
     assert created_user.full_name == "Create User"
-    assert created_user.hashed_password == "password123"  # TODO: Will be hashed later
+    assert created_user.hashed_password != "password123"
+    assert created_user.hashed_password.startswith("$2b$")  # bcrypt hash prefix
 
 
 @pytest.mark.asyncio
@@ -134,7 +135,8 @@ async def test_update_user_password(db_session: AsyncSession):
         db_session, db_obj=created_user, obj_in=user_update
     )
 
-    assert updated_user.hashed_password == "newpassword"  # TODO: Will be hashed later
+    assert updated_user.hashed_password != "newpassword"
+    assert updated_user.hashed_password.startswith("$2b$")
 
 
 @pytest.mark.asyncio

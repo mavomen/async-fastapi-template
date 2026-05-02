@@ -22,6 +22,7 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = "FastAPI Async Template"
     VERSION: str = "0.1.0"
     ENVIRONMENT: Literal["development", "staging", "production", "test"] = "development"
+    API_V1_STR: str = "/api/v1"
 
     # Security
     SECRET_KEY: str = Field(..., min_length=32)

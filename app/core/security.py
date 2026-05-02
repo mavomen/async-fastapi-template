@@ -1,36 +1,36 @@
 from datetime import datetime, timedelta, timezone
 from typing import Any, Union
 
-from jose import jwt
-from passlib.context import CryptContext
+from jose import JWTError, jwt
+import bcrypt
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
-from app.crud.user import user as crud_user
 from app.models.user import User
-
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """
-    Verifies a plain-text password against a hashed password.
-
-    :param plain_password: The plain-text password to verify.
-    :param hashed_password: The hashed password to compare against.
-    :return: True if the passwords match, False otherwise.
+    Verifies a plain-text password against a bcrypt hashed password.
+    Handles passwords longer than 72 bytes by truncating (silently).
     """
-    return pwd_context.verify(plain_password, hashed_password)
+    plain_bytes = plain_password.encode("utf-8")
+    # Truncate to 72 bytes, bcrypt's maximum
+    if len(plain_bytes) > 72:
+        plain_bytes = plain_bytes[:72]
+    return bcrypt.checkpw(plain_bytes, hashed_password.encode("utf-8"))
 
 
 def get_password_hash(password: str) -> str:
     """
-    Hashes a plain-text password.
-
-    :param password: The plain-text password to hash.
-    :return: The hashed password.
+    Hashes a plain-text password with bcrypt, truncating if longer than 72 bytes.
     """
-    return pwd_context.hash(password)
+    plain_bytes = password.encode("utf-8")
+    if len(plain_bytes) > 72:
+        plain_bytes = plain_bytes[:72]
+    salt = bcrypt.gensalt()
+    hashed = bcrypt.hashpw(plain_bytes, salt)
+    return hashed.decode("utf-8")
 
 
 def create_access_token(
@@ -56,18 +56,50 @@ def create_access_token(
     return encoded_jwt
 
 
-async def authenticate_user(db: AsyncSession, email: str, password: str) -> User | None:
+def decode_access_token(token: str) -> dict:
+    """
+    Decodes and validates a JWT access token.
+
+    Args:
+        token: The JWT string.
+
+    Returns:
+        The decoded payload as a dictionary.
+
+    Raises:
+        HTTPException: If the token is invalid or expired.
+    """
+    try:
+        payload = jwt.decode(
+            token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
+        )
+        return payload
+    except JWTError:
+        from fastapi import HTTPException, status
+
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+
+async def authenticate_user(
+    db: AsyncSession, email: str, password: str
+) -> User | None:
     """
     Authenticates a user.
 
     Args:
-        db: The database session.
+        db: The database session (AsyncSession).
         email: The user's email.
         password: The user's plain-text password.
 
     Returns:
         The authenticated user object or None if authentication fails.
     """
+    from app.crud.user import user as crud_user  # lazy import breaks circular dependency
+
     user = await crud_user.get_by_email(db, email=email)
     if not user:
         return None

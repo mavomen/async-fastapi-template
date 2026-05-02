@@ -8,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import ORJSONResponse
 
 from app.api import api_router
+from app.api.health import router as health_router
 from app.core.config import settings
 from app.core.database import sessionmanager
 
@@ -24,8 +25,9 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 
     yield
 
-    # Shutdown
-    await sessionmanager.close()
+    # Shutdown: only close in non‑test environments
+    if settings.ENVIRONMENT != "test":
+        await sessionmanager.close()
 
 
 def create_app() -> FastAPI:
@@ -52,7 +54,10 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
 
-    # Register routers
+    # Health check routes (no version prefix)
+    app.include_router(health_router, prefix="/health", tags=["health"])
+
+    # Versioned API routes
     app.include_router(api_router, prefix=settings.API_V1_STR)
 
     return app
