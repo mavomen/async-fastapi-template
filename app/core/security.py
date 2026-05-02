@@ -3,8 +3,11 @@ from typing import Any, Union
 
 from jose import jwt
 from passlib.context import CryptContext
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
+from app.crud.user import user as crud_user
+from app.models.user import User
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -51,3 +54,23 @@ def create_access_token(
         to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM
     )
     return encoded_jwt
+
+
+async def authenticate_user(db: AsyncSession, email: str, password: str) -> User | None:
+    """
+    Authenticates a user.
+
+    Args:
+        db: The database session.
+        email: The user's email.
+        password: The user's plain-text password.
+
+    Returns:
+        The authenticated user object or None if authentication fails.
+    """
+    user = await crud_user.get_by_email(db, email=email)
+    if not user:
+        return None
+    if not verify_password(password, user.hashed_password):
+        return None
+    return user
