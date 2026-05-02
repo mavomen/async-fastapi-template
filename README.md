@@ -26,13 +26,12 @@ poetry run uvicorn app.main:app --reload
 
 # Run tests
 poetry run pytest
+```
 
 ## Health Endpoints
-
 - `GET /health` - Basic health check
 - `GET /health/ready` - Readiness probe
 - `GET /health/live` - Liveness probe
-```
 
 ## Requirements
 
@@ -41,11 +40,13 @@ poetry run pytest
 
 ## Project Structure
 
+```
 app/
 ├── api/ # API routes
 ├── core/ # Core configuration
 └── main.py # Application entry
 tests/ # Test suite
+```
 
 ## License
 
