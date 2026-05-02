@@ -60,7 +60,7 @@ class TestDatabaseSessionManager:
 
         with pytest.raises(ValueError):
             async with manager.session() as session:
-                # Simulate an error
+
                 raise ValueError("Test error")
 
         await manager.close()
@@ -78,7 +78,7 @@ class TestGetDbDependency:
 
         async for session in get_db():
             assert isinstance(session, AsyncSession)
-            # Test basic query
+
             result = await session.execute(text("SELECT 1"))
             assert result.scalar() == 1
 
