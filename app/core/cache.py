@@ -6,6 +6,7 @@ from typing import Any
 import redis.asyncio as aioredis
 
 from app.core.config import settings
+from app.core.metrics import cache_hits_total, cache_misses_total
 
 
 class RedisCache:
@@ -29,19 +30,14 @@ class RedisCache:
             self._redis = None
 
     async def get(self, key: str) -> Any | None:
-        """Retrieve a value from cache, deserializing from JSON.
-
-        Args:
-            key: Cache key.
-
-        Returns:
-            Deserialized value, or None if key does not exist.
-        """
+        """Retrieve a value from cache, deserializing from JSON."""
         if self._redis is None:
             raise RuntimeError("RedisCache is not connected")
         value = await self._redis.get(key)
         if value is None:
+            cache_misses_total.inc()
             return None
+        cache_hits_total.inc()
         return json.loads(value)
 
     async def set(
@@ -50,13 +46,7 @@ class RedisCache:
         value: Any,
         ttl: int | None = None,
     ) -> None:
-        """Set a value in cache with optional TTL (in seconds).
-
-        Args:
-            key: Cache key.
-            value: Value to cache (must be JSON-serializable).
-            ttl: Time-to-live in seconds.
-        """
+        """Set a value in cache with optional TTL (in seconds)."""
         if self._redis is None:
             raise RuntimeError("RedisCache is not connected")
         serialized = json.dumps(value, default=str)
@@ -66,24 +56,13 @@ class RedisCache:
             await self._redis.set(key, serialized)
 
     async def delete(self, key: str) -> None:
-        """Remove a key from cache.
-
-        Args:
-            key: Cache key.
-        """
+        """Remove a key from cache."""
         if self._redis is None:
             raise RuntimeError("RedisCache is not connected")
         await self._redis.delete(key)
 
     async def exists(self, key: str) -> bool:
-        """Check if a key exists in cache.
-
-        Args:
-            key: Cache key.
-
-        Returns:
-            True if key exists.
-        """
+        """Check if a key exists in cache."""
         if self._redis is None:
             raise RuntimeError("RedisCache is not connected")
         return await self._redis.exists(key) > 0
@@ -95,5 +74,4 @@ class RedisCache:
         await self._redis.flushdb()
 
 
-# Singleton instance
 cache = RedisCache()

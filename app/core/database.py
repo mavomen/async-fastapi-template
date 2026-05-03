@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import (AsyncEngine, AsyncSession,
 from sqlalchemy.pool import NullPool
 
 from app.core.config import settings
-
+from app.core.metrics import db_connections_total
 
 class DatabaseSessionManager:
     """Manages database engine and session lifecycle."""
@@ -75,10 +75,10 @@ sessionmanager = DatabaseSessionManager()
 
 
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
-    """FastAPI dependency for database sessions.
-
-    Yields:
-        AsyncSession: Database session
-    """
-    async with sessionmanager.session() as session:
-        yield session
+    """FastAPI dependency for database sessions."""
+    db_connections_total.inc()
+    try:
+        async with sessionmanager.session() as session:
+            yield session
+    finally:
+        db_connections_total.dec()

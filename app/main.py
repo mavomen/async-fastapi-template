@@ -12,33 +12,30 @@ from app.api.health import router as health_router
 from app.api.error_handlers import configure_exception_handlers
 from app.middleware.error_logging import error_logging_middleware
 from app.middleware.rate_limit import configure_rate_limit
+from app.middleware.correlation import CorrelationIDMiddleware
+from app.middleware.request_logging import RequestLoggingMiddleware
 from app.core.config import settings
 from app.core.database import sessionmanager
+from app.core.logging import setup_logging
 from app.websocket.chat import router as websocket_router
+from app.core.tracing import setup_tracing
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
-    """Manage application lifespan events.
-
-    Handles startup and shutdown operations including:
-    - Database connection initialization and cleanup
-    """
+    """Manage application lifespan events."""
     # Startup
     sessionmanager.init(settings.DATABASE_URL)
-
     yield
-
     # Shutdown: only close in non‑test environments
     if settings.ENVIRONMENT != "test":
         await sessionmanager.close()
 
 
 def create_app() -> FastAPI:
-    """Create and configure FastAPI application.
+    """Create and configure FastAPI application."""
+    setup_logging()
 
-    Returns:
-        Configured FastAPI application instance
-    """
     app = FastAPI(
         title=settings.PROJECT_NAME,
         version=settings.VERSION,
@@ -48,16 +45,19 @@ def create_app() -> FastAPI:
         lifespan=lifespan,
     )
 
-    # Register global exception handlers
     configure_exception_handlers(app)
-
-    # Rate limiting (must be before routes)
     configure_rate_limit(app)
 
-    # Error logging middleware
+    # Correlation ID middleware (must be added early)
+    app.add_middleware(CorrelationIDMiddleware)
+
+    # Request/response logging middleware
+    app.add_middleware(RequestLoggingMiddleware)
+
+    # Error logging (catch all)
     app.middleware("http")(error_logging_middleware)
 
-    # CORS middleware
+    # CORS
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.ALLOWED_ORIGINS,
@@ -66,14 +66,17 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
 
-    # Health check routes (no version prefix)
+    # Routes
     app.include_router(health_router, prefix="/health", tags=["health"])
-
-    # Versioned API routes
     app.include_router(api_router, prefix=settings.API_V1_STR)
-
-    # WebSocket routes (no version prefix)
     app.include_router(websocket_router)
+
+    # Prometheus metrics
+    from app.core.metrics import instrumentator
+    instrumentator.instrument(app).expose(app, endpoint="/metrics")
+
+    # OpenTelemetry tracing (after all routes)
+    setup_tracing(app)
 
     return app
 
