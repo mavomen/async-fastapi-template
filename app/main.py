@@ -18,6 +18,7 @@ from app.core.config import settings
 from app.core.database import sessionmanager
 from app.core.logging import setup_logging
 from app.websocket.chat import router as websocket_router
+from app.core.tracing import setup_tracing
 
 
 @asynccontextmanager
@@ -73,6 +74,9 @@ def create_app() -> FastAPI:
     # Prometheus metrics
     from app.core.metrics import instrumentator
     instrumentator.instrument(app).expose(app, endpoint="/metrics")
+
+    # OpenTelemetry tracing (after all routes)
+    setup_tracing(app)
 
     return app
 
