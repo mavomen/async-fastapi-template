@@ -22,6 +22,8 @@ aioboto3 = "^15.5.0"
 websockets = "^16.0"
 structlog = "^25.5.0"
 python-json-logger = "^4.1.0"
+prometheus-client = "^0.25.0"
+prometheus-fastapi-instrumentator = "^7.1.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.4"
