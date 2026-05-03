@@ -9,6 +9,8 @@ from fastapi.responses import ORJSONResponse
 
 from app.api import api_router
 from app.api.health import router as health_router
+from app.api.error_handlers import configure_exception_handlers
+from app.middleware.error_logging import error_logging_middleware
 from app.core.config import settings
 from app.core.database import sessionmanager
 
@@ -44,6 +46,12 @@ def create_app() -> FastAPI:
         default_response_class=ORJSONResponse,
         lifespan=lifespan,
     )
+
+    # Register global exception handlers
+    configure_exception_handlers(app)
+
+    # Error logging middleware (must be added before CORS for accurate timing)
+    app.middleware("http")(error_logging_middleware)
 
     # CORS middleware
     app.add_middleware(
