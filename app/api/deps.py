@@ -15,19 +15,8 @@ async def get_current_user(
     db: AsyncSession = Depends(get_db),
 ) -> User:
     """
-    FastAPI dependency to retrieve the current authenticated user from a JWT.
-
-    Args:
-        token: The bearer token extracted by OAuth2PasswordBearer.
-        db: Database session dependency.
-
-    Returns:
-        The authenticated User instance.
-
-    Raises:
-        HTTPException 401: If the token is invalid or expired.
-        HTTPException 404: If the user does not exist.
-        HTTPException 400: If the user is inactive.
+    FastAPI dependency to retrieve the current authenticated user from a JWT,
+    with roles and permissions eagerly loaded for permission checks.
     """
     payload = decode_access_token(token)
     user_id: str | None = payload.get("sub")
@@ -36,8 +25,8 @@ async def get_current_user(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid token payload: subject missing",
         )
-    # subject is stored as string representation of user id
-    user = await crud_user.get(db, id=int(user_id))
+    # Fetch user with roles and permissions loaded
+    user = await crud_user.get_with_roles(db, id=int(user_id))
     if user is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
