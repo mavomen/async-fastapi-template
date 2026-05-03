@@ -19,6 +19,7 @@ greenlet = "^3.5.0"
 slowapi = "^0.1.9"
 aiofiles = "^25.1.0"
 aioboto3 = "^15.5.0"
+websockets = "^16.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.4"
