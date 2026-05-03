@@ -38,6 +38,21 @@ class Settings(BaseSettings):
         description="PostgreSQL connection string with asyncpg driver",
     )
 
+    # Celery / Redis
+    CELERY_BROKER_URL: str = Field(
+        default="redis://localhost:6379/0",
+        description="Redis broker URL for Celery",
+    )
+    CELERY_RESULT_BACKEND: str = Field(
+        default="redis://localhost:6379/1",
+        description="Redis result backend for Celery",
+    )
+
+    # Rate Limiting
+    RATE_LIMIT_PER_MINUTE: int = 60
+    RATE_LIMIT_PER_HOUR: int = 1000
+    RATE_LIMIT_PER_DAY: int = 10000
+
     @field_validator("ENVIRONMENT")
     @classmethod
     def validate_environment(cls, v: str) -> str:
@@ -47,6 +62,14 @@ class Settings(BaseSettings):
             raise ValueError(f"ENVIRONMENT must be one of {valid_envs}")
         return v
 
+    # File Storage
+    STORAGE_BACKEND: Literal["local", "s3"] = "local"
+    LOCAL_STORAGE_PATH: str = "./uploads"
+    S3_BUCKET: str = ""
+    S3_ENDPOINT_URL: str | None = None
+    S3_ACCESS_KEY: str = ""
+    S3_SECRET_KEY: str = ""
+    S3_REGION: str = "us-east-1"
 
 settings = Settings()
 
