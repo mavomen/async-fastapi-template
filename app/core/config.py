@@ -71,6 +71,9 @@ class Settings(BaseSettings):
     S3_SECRET_KEY: str = ""
     S3_REGION: str = "us-east-1"
 
+    # OpenTelemetry
+    OTEL_EXPORTER_OTLP_ENDPOINT: str | None = None
+
 settings = Settings()
 
 
