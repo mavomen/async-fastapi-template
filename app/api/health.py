@@ -1,4 +1,4 @@
-"""Health check endpoints."""
+"""Health check endpoints with dependency checks."""
 
 from datetime import UTC, datetime
 from typing import Any
@@ -9,7 +9,28 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
+import redis.asyncio as aioredis
+from app.core.config import settings
+
 router = APIRouter(tags=["health"])
+
+
+async def _check_database(db: AsyncSession) -> dict:
+    try:
+        await db.execute(text("SELECT 1"))
+        return {"database": "connected"}
+    except Exception:
+        return {"database": "disconnected"}
+
+
+async def _check_redis() -> dict:
+    try:
+        r = aioredis.from_url(settings.REDIS_URL, encoding="utf-8", decode_responses=True)
+        await r.ping()
+        await r.close()
+        return {"redis": "connected"}
+    except Exception:
+        return {"redis": "disconnected"}
 
 
 @router.get(
@@ -31,17 +52,18 @@ async def health_check() -> dict[str, Any]:
     status_code=status.HTTP_200_OK,
 )
 async def readiness_check(db: AsyncSession = Depends(get_db)) -> dict[str, Any]:
-    """Readiness check endpoint (for k8s readiness probes)."""
-    # Check database connectivity
-    try:
-        await db.execute(text("SELECT 1"))
-        db_status = "connected"
-    except Exception:
-        db_status = "disconnected"
+    """Readiness check including database and Redis status."""
+    db_status = await _check_database(db)
+    redis_status = await _check_redis()
+
+    all_connected = all(
+        v == "connected" for v in [db_status["database"], redis_status["redis"]]
+    )
 
     return {
-        "status": "ready",
-        "database": db_status,
+        "status": "ready" if all_connected else "degraded",
+        **db_status,
+        **redis_status,
     }
 
 
@@ -55,4 +77,23 @@ async def liveness_check() -> dict[str, Any]:
     return {
         "status": "alive",
         "timestamp": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
+    }
+
+
+@router.get(
+    "/dependencies",
+    response_class=ORJSONResponse,
+    status_code=status.HTTP_200_OK,
+)
+async def dependencies_check(db: AsyncSession = Depends(get_db)) -> dict[str, Any]:
+    """Detailed dependency health check."""
+    db_status = await _check_database(db)
+    redis_status = await _check_redis()
+
+    return {
+        "status": "ok",
+        "components": {
+            "database": db_status["database"],
+            "redis": redis_status["redis"],
+        },
     }
