@@ -7,6 +7,7 @@ from sqlalchemy import Boolean, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import BaseModel
+from app.models.role import user_roles  # association table import
 
 if TYPE_CHECKING:
     from app.models.role import Role
@@ -41,6 +42,13 @@ class User(BaseModel):
     # Timestamps for email verification and password reset
     email_verified_at: Mapped[datetime | None] = mapped_column(nullable=True)
     last_login_at: Mapped[datetime | None] = mapped_column(nullable=True)
+
+    # RBAC - roles relationship
+    roles: Mapped[list["Role"]] = relationship(
+        secondary=user_roles,
+        back_populates="users",
+        lazy="selectin",  # eager load roles when accessing user
+    )
 
     def __repr__(self) -> str:
         """String representation of User."""

@@ -4,6 +4,8 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
+from app.schemas.role import RoleRead
+
 
 class UserBase(BaseModel):
     """Base User schema with common fields."""
@@ -82,5 +84,14 @@ class UserInDB(UserResponse):
     is_superuser: bool
     email_verified_at: datetime | None
     last_login_at: datetime | None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class UserDetailResponse(UserResponse):
+    """Detailed user response including roles."""
+
+    roles: list[RoleRead] = []
+    is_superuser: bool = False
 
     model_config = ConfigDict(from_attributes=True)
