@@ -11,6 +11,7 @@ from app.api import api_router
 from app.api.health import router as health_router
 from app.api.error_handlers import configure_exception_handlers
 from app.middleware.error_logging import error_logging_middleware
+from app.middleware.rate_limit import configure_rate_limit
 from app.core.config import settings
 from app.core.database import sessionmanager
 
@@ -50,7 +51,10 @@ def create_app() -> FastAPI:
     # Register global exception handlers
     configure_exception_handlers(app)
 
-    # Error logging middleware (must be added before CORS for accurate timing)
+    # Rate limiting (must be before routes)
+    configure_rate_limit(app)
+
+    # Error logging middleware
     app.middleware("http")(error_logging_middleware)
 
     # CORS middleware
