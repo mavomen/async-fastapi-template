@@ -38,6 +38,12 @@ class Settings(BaseSettings):
         description="PostgreSQL connection string with asyncpg driver",
     )
 
+    # Redis
+    REDIS_URL: str = Field(
+        default="redis://localhost:6379/0",
+        description="Redis connection URL",
+    )
+
     @field_validator("ENVIRONMENT")
     @classmethod
     def validate_environment(cls, v: str) -> str:

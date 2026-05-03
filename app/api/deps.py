@@ -6,6 +6,8 @@ from app.core.database import get_db
 from app.core.security import decode_access_token
 from app.crud.user import user as crud_user
 from app.models.user import User
+from app.core.cache import RedisCache
+from app.core.cache import cache as redis_cache
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 
@@ -38,3 +40,8 @@ async def get_current_user(
             detail="Inactive user",
         )
     return user
+
+async def get_cache() -> RedisCache:
+    """FastAPI dependency for Redis cache."""
+    return redis_cache
+
