@@ -1,0 +1,22 @@
+{
+  "title": "API Metrics",
+  "uid": "async-fastapi-api",
+  "panels": [
+    {
+      "title": "Requests per Second",
+      "targets": [{ "expr": "rate(http_requests_total[1m])" }]
+    },
+    {
+      "title": "Request Duration (p95)",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m]))"
+        }
+      ]
+    },
+    {
+      "title": "Active Requests",
+      "targets": [{ "expr": "active_requests" }]
+    }
+  ]
+}

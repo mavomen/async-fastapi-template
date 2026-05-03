@@ -70,6 +70,10 @@ def create_app() -> FastAPI:
     app.include_router(api_router, prefix=settings.API_V1_STR)
     app.include_router(websocket_router)
 
+    # Prometheus metrics
+    from app.core.metrics import instrumentator
+    instrumentator.instrument(app).expose(app, endpoint="/metrics")
+
     return app
 
 

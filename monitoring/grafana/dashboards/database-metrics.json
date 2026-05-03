@@ -1,0 +1,14 @@
+{
+  "title": "Database Metrics",
+  "uid": "async-fastapi-db",
+  "panels": [
+    {
+      "title": "DB Connections",
+      "targets": [
+        {
+          "expr": "db_connections_total"
+        }
+      ]
+    }
+  ]
+}
