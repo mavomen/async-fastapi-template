@@ -14,7 +14,7 @@ from app.middleware.error_logging import error_logging_middleware
 from app.middleware.rate_limit import configure_rate_limit
 from app.core.config import settings
 from app.core.database import sessionmanager
-
+from app.websocket.chat import router as websocket_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
@@ -71,6 +71,9 @@ def create_app() -> FastAPI:
 
     # Versioned API routes
     app.include_router(api_router, prefix=settings.API_V1_STR)
+
+    # WebSocket routes (no version prefix)
+    app.include_router(websocket_router)
 
     return app
 
