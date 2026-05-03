@@ -1,0 +1,14 @@
+{
+  "title": "Cache Metrics",
+  "uid": "async-fastapi-cache",
+  "panels": [
+    {
+      "title": "Cache Hit Rate",
+      "targets": [
+        {
+          "expr": "rate(cache_hits_total[1m]) / (rate(cache_hits_total[1m]) + rate(cache_misses_total[1m]))"
+        }
+      ]
+    }
+  ]
+}
