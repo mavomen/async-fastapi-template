@@ -16,7 +16,22 @@ from app.schemas import Token, UserCreate, UserResponse
 router = APIRouter()
 
 
-@router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/register",
+    response_model=UserResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Register a new user",
+    description="Create a new user account with email, username, and password. "
+    "Returns the created user’s public information.",
+    responses={
+        201: {"description": "User successfully created"},
+        400: {"description": "Email or username already exists"},
+        422: {"description": "Validation error"},
+    },
+)
+@router.post(
+    "/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED
+)
 async def register(
     *,
     db: AsyncSession = Depends(get_db),
@@ -53,6 +68,18 @@ async def register(
     return new_user
 
 
+@router.post(
+    "/login",
+    response_model=Token,
+    summary="Login for access token",
+    description="OAuth2 compatible token login. Provide username (email) and password "
+    "to receive a JWT access token for future authenticated requests.",
+    responses={
+        200: {"description": "Access token returned"},
+        401: {"description": "Incorrect email or password"},
+        422: {"description": "Validation error"},
+    },
+)
 @router.post("/login", response_model=Token)
 async def login_for_access_token(
     db: AsyncSession = Depends(get_db),
@@ -71,7 +98,9 @@ async def login_for_access_token(
     Raises:
         HTTPException: If authentication fails.
     """
-    user = await authenticate_user(db, email=form_data.username, password=form_data.password)
+    user = await authenticate_user(
+        db, email=form_data.username, password=form_data.password
+    )
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
