@@ -1,9 +1,9 @@
 """Tests for local file storage."""
 
 import io
-import pytest
-from pathlib import Path
 from unittest.mock import MagicMock
+
+import pytest
 
 from app.storage.local import LocalStorage
 

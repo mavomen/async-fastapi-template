@@ -1,8 +1,8 @@
-from datetime import datetime, timedelta, timezone
-from typing import Any, Union
+from datetime import UTC, datetime, timedelta
+from typing import Any
 
-from jose import JWTError, jwt
 import bcrypt
+from jose import JWTError, jwt
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
@@ -33,9 +33,7 @@ def get_password_hash(password: str) -> str:
     return hashed.decode("utf-8")
 
 
-def create_access_token(
-    subject: Union[str, Any], expires_delta: timedelta | None = None
-) -> str:
+def create_access_token(subject: str | Any, expires_delta: timedelta | None = None) -> str:
     """
     Generates a JWT access token.
 
@@ -44,15 +42,11 @@ def create_access_token(
     :return: The encoded JWT token.
     """
     if expires_delta:
-        expire = datetime.now(timezone.utc) + expires_delta
+        expire = datetime.now(UTC) + expires_delta
     else:
-        expire = datetime.now(timezone.utc) + timedelta(
-            minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
-        )
+        expire = datetime.now(UTC) + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode = {"exp": expire, "sub": str(subject)}
-    encoded_jwt = jwt.encode(
-        to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM
-    )
+    encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
     return encoded_jwt
 
 
@@ -70,9 +64,7 @@ def decode_access_token(token: str) -> dict:
         HTTPException: If the token is invalid or expired.
     """
     try:
-        payload = jwt.decode(
-            token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
-        )
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
         return payload
     except JWTError:
         from fastapi import HTTPException, status
@@ -84,9 +76,7 @@ def decode_access_token(token: str) -> dict:
         )
 
 
-async def authenticate_user(
-    db: AsyncSession, email: str, password: str
-) -> User | None:
+async def authenticate_user(db: AsyncSession, email: str, password: str) -> User | None:
     """
     Authenticates a user.
 

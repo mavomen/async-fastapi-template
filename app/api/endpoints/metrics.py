@@ -1,7 +1,7 @@
 """Metrics endpoint for Prometheus scraping."""
 
 from fastapi import APIRouter, Response
-from prometheus_client import generate_latest, REGISTRY
+from prometheus_client import REGISTRY, generate_latest
 
 router = APIRouter()
 

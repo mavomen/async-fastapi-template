@@ -6,8 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.security import create_access_token
 from app.crud.user import user as crud_user
-from app.models.user import User
-from app.models.role import Role, Permission
+from app.models.role import Permission, Role
 from app.schemas.user import UserCreate
 
 
@@ -87,29 +86,39 @@ async def test_get_user_not_found(async_client: AsyncClient, admin_headers: dict
 
 
 @pytest.mark.asyncio
-async def test_update_user_as_admin(async_client: AsyncClient, admin_headers: dict, db_session: AsyncSession):
+async def test_update_user_as_admin(
+    async_client: AsyncClient, admin_headers: dict, db_session: AsyncSession
+):
     # Create a user to update
     user_create = UserCreate(email="target@example.com", username="target", password="Pass123!")
     user = await crud_user.create(db_session, obj_in=user_create)
 
     update_data = {"full_name": "Updated Name"}
-    response = await async_client.patch(f"/api/v1/users/{user.id}", json=update_data, headers=admin_headers)
+    response = await async_client.patch(
+        f"/api/v1/users/{user.id}", json=update_data, headers=admin_headers
+    )
     assert response.status_code == 200
     assert response.json()["full_name"] == "Updated Name"
 
 
 @pytest.mark.asyncio
-async def test_update_user_requires_permission(async_client: AsyncClient, normal_user_headers: dict, db_session: AsyncSession):
+async def test_update_user_requires_permission(
+    async_client: AsyncClient, normal_user_headers: dict, db_session: AsyncSession
+):
     user_create = UserCreate(email="victim@example.com", username="victim", password="Pass123!")
     user = await crud_user.create(db_session, obj_in=user_create)
 
     update_data = {"full_name": "Hacked"}
-    response = await async_client.patch(f"/api/v1/users/{user.id}", json=update_data, headers=normal_user_headers)
+    response = await async_client.patch(
+        f"/api/v1/users/{user.id}", json=update_data, headers=normal_user_headers
+    )
     assert response.status_code == 403
 
 
 @pytest.mark.asyncio
-async def test_delete_user_as_admin(async_client: AsyncClient, admin_headers: dict, db_session: AsyncSession):
+async def test_delete_user_as_admin(
+    async_client: AsyncClient, admin_headers: dict, db_session: AsyncSession
+):
     user_create = UserCreate(email="delete@example.com", username="deleteuser", password="Pass123!")
     user = await crud_user.create(db_session, obj_in=user_create)
 
@@ -122,8 +131,12 @@ async def test_delete_user_as_admin(async_client: AsyncClient, admin_headers: di
 
 
 @pytest.mark.asyncio
-async def test_delete_user_requires_permission(async_client: AsyncClient, normal_user_headers: dict, db_session: AsyncSession):
-    user_create = UserCreate(email="dontdelete@example.com", username="dontdelete", password="Pass123!")
+async def test_delete_user_requires_permission(
+    async_client: AsyncClient, normal_user_headers: dict, db_session: AsyncSession
+):
+    user_create = UserCreate(
+        email="dontdelete@example.com", username="dontdelete", password="Pass123!"
+    )
     user = await crud_user.create(db_session, obj_in=user_create)
 
     response = await async_client.delete(f"/api/v1/users/{user.id}", headers=normal_user_headers)

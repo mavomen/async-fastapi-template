@@ -2,7 +2,7 @@
 Tests for security utilities: password hashing, JWT creation, and decoding.
 """
 
-from datetime import timedelta
+from datetime import UTC, timedelta
 
 import pytest
 from fastapi import HTTPException
@@ -61,9 +61,7 @@ class TestJWT:
         assert len(parts) == 3  # Header, payload, signature
 
     def test_create_access_token_with_expiry(self):
-        token = create_access_token(
-            subject="user", expires_delta=timedelta(minutes=5)
-        )
+        token = create_access_token(subject="user", expires_delta=timedelta(minutes=5))
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
         assert payload["sub"] == "user"
         assert "exp" in payload
@@ -72,10 +70,10 @@ class TestJWT:
         token = create_access_token(subject="default_exp")
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
         # Expiry should be roughly ACCESS_TOKEN_EXPIRE_MINUTES from now
-        from datetime import datetime, timezone
+        from datetime import datetime
 
-        now = datetime.now(timezone.utc)
-        exp = datetime.fromtimestamp(payload["exp"], timezone.utc)
+        now = datetime.now(UTC)
+        exp = datetime.fromtimestamp(payload["exp"], UTC)
         expected = now + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
         # Allow a few seconds of skew
         assert abs((exp - expected).total_seconds()) < 5
@@ -94,9 +92,7 @@ class TestJWT:
 
     def test_decode_access_token_expired(self):
         # Create token that expired 1 minute ago
-        token = create_access_token(
-            subject="expired", expires_delta=timedelta(minutes=-1)
-        )
+        token = create_access_token(subject="expired", expires_delta=timedelta(minutes=-1))
         with pytest.raises(HTTPException) as exc_info:
             decode_access_token(token)
         assert exc_info.value.status_code == 401

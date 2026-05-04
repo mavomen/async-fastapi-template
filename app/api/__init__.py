@@ -2,8 +2,7 @@
 
 from fastapi import APIRouter
 
-from app.api.endpoints import auth, users, tasks, files
-from app.api.health import router as health_router
+from app.api.endpoints import auth, files, tasks, users
 
 api_router = APIRouter()
 

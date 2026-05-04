@@ -1,5 +1,7 @@
 """User model for authentication and user management."""
 
+from __future__ import annotations
+
 from datetime import datetime
 from typing import TYPE_CHECKING
 
@@ -44,7 +46,7 @@ class User(BaseModel):
     last_login_at: Mapped[datetime | None] = mapped_column(nullable=True)
 
     # RBAC - roles relationship
-    roles: Mapped[list["Role"]] = relationship(
+    roles: Mapped[list[Role]] = relationship(
         secondary=user_roles,
         back_populates="users",
         lazy="selectin",  # eager load roles when accessing user

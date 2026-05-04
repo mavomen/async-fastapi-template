@@ -3,14 +3,14 @@
 from datetime import UTC, datetime
 from typing import Any
 
+import redis.asyncio as aioredis
 from fastapi import APIRouter, Depends, status
 from fastapi.responses import ORJSONResponse
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.database import get_db
-import redis.asyncio as aioredis
 from app.core.config import settings
+from app.core.database import get_db
 
 router = APIRouter(tags=["health"])
 
@@ -26,7 +26,7 @@ async def _check_database(db: AsyncSession) -> dict:
 async def _check_redis() -> dict:
     try:
         r = aioredis.from_url(settings.REDIS_URL, encoding="utf-8", decode_responses=True)
-        await r.ping()
+        await r.ping()  # type: ignore[misc]
         await r.close()
         return {"redis": "connected"}
     except Exception:
@@ -56,9 +56,7 @@ async def readiness_check(db: AsyncSession = Depends(get_db)) -> dict[str, Any]:
     db_status = await _check_database(db)
     redis_status = await _check_redis()
 
-    all_connected = all(
-        v == "connected" for v in [db_status["database"], redis_status["redis"]]
-    )
+    all_connected = all(v == "connected" for v in [db_status["database"], redis_status["redis"]])
 
     return {
         "status": "ready" if all_connected else "degraded",

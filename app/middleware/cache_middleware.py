@@ -2,11 +2,9 @@
 
 import hashlib
 import json
-import time
 
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.responses import StreamingResponse
 
 from app.core.cache import cache
 
@@ -34,7 +32,9 @@ class CacheMiddleware(BaseHTTPMiddleware):
         response = await call_next(request)
 
         # Only cache successful JSON responses
-        if response.status_code == 200 and "application/json" in response.headers.get("content-type", ""):
+        if response.status_code == 200 and "application/json" in response.headers.get(
+            "content-type", ""
+        ):
             body = b""
             async for chunk in response.body_iterator:
                 body += chunk

@@ -81,7 +81,7 @@ class TestUserModel:
             username="testuser",
             hashed_password="hashed",
         )
-        
+
         # Note: SQLAlchemy defaults are applied at database level, not on instantiation
         # We verify the column definitions have defaults
         mapper = inspect(User)
@@ -128,9 +128,7 @@ async def test_user_query_by_email(db_session: AsyncSession):
     db_session.add(user)
     await db_session.commit()
 
-    result = await db_session.execute(
-        select(User).where(User.email == "query@example.com")
-    )
+    result = await db_session.execute(select(User).where(User.email == "query@example.com"))
     found_user = result.scalar_one_or_none()
 
     assert found_user is not None
@@ -150,9 +148,7 @@ async def test_user_query_by_username(db_session: AsyncSession):
     db_session.add(user)
     await db_session.commit()
 
-    result = await db_session.execute(
-        select(User).where(User.username == "uniqueuser")
-    )
+    result = await db_session.execute(select(User).where(User.username == "uniqueuser"))
     found_user = result.scalar_one_or_none()
 
     assert found_user is not None

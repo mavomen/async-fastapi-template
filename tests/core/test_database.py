@@ -60,7 +60,6 @@ class TestDatabaseSessionManager:
 
         with pytest.raises(ValueError):
             async with manager.session() as session:
-
                 raise ValueError("Test error")
 
         await manager.close()

@@ -1,8 +1,9 @@
 """Local file system storage backend."""
 
-import aiofiles
 from pathlib import Path
 from typing import BinaryIO
+
+import aiofiles
 
 from app.core.config import settings
 from app.storage.base import StorageBackend

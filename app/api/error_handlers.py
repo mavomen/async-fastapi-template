@@ -1,8 +1,8 @@
 """Global exception handlers for FastAPI."""
 
 from fastapi import Request
-from fastapi.responses import ORJSONResponse
 from fastapi.exceptions import RequestValidationError
+from fastapi.responses import ORJSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.core.exceptions import AppException
@@ -32,11 +32,13 @@ def configure_exception_handlers(app):
         # Simplify the error list
         simplified = []
         for err in errors:
-            simplified.append({
-                "field": ".".join(str(loc) for loc in err["loc"]),
-                "message": err["msg"],
-                "type": err["type"],
-            })
+            simplified.append(
+                {
+                    "field": ".".join(str(loc) for loc in err["loc"]),
+                    "message": err["msg"],
+                    "type": err["type"],
+                }
+            )
         return ORJSONResponse(
             status_code=422,
             content={

@@ -1,8 +1,6 @@
 """Tests for exception handlers and custom errors."""
 
-import pytest
 from fastapi.testclient import TestClient
-from httpx import AsyncClient
 
 
 def test_404_route(client: TestClient):

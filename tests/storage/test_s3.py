@@ -1,8 +1,9 @@
 """Tests for S3 storage using mocks."""
 
-import pytest
 import io
 from unittest.mock import AsyncMock, MagicMock
+
+import pytest
 
 from app.storage.s3 import S3Storage
 

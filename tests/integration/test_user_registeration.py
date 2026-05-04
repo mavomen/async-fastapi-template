@@ -6,9 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 
 @pytest.mark.asyncio
-async def test_full_registration_flow(
-    async_client: AsyncClient, db_session: AsyncSession
-):
+async def test_full_registration_flow(async_client: AsyncClient, db_session: AsyncSession):
     """End-to-end: register a user, verify response structure."""
     payload = {
         "email": "flow@example.com",
@@ -27,9 +25,7 @@ async def test_full_registration_flow(
 
 
 @pytest.mark.asyncio
-async def test_registration_duplicate_email(
-    async_client: AsyncClient, db_session: AsyncSession
-):
+async def test_registration_duplicate_email(async_client: AsyncClient, db_session: AsyncSession):
     """Attempting to register with an existing email should fail."""
     payload = {
         "email": "duplicate@example.com",
