@@ -18,9 +18,9 @@ from app.middleware.correlation import CorrelationIDMiddleware
 from app.middleware.error_logging import error_logging_middleware
 from app.middleware.rate_limit import configure_rate_limit
 from app.middleware.request_logging import RequestLoggingMiddleware
+from app.middleware.security_headers import SecurityHeadersMiddleware
+from app.middleware.sql_injection import SQLInjectionMonitorMiddleware
 from app.websocket.chat import router as websocket_router
-
-# instrumentator.instrument(app).expose(app, endpoint="/metrics")  # type: ignore[no-untyped-call]
 
 
 @asynccontextmanager
@@ -81,6 +81,10 @@ def create_app() -> FastAPI:
 
     # Error logging (catch all)
     app.middleware("http")(error_logging_middleware)
+
+    # Security middlewares
+    app.add_middleware(SecurityHeadersMiddleware)
+    app.add_middleware(SQLInjectionMonitorMiddleware)
 
     # CORS
     app.add_middleware(

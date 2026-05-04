@@ -29,9 +29,7 @@ router = APIRouter()
         422: {"description": "Validation error"},
     },
 )
-@router.post(
-    "/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED
-)
+@router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 async def register(
     *,
     db: AsyncSession = Depends(get_db),
@@ -98,9 +96,7 @@ async def login_for_access_token(
     Raises:
         HTTPException: If authentication fails.
     """
-    user = await authenticate_user(
-        db, email=form_data.username, password=form_data.password
-    )
+    user = await authenticate_user(db, email=form_data.username, password=form_data.password)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
