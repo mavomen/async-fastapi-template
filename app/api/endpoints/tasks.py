@@ -18,6 +18,15 @@ class EmailTaskRequest(BaseModel):
     body: str
 
 
+@router.post(
+    "/email/send",
+    summary="Send an email notification",
+    description="Trigger a background task to send an email notification. "
+    "Returns the task ID for status tracking.",
+    responses={
+        200: {"description": "Task triggered"},
+    },
+)
 @router.post("/email/send")
 async def trigger_email_task(task_data: EmailTaskRequest):
     task = send_email_notification.delay(
@@ -28,6 +37,15 @@ async def trigger_email_task(task_data: EmailTaskRequest):
     return {"task_id": task.id, "status": "PENDING"}
 
 
+@router.get(
+    "/{task_id}",
+    summary="Get task status",
+    description="Check the status of a previously triggered background task.",
+    responses={
+        200: {"description": "Task status details"},
+        404: {"description": "Task not found"},
+    },
+)
 @router.get("/{task_id}")
 async def get_task_status(
     task_id: str,

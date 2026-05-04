@@ -45,6 +45,29 @@ def create_app() -> FastAPI:
         redoc_url="/redoc" if settings.ENVIRONMENT != "production" else None,
         default_response_class=ORJSONResponse,
         lifespan=lifespan,
+        openapi_tags=[
+            {
+                "name": "health",
+                "description": "Health check endpoints for readiness, liveness, and dependencies.",
+            },
+            {
+                "name": "auth",
+                "description": "User registration and JWT token authentication.",
+            },
+            {
+                "name": "users",
+                "description": "User management with role‑based access control (RBAC).",
+            },
+            {
+                "name": "tasks",
+                "description": "Background task trigger and status endpoints.",
+            },
+            {
+                "name": "files",
+                "description": "File upload and download with local or S3 storage.",
+            },
+            {"name": "metrics", "description": "Prometheus metrics endpoint."},
+        ],
     )
 
     configure_exception_handlers(app)
