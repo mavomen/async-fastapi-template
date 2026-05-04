@@ -6,7 +6,17 @@ from prometheus_client import REGISTRY, generate_latest
 router = APIRouter()
 
 
-@router.get("/metrics")
+@router.get(
+    "/metrics",
+    summary="Prometheus metrics",
+    description="Expose application metrics in Prometheus text format for scraping.",
+    responses={
+        200: {
+            "description": "Metrics in Prometheus exposition format",
+            "content": {"text/plain; version=0.0.4": {}},
+        },
+    },
+)
 async def get_metrics():
     """Expose Prometheus metrics."""
     return Response(

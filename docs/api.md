@@ -1,56 +1,218 @@
 # API Documentation
 
-The API is versioned under `/api/v1`. Full OpenAPI spec is available at `/docs`.
+The API is versioned under `/api/v1`. The full interactive OpenAPI specification is available at `/docs` (Swagger UI) and `/redoc` (ReDoc).
+
+## Versioning
+
+The current version is `v1`. Breaking changes will be introduced under a new version prefix (e.g., `/api/v2`). Non‑breaking additions may be added to the current version.
 
 ## Authentication
 
-- `POST /api/v1/auth/register` — Create a new user.
-- `POST /api/v1/auth/login` — Obtain a JWT token (OAuth2 password flow).
+All protected endpoints require a JWT token passed in the `Authorization` header as `Bearer <token>`.
 
-Include the token in requests:
+### Register
 
+**`POST /api/v1/auth/register`**
+
+Create a new user account.
+
+**Request Body:**
+
+```json
+{
+  "email": "user@example.com",
+  "username": "johndoe",
+  "password": "SecurePassword123!",
+  "full_name": "John Doe"
+}
 ```
-Authorization: Bearer <token>
+
+**Responses:**
+
+- `201` – User created. Returns public user data.
+- `400` – Email or username already exists.
+- `422` – Validation error.
+
+### Login
+
+**`POST /api/v1/auth/login`**
+
+Obtain a JWT access token. Use `application/x-www-form-urlencoded` format.
+
+**Form Fields:**
+
+- `username` (email)
+- `password`
+
+**Responses:**
+
+- `200` – Access token returned.
+- `401` – Incorrect credentials.
+
+**Example Request:**
+
+```bash
+curl -X POST http://localhost:8000/api/v1/auth/login \
+  -d "username=user@example.com" \
+  -d "password=SecurePassword123!"
+```
+
+**Example Response:**
+
+```json
+{
+  "access_token": "eyJhbGci...",
+  "token_type": "bearer"
+}
 ```
 
 ## Users (RBAC Protected)
 
-Requires appropriate permissions (`user:read`, `user:write`, `user:delete`).
+All user management endpoints require appropriate permissions (`user:read`, `user:write`, `user:delete`).
 
-- `GET /api/v1/users/` — List all users.
-- `GET /api/v1/users/{id}` — Get user detail.
-- `PATCH /api/v1/users/{id}` — Update user.
-- `DELETE /api/v1/users/{id}` — Delete user.
+### List Users
+
+**`GET /api/v1/users/`**
+
+**Headers:** `Authorization: Bearer <token>`
+
+**Query Parameters:**
+
+- `page` (int, default 1)
+- `size` (int, default 50, max 100)
+
+**Response:** Paginated list of users with their roles.
+
+### Get User
+
+**`GET /api/v1/users/{user_id}`**
+
+**Response:** Single user detail including roles.
+
+### Update User
+
+**`PATCH /api/v1/users/{user_id}`**
+
+**Request Body:** Any subset of `UserUpdate` fields.
+
+### Delete User
+
+**`DELETE /api/v1/users/{user_id}`**
 
 ## Files
 
-- `POST /api/v1/files/upload` — Upload a file (multipart).
-- `GET /api/v1/files/download/{path}` — Download a file.
+### Upload a File
 
-## Tasks
+**`POST /api/v1/files/upload`**
 
-- `POST /api/v1/tasks/email/send` — Send an email notification (background).
-- `GET /api/v1/tasks/{task_id}` — Check task status.
+**Headers:** `Authorization: Bearer <token>`
+
+**Request:** Multipart form with `file` field.
+
+**Response:**
+
+```json
+{
+  "filename": "document.pdf",
+  "path": "document.pdf"
+}
+```
+
+### Download a File
+
+**`GET /api/v1/files/download/{path}`**
+
+Returns the file content with `application/octet-stream`.
+
+## Background Tasks
+
+### Send Email Notification
+
+**`POST /api/v1/tasks/email/send`**
+
+**Request Body:**
+
+```json
+{
+  "recipient": "user@example.com",
+  "subject": "Welcome!",
+  "body": "Thank you for signing up."
+}
+```
+
+**Response:**
+
+```json
+{
+  "task_id": "abc123...",
+  "status": "PENDING"
+}
+```
+
+### Get Task Status
+
+**`GET /api/v1/tasks/{task_id}`**
+
+**Response:**
+
+```json
+{
+  "task_id": "abc123...",
+  "status": "SUCCESS",
+  "error": null,
+  "completed_at": "2026-05-04T12:00:00Z"
+}
+```
 
 ## Health & Monitoring
 
-- `GET /health` — Basic health.
-- `GET /health/ready` — Readiness (DB + Redis).
-- `GET /health/live` — Liveness.
-- `GET /metrics` — Prometheus metrics.
+### Basic Health
 
-## WebSocket
+**`GET /health`** – Returns `{"status": "healthy"}`.
 
-- `ws://<host>/ws/chat?token=<jwt>` — Chat WebSocket (authenticated).
+### Readiness Probe
+
+**`GET /health/ready`** – Checks database and Redis connectivity.
+
+### Liveness Probe
+
+**`GET /health/live`** – Minimal alive check.
+
+### Prometheus Metrics
+
+**`GET /metrics`** – Exposes metrics in Prometheus text format.
 
 ## Rate Limiting
 
-Default global limits. Custom limits can be applied with the `@rate_limit` decorator. Headers `X-RateLimit-*` are returned on every response.
+Default global limits are applied. Headers `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset` are returned on every response. When exceeded, `429 Too Many Requests` is returned.
 
 ## Pagination
 
-Use query parameters `page` and `size` on list endpoints. Response includes `total`, `pages`, `items`.
+List endpoints accept `page` and `size` query parameters. Responses include:
+
+```json
+{
+  "items": [...],
+  "total": 100,
+  "page": 1,
+  "size": 50,
+  "pages": 2
+}
+```
 
 ## Error Handling
 
-Standard HTTP status codes. Validation errors return a 422 with a `detail` message and an `errors` list.
+Standard HTTP status codes are used. Validation errors return a `422` with:
+
+```json
+{
+  "detail": "Validation error",
+  "errors": [
+    {
+      "field": "email",
+      "message": "value is not a valid email address",
+      "type": "value_error"
+    }
+  ]
+}
+```

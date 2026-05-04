@@ -18,9 +18,9 @@ from app.middleware.correlation import CorrelationIDMiddleware
 from app.middleware.error_logging import error_logging_middleware
 from app.middleware.rate_limit import configure_rate_limit
 from app.middleware.request_logging import RequestLoggingMiddleware
+from app.middleware.security_headers import SecurityHeadersMiddleware
+from app.middleware.sql_injection import SQLInjectionMonitorMiddleware
 from app.websocket.chat import router as websocket_router
-
-# instrumentator.instrument(app).expose(app, endpoint="/metrics")  # type: ignore[no-untyped-call]
 
 
 @asynccontextmanager
@@ -45,6 +45,29 @@ def create_app() -> FastAPI:
         redoc_url="/redoc" if settings.ENVIRONMENT != "production" else None,
         default_response_class=ORJSONResponse,
         lifespan=lifespan,
+        openapi_tags=[
+            {
+                "name": "health",
+                "description": "Health check endpoints for readiness, liveness, and dependencies.",
+            },
+            {
+                "name": "auth",
+                "description": "User registration and JWT token authentication.",
+            },
+            {
+                "name": "users",
+                "description": "User management with role-based access control (RBAC).",
+            },
+            {
+                "name": "tasks",
+                "description": "Background task trigger and status endpoints.",
+            },
+            {
+                "name": "files",
+                "description": "File upload and download with local or S3 storage.",
+            },
+            {"name": "metrics", "description": "Prometheus metrics endpoint."},
+        ],
     )
 
     configure_exception_handlers(app)
@@ -58,6 +81,10 @@ def create_app() -> FastAPI:
 
     # Error logging (catch all)
     app.middleware("http")(error_logging_middleware)
+
+    # Security middlewares
+    app.add_middleware(SecurityHeadersMiddleware)
+    app.add_middleware(SQLInjectionMonitorMiddleware)
 
     # CORS
     app.add_middleware(

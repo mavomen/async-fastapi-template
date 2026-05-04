@@ -96,3 +96,26 @@ async def authenticate_user(db: AsyncSession, email: str, password: str) -> User
     if not verify_password(password, user.hashed_password):
         return None
     return user
+
+
+def create_verification_token(user_id: int) -> str:
+    """Create a short-lived token for email verification."""
+    expire = datetime.now(UTC) + timedelta(hours=24)
+    to_encode = {"exp": expire, "sub": str(user_id), "purpose": "email_verify"}
+    return jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
+
+
+def decode_verification_token(token: str) -> dict:
+    """Decode and validate an email verification token."""
+    try:
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+        if payload.get("purpose") != "email_verify":
+            raise ValueError("Invalid token purpose")
+        return payload
+    except JWTError:
+        from fastapi import HTTPException, status
+
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid or expired verification token",
+        )

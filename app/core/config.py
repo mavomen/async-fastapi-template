@@ -80,6 +80,8 @@ class Settings(BaseSettings):
     # OpenTelemetry
     OTEL_EXPORTER_OTLP_ENDPOINT: str | None = None
 
+    FRONTEND_URL: str = "http://localhost:3000"
+
 
 settings = Settings()
 

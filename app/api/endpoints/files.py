@@ -12,6 +12,17 @@ from app.storage.base import StorageBackend
 router = APIRouter()
 
 
+@router.post(
+    "/upload",
+    status_code=status.HTTP_201_CREATED,
+    summary="Upload a file",
+    description="Upload a file (requires authentication). Returns the stored filename and path.",
+    responses={
+        201: {"description": "File uploaded successfully"},
+        401: {"description": "Not authenticated"},
+        400: {"description": "No file provided"},
+    },
+)
 @router.post("/upload", status_code=status.HTTP_201_CREATED)
 async def upload_file(
     file: UploadFile = File(...),
@@ -27,6 +38,19 @@ async def upload_file(
     return {"filename": file.filename, "path": path}
 
 
+@router.get(
+    "/download/{filename:path}",
+    summary="Download a file",
+    description="Download a previously uploaded file by its stored path. Requires authentication.",
+    responses={
+        200: {
+            "description": "File content",
+            "content": {"application/octet-stream": {}},
+        },
+        401: {"description": "Not authenticated"},
+        404: {"description": "File not found"},
+    },
+)
 @router.get("/download/{filename:path}")
 async def download_file(
     filename: str,
