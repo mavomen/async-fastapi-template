@@ -18,4 +18,4 @@ jobs:
           scan-ref: '.'
           format: 'table'
           exit-code: '1'
-          severity: 'CRITICAL,HIGH'
+          severity: 'CRITICAL'

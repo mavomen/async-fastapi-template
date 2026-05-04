@@ -56,7 +56,7 @@ def create_app() -> FastAPI:
             },
             {
                 "name": "users",
-                "description": "User management with role‑based access control (RBAC).",
+                "description": "User management with role-based access control (RBAC).",
             },
             {
                 "name": "tasks",

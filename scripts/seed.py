@@ -7,15 +7,25 @@ import os
 os.environ["ENVIRONMENT"] = "development"
 os.environ["SECRET_KEY"] = "dev-secret-key-min-32-characters!!!"
 
-from app.core.database import sessionmanager
 from app.core.config import settings
+from app.core.database import sessionmanager
 from app.crud.user import user as crud_user
+from app.models.role import Permission, Role
 from app.schemas.user import UserCreate
-from app.models.role import Role, Permission
 
 SEED_USERS = [
-    {"email": "admin@example.com", "username": "admin", "password": "Admin123!", "full_name": "Admin User"},
-    {"email": "user@example.com", "username": "user", "password": "User1234!", "full_name": "Normal User"},
+    {
+        "email": "admin@example.com",
+        "username": "admin",
+        "password": "Admin123!",
+        "full_name": "Admin User",
+    },
+    {
+        "email": "user@example.com",
+        "username": "user",
+        "password": "User1234!",
+        "full_name": "Normal User",
+    },
 ]
 
 SEED_PERMISSIONS = ["user:read", "user:write", "user:delete"]
@@ -48,8 +58,6 @@ async def main():
                 if user_data["username"] == "admin":
                     user.roles.append(role)
                     await db.commit()
-
-        print("Database seeded successfully!")
 
     await sessionmanager.close()
 
