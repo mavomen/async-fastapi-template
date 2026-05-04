@@ -1,9 +1,10 @@
 """WebSocket authentication dependency."""
 
 from fastapi import WebSocket, WebSocketDisconnect, status
+
+from app.core.database import sessionmanager
 from app.core.security import decode_access_token
 from app.crud.user import user as crud_user
-from app.core.database import sessionmanager
 
 
 async def get_current_user_ws(websocket: WebSocket) -> int:

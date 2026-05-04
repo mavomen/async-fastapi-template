@@ -71,9 +71,7 @@ async def login_for_access_token(
     Raises:
         HTTPException: If authentication fails.
     """
-    user = await authenticate_user(
-        db, email=form_data.username, password=form_data.password
-    )
+    user = await authenticate_user(db, email=form_data.username, password=form_data.password)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

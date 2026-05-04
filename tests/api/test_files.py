@@ -1,23 +1,27 @@
 """Tests for file endpoints."""
 
+from io import BytesIO
+
 import pytest
 from httpx import AsyncClient
-from io import BytesIO
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.security import create_access_token
 from app.crud.user import user as crud_user
 from app.schemas.user import UserCreate
-from sqlalchemy.ext.asyncio import AsyncSession
 
 
 @pytest.fixture
 async def auth_headers(db_session: AsyncSession):
     """Create a user and return auth headers."""
-    user = await crud_user.create(db_session, obj_in=UserCreate(
-        email="fileuser@example.com",
-        username="fileuser",
-        password="StrongPass1!",
-    ))
+    user = await crud_user.create(
+        db_session,
+        obj_in=UserCreate(
+            email="fileuser@example.com",
+            username="fileuser",
+            password="StrongPass1!",
+        ),
+    )
     token = create_access_token(subject=user.id)
     return {"Authorization": f"Bearer {token}"}
 

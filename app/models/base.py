@@ -1,6 +1,6 @@
 """Base model with common fields for all database models."""
 
-from datetime import datetime, timezone
+from datetime import datetime
 from typing import Any
 
 from sqlalchemy import DateTime, func
@@ -44,6 +44,4 @@ class BaseModel(Base, TimestampMixin):
         Returns:
             Dictionary representation of model
         """
-        return {
-            column.name: getattr(self, column.name) for column in self.__table__.columns
-        }
+        return {column.name: getattr(self, column.name) for column in self.__table__.columns}

@@ -1,12 +1,12 @@
 """Unit tests for custom middlewares."""
 
-import pytest
 from unittest.mock import AsyncMock, MagicMock
+
+import pytest
 from starlette.requests import Request
 from starlette.responses import Response
 
 from app.middleware.correlation import CorrelationIDMiddleware
-from app.middleware.request_logging import RequestLoggingMiddleware
 from app.middleware.error_logging import error_logging_middleware
 
 

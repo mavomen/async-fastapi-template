@@ -1,7 +1,7 @@
 """Pagination utilities for API responses."""
 
-from typing import Generic, TypeVar
 from math import ceil
+from typing import Generic, TypeVar
 
 from pydantic import BaseModel, Field
 

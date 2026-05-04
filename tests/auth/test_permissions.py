@@ -1,11 +1,8 @@
 """Tests for permission checker."""
 
-import pytest
-from unittest.mock import AsyncMock
-
 from app.auth.permissions import has_permission
+from app.models.role import Permission, Role
 from app.models.user import User
-from app.models.role import Role, Permission
 
 
 def create_mock_user(is_superuser=False):

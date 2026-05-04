@@ -73,7 +73,7 @@ class UserResponse(UserBase):
                 "created_at": "2025-05-02T04:30:00Z",
                 "updated_at": "2025-05-02T04:30:00Z",
             }
-        }
+        },
     )
 
 

@@ -1,13 +1,13 @@
 """CRUD operations for User model."""
 
 from sqlalchemy import select
-from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from app.core.security import get_password_hash
 from app.crud.base import CRUDBase
+from app.models.role import Role
 from app.models.user import User
-from app.models.role import Role, Permission
 from app.schemas.user import UserCreate, UserUpdate
 
 
@@ -35,7 +35,7 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
         await db.refresh(db_obj)
         return db_obj
 
-    async def update(
+    async def update(  # type: ignore[override]
         self,
         db: AsyncSession,
         *,
@@ -45,7 +45,7 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
         """Update user with optional password hashing."""
         update_data = obj_in.model_dump(exclude_unset=True)
 
-        if "password" in update_data and update_data["password"]:
+        if update_data.get("password"):
             hashed_password = get_password_hash(update_data.pop("password"))
             update_data["hashed_password"] = hashed_password
 

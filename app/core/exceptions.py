@@ -1,7 +1,5 @@
 """Custom exception classes for the application."""
 
-from typing import Any
-
 
 class AppException(Exception):
     """Base application exception with status code and detail."""

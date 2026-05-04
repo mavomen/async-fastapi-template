@@ -10,14 +10,15 @@ class BaseTask(Task):
 
     abstract = True
 
-    def on_failure(self, exc, task_id, args, kwargs, einfo):
+    def on_failure(self, exc, task_id, _args, _kwargs, _einfo):
         self._update_status(task_id, "FAILURE", str(exc))
 
-    def on_success(self, retval, task_id, args, kwargs):
+    def on_success(self, _retval, task_id, _args, _kwargs):
         self._update_status(task_id, "SUCCESS")
 
-    def _update_status(self, task_id: str, status: str, error: str = None):
+    def _update_status(self, task_id: str, status: str, error: str | None = None) -> None:
         import asyncio
+
         from app.core.database import sessionmanager
 
         try:

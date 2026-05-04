@@ -1,14 +1,13 @@
 """WebSocket connection manager for broadcasting messages."""
 
 from fastapi import WebSocket
-from typing import Dict, Set
 
 
 class ConnectionManager:
     """Manages active WebSocket connections."""
 
     def __init__(self) -> None:
-        self.active_connections: Dict[str, Set[WebSocket]] = {}
+        self.active_connections: dict[str, set[WebSocket]] = {}
 
     async def connect(self, websocket: WebSocket, user_id: str) -> None:
         await websocket.accept()

@@ -1,24 +1,26 @@
 """FastAPI application factory and configuration."""
 
+from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
-from typing import AsyncIterator
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import ORJSONResponse
 
 from app.api import api_router
-from app.api.health import router as health_router
 from app.api.error_handlers import configure_exception_handlers
-from app.middleware.error_logging import error_logging_middleware
-from app.middleware.rate_limit import configure_rate_limit
-from app.middleware.correlation import CorrelationIDMiddleware
-from app.middleware.request_logging import RequestLoggingMiddleware
+from app.api.health import router as health_router
 from app.core.config import settings
 from app.core.database import sessionmanager
 from app.core.logging import setup_logging
-from app.websocket.chat import router as websocket_router
 from app.core.tracing import setup_tracing
+from app.middleware.correlation import CorrelationIDMiddleware
+from app.middleware.error_logging import error_logging_middleware
+from app.middleware.rate_limit import configure_rate_limit
+from app.middleware.request_logging import RequestLoggingMiddleware
+from app.websocket.chat import router as websocket_router
+
+# instrumentator.instrument(app).expose(app, endpoint="/metrics")  # type: ignore[no-untyped-call]
 
 
 @asynccontextmanager
@@ -73,6 +75,7 @@ def create_app() -> FastAPI:
 
     # Prometheus metrics
     from app.core.metrics import instrumentator
+
     instrumentator.instrument(app).expose(app, endpoint="/metrics")
 
     # OpenTelemetry tracing (after all routes)
