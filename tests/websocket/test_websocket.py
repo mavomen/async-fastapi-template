@@ -1,6 +1,7 @@
 """Tests for WebSocket chat endpoint."""
 
 from unittest.mock import AsyncMock, patch
+
 from fastapi.testclient import TestClient
 
 

@@ -4,7 +4,6 @@ import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.crud.user import user as user_crud
-from app.models.user import User
 from app.schemas.user import UserCreate, UserUpdate
 
 
@@ -55,9 +54,7 @@ async def test_get_user_by_email(db_session: AsyncSession):
     )
     created_user = await user_crud.create(db_session, obj_in=user_in)
 
-    retrieved_user = await user_crud.get_by_email(
-        db_session, email="getbyemail@example.com"
-    )
+    retrieved_user = await user_crud.get_by_email(db_session, email="getbyemail@example.com")
 
     assert retrieved_user is not None
     assert retrieved_user.id == created_user.id
@@ -74,9 +71,7 @@ async def test_get_user_by_username(db_session: AsyncSession):
     )
     created_user = await user_crud.create(db_session, obj_in=user_in)
 
-    retrieved_user = await user_crud.get_by_username(
-        db_session, username="getbyusernameuser"
-    )
+    retrieved_user = await user_crud.get_by_username(db_session, username="getbyusernameuser")
 
     assert retrieved_user is not None
     assert retrieved_user.id == created_user.id
@@ -93,9 +88,7 @@ async def test_get_user_not_found(db_session: AsyncSession):
 @pytest.mark.asyncio
 async def test_get_user_by_email_not_found(db_session: AsyncSession):
     """Test getting user by non-existent email returns None."""
-    retrieved_user = await user_crud.get_by_email(
-        db_session, email="nonexistent@example.com"
-    )
+    retrieved_user = await user_crud.get_by_email(db_session, email="nonexistent@example.com")
     assert retrieved_user is None
 
 
@@ -110,9 +103,7 @@ async def test_update_user(db_session: AsyncSession):
     created_user = await user_crud.create(db_session, obj_in=user_in)
 
     user_update = UserUpdate(full_name="Updated Name", is_active=False)
-    updated_user = await user_crud.update(
-        db_session, db_obj=created_user, obj_in=user_update
-    )
+    updated_user = await user_crud.update(db_session, db_obj=created_user, obj_in=user_update)
 
     assert updated_user.id == created_user.id
     assert updated_user.full_name == "Updated Name"
@@ -131,9 +122,7 @@ async def test_update_user_password(db_session: AsyncSession):
     created_user = await user_crud.create(db_session, obj_in=user_in)
 
     user_update = UserUpdate(password="newpassword")
-    updated_user = await user_crud.update(
-        db_session, db_obj=created_user, obj_in=user_update
-    )
+    updated_user = await user_crud.update(db_session, db_obj=created_user, obj_in=user_update)
 
     assert updated_user.hashed_password != "newpassword"
     assert updated_user.hashed_password.startswith("$2b$")
@@ -151,9 +140,7 @@ async def test_update_user_partial(db_session: AsyncSession):
     created_user = await user_crud.create(db_session, obj_in=user_in)
 
     user_update = UserUpdate(full_name="New Name")
-    updated_user = await user_crud.update(
-        db_session, db_obj=created_user, obj_in=user_update
-    )
+    updated_user = await user_crud.update(db_session, db_obj=created_user, obj_in=user_update)
 
     assert updated_user.full_name == "New Name"
     assert updated_user.email == "partial@example.com"  # Unchanged

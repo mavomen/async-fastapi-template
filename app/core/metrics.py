@@ -1,8 +1,7 @@
 """Prometheus metrics configuration and custom collectors."""
 
-from prometheus_client import Counter, Histogram, Gauge, generate_latest, REGISTRY
+from prometheus_client import Counter, Gauge, Histogram
 from prometheus_fastapi_instrumentator import Instrumentator, metrics
-from fastapi import FastAPI
 
 # Custom application metrics
 http_requests_total = Counter(

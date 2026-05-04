@@ -1,6 +1,7 @@
 """Structured logging configuration using structlog and python-json-logger."""
 
 import logging
+
 import structlog
 from pythonjsonlogger import jsonlogger
 
@@ -25,7 +26,7 @@ def setup_logging() -> None:
     if settings.ENVIRONMENT == "development":
         # Pretty console output for local development
         structlog.configure(
-            processors=shared_processors + [structlog.dev.ConsoleRenderer()],
+            processors=shared_processors + [structlog.dev.ConsoleRenderer()],  # type: ignore[arg-type]
             context_class=dict,
             logger_factory=structlog.PrintLoggerFactory(),
             wrapper_class=structlog.stdlib.BoundLogger,
@@ -34,16 +35,14 @@ def setup_logging() -> None:
     else:
         # JSON output for production / staging
         structlog.configure(
-            processors=shared_processors
+            processors=shared_processors  # type: ignore[arg-type]
             + [structlog.stdlib.ProcessorFormatter.wrap_for_formatter],
             logger_factory=structlog.stdlib.LoggerFactory(),
             wrapper_class=structlog.stdlib.BoundLogger,
             cache_logger_on_first_use=True,
         )
 
-        formatter = jsonlogger.JsonFormatter(
-            fmt="%(asctime)s %(name)s %(levelname)s %(message)s"
-        )
+        formatter = jsonlogger.JsonFormatter(fmt="%(asctime)s %(name)s %(levelname)s %(message)s")
         handler = logging.StreamHandler()
         handler.setFormatter(formatter)
         root_logger = logging.getLogger()

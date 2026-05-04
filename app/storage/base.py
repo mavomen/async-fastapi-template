@@ -1,7 +1,6 @@
 """Abstract interface for file storage backends."""
 
 from abc import ABC, abstractmethod
-from pathlib import Path
 from typing import BinaryIO
 
 

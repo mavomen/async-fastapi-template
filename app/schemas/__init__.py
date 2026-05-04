@@ -4,10 +4,10 @@ from app.schemas.token import Token, TokenPayload
 from app.schemas.user import UserCreate, UserInDB, UserResponse, UserUpdate
 
 __all__ = [
-    "UserCreate",
-    "UserUpdate",
-    "UserResponse",
-    "UserInDB",
     "Token",
     "TokenPayload",
+    "UserCreate",
+    "UserInDB",
+    "UserResponse",
+    "UserUpdate",
 ]

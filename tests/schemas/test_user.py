@@ -3,7 +3,7 @@
 import pytest
 from pydantic import ValidationError
 
-from app.schemas.user import UserCreate, UserUpdate, UserResponse
+from app.schemas.user import UserCreate, UserResponse, UserUpdate
 
 
 class TestUserCreateSchema:
@@ -167,7 +167,7 @@ class TestUserResponseSchema:
 
     def test_valid_user_response(self):
         """Test creating valid UserResponse schema."""
-        from datetime import datetime, UTC
+        from datetime import UTC, datetime
 
         user_data = {
             "id": 1,
@@ -189,7 +189,8 @@ class TestUserResponseSchema:
 
     def test_user_response_from_orm(self):
         """Test UserResponse can be created from ORM model."""
-        from datetime import datetime, UTC
+        from datetime import UTC, datetime
+
         from app.models.user import User
 
         user_model = User(
@@ -214,7 +215,7 @@ class TestUserResponseSchema:
 
     def test_user_response_excludes_sensitive_fields(self):
         """Test UserResponse doesn't include sensitive fields."""
-        from datetime import datetime, UTC
+        from datetime import UTC, datetime
 
         user_data = {
             "id": 1,

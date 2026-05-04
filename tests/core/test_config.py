@@ -3,9 +3,6 @@ Test suite for application configuration management.
 Tests environment validation, settings behavior, and error handling.
 """
 
-import os
-from typing import Any
-
 import pytest
 from pydantic import ValidationError
 
@@ -53,16 +50,14 @@ class TestSettingsBasics:
 
         settings = Settings()
 
-        assert settings.SECRET_KEY == secret
+        assert secret == settings.SECRET_KEY
         assert len(settings.SECRET_KEY) == 32
 
 
 class TestEnvironmentValidation:
     """Test ENVIRONMENT field validation."""
 
-    @pytest.mark.parametrize(
-        "env_value", ["development", "staging", "production", "test"]
-    )
+    @pytest.mark.parametrize("env_value", ["development", "staging", "production", "test"])
     def test_valid_environment_values(self, monkeypatch, env_value):
         """Only specific ENVIRONMENT values should be accepted."""
         monkeypatch.setenv("SECRET_KEY", "a" * 32)
@@ -70,7 +65,7 @@ class TestEnvironmentValidation:
 
         settings = Settings()
 
-        assert settings.ENVIRONMENT == env_value
+        assert env_value == settings.ENVIRONMENT
 
     @pytest.mark.parametrize(
         "invalid_env",
@@ -108,7 +103,7 @@ class TestDatabaseConfiguration:
         settings = Settings()
 
         expected = "postgresql+asyncpg://postgres:postgres@localhost:5432/fastapi_db"
-        assert settings.DATABASE_URL == expected
+        assert expected == settings.DATABASE_URL
 
     def test_database_url_custom(self, monkeypatch):
         """DATABASE_URL should accept custom values."""
@@ -118,7 +113,7 @@ class TestDatabaseConfiguration:
 
         settings = Settings()
 
-        assert settings.DATABASE_URL == custom_url
+        assert custom_url == settings.DATABASE_URL
 
     def test_database_url_with_special_chars(self, monkeypatch):
         """DATABASE_URL should handle special characters in password."""
@@ -128,7 +123,7 @@ class TestDatabaseConfiguration:
 
         settings = Settings()
 
-        assert settings.DATABASE_URL == url_with_special
+        assert url_with_special == settings.DATABASE_URL
 
 
 class TestProjectMetadata:
@@ -180,7 +175,7 @@ class TestAllowedOrigins:
         settings = Settings()
 
         expected = ["http://localhost:3000", "http://localhost:8000"]
-        assert settings.ALLOWED_ORIGINS == expected
+        assert expected == settings.ALLOWED_ORIGINS
 
     def test_allowed_origins_single_value(self, monkeypatch):
         """ALLOWED_ORIGINS should accept single origin."""

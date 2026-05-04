@@ -4,8 +4,7 @@ from opentelemetry import trace
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 from opentelemetry.instrumentation.sqlalchemy import SQLAlchemyInstrumentor
 from opentelemetry.sdk.trace import TracerProvider
-from opentelemetry.sdk.trace.export import (BatchSpanProcessor,
-                                            ConsoleSpanExporter)
+from opentelemetry.sdk.trace.export import BatchSpanProcessor, ConsoleSpanExporter
 
 from app.core.config import settings
 
@@ -22,12 +21,12 @@ def setup_tracing(app=None) -> None:
     if settings.ENVIRONMENT == "development":
         exporter = ConsoleSpanExporter()
     else:
-        from opentelemetry.exporter.otlp.proto.http.trace_exporter import \
-            OTLPSpanExporter
+        from opentelemetry.exporter.otlp.proto.http.trace_exporter import (
+            OTLPSpanExporter,
+        )
 
-        exporter = OTLPSpanExporter(
-            endpoint=settings.OTEL_EXPORTER_OTLP_ENDPOINT
-            or "http://localhost:4318/v1/traces",
+        exporter = OTLPSpanExporter(  # type: ignore[assignment]
+            endpoint=settings.OTEL_EXPORTER_OTLP_ENDPOINT or "http://localhost:4318/v1/traces",
         )
 
     provider.add_span_processor(BatchSpanProcessor(exporter))
@@ -35,4 +34,4 @@ def setup_tracing(app=None) -> None:
     if app:
         FastAPIInstrumentor.instrument_app(app)
 
-    SQLAlchemyInstrumentor().instrument(enable_commenter=True)
+    SQLAlchemyInstrumentor().instrument(enable_commenter=True)  # type: ignore[no-untyped-call]

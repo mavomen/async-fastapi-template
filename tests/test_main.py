@@ -154,9 +154,7 @@ async def test_lifespan_startup_initializes_sessionmanager():
     from app.main import create_app
 
     with patch.object(sessionmanager, "init") as mock_init:
-        with patch.object(
-            sessionmanager, "close", new_callable=AsyncMock
-        ) as mock_close:
+        with patch.object(sessionmanager, "close", new_callable=AsyncMock) as mock_close:
             app = create_app()
 
             async with app.router.lifespan_context(app):
@@ -172,9 +170,7 @@ async def test_lifespan_shutdown_closes_sessionmanager():
     from app.main import create_app
 
     with patch.object(sessionmanager, "init"):
-        with patch.object(
-            sessionmanager, "close", new_callable=AsyncMock
-        ) as mock_close:
+        with patch.object(sessionmanager, "close", new_callable=AsyncMock) as mock_close:
             app = create_app()
 
             async with app.router.lifespan_context(app):

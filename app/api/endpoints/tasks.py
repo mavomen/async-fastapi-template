@@ -1,13 +1,13 @@
 """Task trigger and status endpoints."""
 
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.ext.asyncio import AsyncSession
+from pydantic import BaseModel
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_db
-from app.tasks.email import send_email_notification
 from app.models.task_status import TaskStatus
-from pydantic import BaseModel
+from app.tasks.email import send_email_notification
 
 router = APIRouter()
 

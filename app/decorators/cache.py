@@ -3,10 +3,9 @@
 import functools
 import hashlib
 import json
-from typing import Callable
+from collections.abc import Callable
 
 from fastapi import Request, Response
-from fastapi.responses import ORJSONResponse
 
 from app.core.cache import cache
 
@@ -21,6 +20,7 @@ def cached(ttl: int = 60, key_prefix: str = ""):
     Returns:
         Decorated function.
     """
+
     def decorator(func: Callable) -> Callable:
         @functools.wraps(func)
         async def wrapper(*args, **kwargs):
@@ -66,6 +66,7 @@ def cached(ttl: int = 60, key_prefix: str = ""):
             return response
 
         return wrapper
+
     return decorator
 
 

@@ -1,15 +1,19 @@
 """Database configuration and session management."""
 
-from collections.abc import AsyncGenerator
+from collections.abc import AsyncGenerator, AsyncIterator
 from contextlib import asynccontextmanager
-from typing import AsyncIterator
 
-from sqlalchemy.ext.asyncio import (AsyncEngine, AsyncSession,
-                                    async_sessionmaker, create_async_engine)
+from sqlalchemy.ext.asyncio import (
+    AsyncEngine,
+    AsyncSession,
+    async_sessionmaker,
+    create_async_engine,
+)
 from sqlalchemy.pool import NullPool
 
 from app.core.config import settings
 from app.core.metrics import db_connections_total
+
 
 class DatabaseSessionManager:
     """Manages database engine and session lifecycle."""
@@ -57,9 +61,7 @@ class DatabaseSessionManager:
             RuntimeError: If database not initialized
         """
         if self._sessionmaker is None:
-            raise RuntimeError(
-                "DatabaseSessionManager is not initialized. " "Call init() first."
-            )
+            raise RuntimeError("DatabaseSessionManager is not initialized. Call init() first.")
         async with self._sessionmaker() as session:
             try:
                 yield session

@@ -1,7 +1,8 @@
 """S3-compatible storage backend using aioboto3."""
 
-import aioboto3
 from typing import BinaryIO
+
+import aioboto3
 
 from app.core.config import settings
 from app.storage.base import StorageBackend

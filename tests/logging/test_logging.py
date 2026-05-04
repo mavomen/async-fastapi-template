@@ -1,8 +1,8 @@
 """Tests for logging middleware."""
 
-import pytest
 from fastapi.testclient import TestClient
-from starlette.middleware.base import BaseHTTPMiddleware
+
+from app.middleware.request_logging import RequestLoggingMiddleware
 
 
 def test_correlation_id_injected(client: TestClient):
@@ -20,7 +20,8 @@ def test_correlation_id_forwarded(client: TestClient):
 def test_request_logging_middleware_present():
     """RequestLoggingMiddleware is registered."""
     from app.main import app
+
     # Verify middleware exists by checking user_middleware
     middleware_classes = [m.cls for m in app.user_middleware]
-    from app.middleware.request_logging import RequestLoggingMiddleware as RL
-    assert RL in middleware_classes
+
+    assert RequestLoggingMiddleware in middleware_classes

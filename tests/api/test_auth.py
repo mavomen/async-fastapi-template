@@ -4,10 +4,8 @@ Tests for authentication endpoints (register, login).
 
 import pytest
 from httpx import AsyncClient
-from fastapi.testclient import TestClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.security import create_access_token
 from app.crud.user import user as crud_user
 from app.schemas.user import UserCreate
 

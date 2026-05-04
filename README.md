@@ -1,54 +1,58 @@
-# async-fastapi-template
+# Async FastAPI Template
 
-Modern async FastAPI template with production-ready patterns.
+[![Lint](https://github.com/your-org/async-fastapi-template/actions/workflows/lint.yml/badge.svg)](https://github.com/your-org/async-fastapi-template/actions/workflows/lint.yml)
+[![Type Check](https://github.com/your-org/async-fastapi-template/actions/workflows/typecheck.yml/badge.svg)](https://github.com/your-org/async-fastapi-template/actions/workflows/typecheck.yml)
+[![Test](https://github.com/your-org/async-fastapi-template/actions/workflows/test.yml/badge.svg)](https://github.com/your-org/async-fastapi-template/actions/workflows/test.yml)
+[![Security Scan](https://github.com/your-org/async-fastapi-template/actions/workflows/security.yml/badge.svg)](https://github.com/your-org/async-fastapi-template/actions/workflows/security.yml)
 
-## Features
+A production‑ready, fully async FastAPI template with:
 
-- FastAPI with async/await support
-- Pydantic v2 settings management
-- Health check endpoints (basic, readiness, liveness)
-- Structured logging
-- Environment-based configuration
-- Poetry dependency management
-- pytest with async support
+- ⚡ Async SQLAlchemy 2.0 + Alembic
+- 🔐 JWT auth + RBAC (roles & permissions)
+- 🚀 Background tasks (Celery + Redis)
+- 📦 File uploads (local / S3)
+- 🗨️ WebSocket support
+- 📊 Prometheus metrics, Grafana dashboards
+- 🕵️ Distributed tracing (OpenTelemetry)
+- ⚡ Rate limiting, caching, structured logging
+- 🐳 Docker & Docker Compose (dev + prod)
+- ✅ CI/CD workflows (GitHub Actions)
+- 🧪 80%+ test coverage
 
-## Quick Start
+## Quickstart
 
 ```bash
-# Install dependencies
-poetry install
-
-# Copy environment template
+git clone https://github.com/your-org/async-fastapi-template.git
+cd async-fastapi-template
 cp .env.example .env
-
-# Run development server
+docker compose up -d
+poetry install
+poetry run alembic upgrade head
 poetry run uvicorn app.main:app --reload
-
-# Run tests
-poetry run pytest
 ```
 
-## Health Endpoints
-- `GET /health` - Basic health check
-- `GET /health/ready` - Readiness probe
-- `GET /health/live` - Liveness probe
+Visit http://localhost:8000/docs
 
-## Requirements
+## Documentation
 
-- Python 3.11+
-- Poetry 1.5+
-
-## Project Structure
-
-```
-app/
-├── api/ # API routes
-├── core/ # Core configuration
-└── main.py # Application entry
-tests/ # Test suite
-```
-
-## License
-
-MIT
-
+- [Quickstart Guide](docs/quickstart.md)
+- [API Documentation](docs/api.md)
+- [Architecture Decisions](docs/architecture.md)
+- [Database Setup](docs/database.md)
+- [Docker Guide](docs/docker.md)
+- [Background Tasks](docs/background_tasks.md)
+- [Caching Strategy](docs/caching.md)
+- [Rate Limiting](docs/rate_limiting.md)
+- [File Storage](docs/file_storage.md)
+- [WebSocket Usage](docs/websocket.md)
+- [Logging](docs/logging.md)
+- [Metrics & Monitoring](docs/metrics.md)
+- [Health Checks](docs/health.md)
+- [Distributed Tracing](docs/tracing.md)
+- [Testing Guide](docs/testing.md)
+- [Code Quality](docs/code_quality.md)
+- [CI/CD](docs/ci_cd.md)
+- [Deployment](docs/deployment.md)
+- [Security](SECURITY.md)
+- [Contributing](CONTRIBUTING.md)
+- [Changelog](CHANGELOG.md)

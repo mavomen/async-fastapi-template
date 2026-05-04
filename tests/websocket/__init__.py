@@ -2,20 +2,24 @@
 
 import pytest
 from httpx import AsyncClient
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.core.security import create_access_token
 from app.crud.user import user as crud_user
 from app.schemas.user import UserCreate
-from sqlalchemy.ext.asyncio import AsyncSession
 
 
 @pytest.fixture
 async def ws_token(db_session: AsyncSession) -> str:
     """Create a user and return a valid access token."""
-    user = await crud_user.create(db_session, obj_in=UserCreate(
-        email="wstester@example.com",
-        username="wstester",
-        password="StrongPass1!",
-    ))
+    user = await crud_user.create(
+        db_session,
+        obj_in=UserCreate(
+            email="wstester@example.com",
+            username="wstester",
+            password="StrongPass1!",
+        ),
+    )
     return create_access_token(subject=user.id)
 
 

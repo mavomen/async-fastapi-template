@@ -1,6 +1,7 @@
 """Middleware that logs every request and its response using structlog."""
 
 import time
+
 import structlog
 from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware

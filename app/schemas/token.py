@@ -15,4 +15,3 @@ class TokenPayload(BaseModel):
 
     sub: str = Field(..., description="The subject of the token (user ID or email)")
     exp: int = Field(..., description="The expiration time of the token")
-
