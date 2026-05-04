@@ -1,8 +1,8 @@
-"""User management endpoints with RBAC protection."""
+"""User management endpoints with RBAC protection and data export."""
 
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_db
@@ -10,6 +10,8 @@ from app.auth.permissions import PermissionChecker
 from app.crud.user import user as crud_user
 from app.models.user import User
 from app.schemas.user import UserDetailResponse, UserUpdate
+from app.utils.export_csv import export_to_csv
+from app.utils.export_excel import export_to_excel
 
 router = APIRouter()
 
@@ -21,17 +23,72 @@ router = APIRouter()
     description="Retrieve a paginated list of all users. Requires `user:read` permission.",
     responses={
         200: {"description": "List of users with roles"},
+        401: {"description": "Not authenticated"},
         403: {"description": "Not enough permissions"},
     },
 )
-@router.get("/", response_model=list[UserDetailResponse])
 async def list_users(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(PermissionChecker(["user:read"])),
 ) -> Any:
     """List all users (requires 'user:read' permission)."""
-    users = await crud_user.get_multi_with_roles(db, skip=0, limit=100)
-    return users
+    return await crud_user.get_multi_with_roles(db, skip=0, limit=100)
+
+
+@router.get(
+    "/export",
+    response_class=Response,
+    summary="Export users",
+    description="Export all users as CSV or Excel. Requires `user:read` permission.",
+    responses={
+        200: {"description": "Exported file"},
+        401: {"description": "Not authenticated"},
+        403: {"description": "Not enough permissions"},
+    },
+)
+async def export_users(
+    format: str = Query("csv", enum=["csv", "excel"]),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(PermissionChecker(["user:read"])),
+) -> Any:
+    """Export all users as CSV or Excel (requires user:read)."""
+    users = await crud_user.get_multi(db, skip=0, limit=10000)
+    columns = [
+        "id",
+        "email",
+        "username",
+        "full_name",
+        "is_active",
+        "is_verified",
+        "created_at",
+    ]
+    data = [
+        {
+            "id": u.id,
+            "email": u.email,
+            "username": u.username,
+            "full_name": u.full_name,
+            "is_active": u.is_active,
+            "is_verified": u.is_verified,
+            "created_at": u.created_at.isoformat() if u.created_at else "",
+        }
+        for u in users
+    ]
+
+    if format == "excel":
+        content: str | bytes = export_to_excel(data, columns)
+        media_type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        filename = "users.xlsx"
+    else:
+        content = export_to_csv(data, columns)
+        media_type = "text/csv"
+        filename = "users.csv"
+
+    return Response(
+        content=content,
+        media_type=media_type,
+        headers={"Content-Disposition": f"attachment; filename={filename}"},
+    )
 
 
 @router.get(
@@ -41,11 +98,11 @@ async def list_users(
     description="Retrieve a specific user by ID with roles. Requires `user:read` permission.",
     responses={
         200: {"description": "User details with roles"},
+        401: {"description": "Not authenticated"},
         403: {"description": "Not enough permissions"},
         404: {"description": "User not found"},
     },
 )
-@router.get("/{user_id}", response_model=UserDetailResponse)
 async def get_user(
     user_id: int,
     db: AsyncSession = Depends(get_db),
@@ -62,15 +119,15 @@ async def get_user(
     "/{user_id}",
     response_model=UserDetailResponse,
     summary="Update a user",
-    description="Update a user’s details. Requires `user:write` permission.",
+    description="Update a user's details. Requires `user:write` permission.",
     responses={
         200: {"description": "Updated user with roles"},
+        401: {"description": "Not authenticated"},
         403: {"description": "Not enough permissions"},
         404: {"description": "User not found"},
         422: {"description": "Validation error"},
     },
 )
-@router.patch("/{user_id}", response_model=UserDetailResponse)
 async def update_user(
     user_id: int,
     user_in: UserUpdate,
@@ -82,7 +139,6 @@ async def update_user(
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     updated_user = await crud_user.update(db, db_obj=user, obj_in=user_in)
-    # Reload with roles after update to return complete data
     return await crud_user.get_with_roles(db, id=updated_user.id)
 
 
@@ -93,11 +149,11 @@ async def update_user(
     description="Delete a user by ID. Requires `user:delete` permission.",
     responses={
         200: {"description": "User deleted successfully"},
+        401: {"description": "Not authenticated"},
         403: {"description": "Not enough permissions"},
         404: {"description": "User not found"},
     },
 )
-@router.delete("/{user_id}", response_model=dict)
 async def delete_user(
     user_id: int,
     db: AsyncSession = Depends(get_db),
