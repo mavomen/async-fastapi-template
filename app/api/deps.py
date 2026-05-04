@@ -9,6 +9,7 @@ from app.core.database import get_db
 from app.core.security import decode_access_token
 from app.crud.user import user as crud_user
 from app.models.user import User
+from app.services.email import EmailService, email_service
 from app.storage.base import StorageBackend
 from app.storage.local import LocalStorage
 from app.storage.s3 import S3Storage
@@ -55,3 +56,8 @@ async def get_storage() -> StorageBackend:
     if settings.STORAGE_BACKEND == "s3":
         return S3Storage()
     return LocalStorage()
+
+
+async def get_email_service() -> EmailService:
+    """FastAPI dependency for email service."""
+    return email_service
