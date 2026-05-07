@@ -53,3 +53,28 @@ celery:
 
 .PHONY: setup
 setup: install migrate
+
+.PHONY: graphql
+graphql:  
+	@echo "Opening GraphQL playground at http://localhost:8000/graphql"
+	@xdg-open http://localhost:8000/graphql 2>/dev/null || open http://localhost:8000/graphql 2>/dev/null || echo "Visit http://localhost:8000/graphql"
+
+.PHONY: load-test
+load-test:
+	poetry run locust -f locustfile.py
+
+.PHONY: profile
+profile:
+	py-spy record -o profile.svg -- poetry run uvicorn app.main:app --host 0.0.0.0 --port 8000
+
+.PHONY: scaffold
+scaffold:
+	poetry run python scripts/scaffold.py
+
+.PHONY: anonymise-db
+anonymise-db:
+	poetry run python scripts/anonymise_db.py
+
+.PHONY: verify-env
+verify-env:
+	poetry run python scripts/verify_env.py
