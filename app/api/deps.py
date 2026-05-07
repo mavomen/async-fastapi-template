@@ -1,4 +1,4 @@
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -61,3 +61,23 @@ async def get_storage() -> StorageBackend:
 async def get_email_service() -> EmailService:
     """FastAPI dependency for email service."""
     return email_service
+
+
+async def get_gql_context(request: Request, db: AsyncSession = Depends(get_db)) -> dict:
+    """
+    Build GraphQL context with database session and optional authenticated user.
+    """
+    current_user = None
+    token = request.headers.get("Authorization", "").removeprefix("Bearer ").strip()
+    if token:
+        from app.core.security import decode_access_token
+        from app.crud.user import user as crud_user
+
+        try:
+            payload = decode_access_token(token)
+            user_id = payload.get("sub")
+            if user_id:
+                current_user = await crud_user.get(db, id=int(user_id))
+        except Exception:
+            pass  # token invalid or expired – resolvers can still check permissions
+    return {"request": request, "db": db, "current_user": current_user}
