@@ -45,7 +45,7 @@ async def upload_file_stream(
     current_user: User = Depends(get_current_user),
     storage: StorageBackend = Depends(get_storage),
 ):
-    """Upload a file with streaming progress via Server‑Sent Events."""
+    """Upload a file with streaming progress via Server-Sent Events."""
     import asyncio
 
     async def event_generator():

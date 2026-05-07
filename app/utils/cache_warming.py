@@ -1,6 +1,8 @@
 """Cache warming and cache-aside pattern utilities."""
 
-from typing import Callable, Awaitable, Any
+from collections.abc import Awaitable, Callable
+from typing import Any
+
 from app.core.cache import cache
 
 
@@ -10,7 +12,7 @@ async def cache_aside(
     ttl: int = 300,
 ) -> Any:
     """
-    Cache‑aside pattern: return cached value if present,
+    Cache-aside pattern: return cached value if present,
     otherwise call `fetch_func`, store result in cache, and return it.
     """
     cached = await cache.get(key)

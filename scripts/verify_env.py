@@ -30,9 +30,7 @@ async def check_db() -> bool:
 
 async def check_redis() -> bool:
     try:
-        r = aioredis.from_url(
-            settings.REDIS_URL, encoding="utf-8", decode_responses=True
-        )
+        r = aioredis.from_url(settings.REDIS_URL, encoding="utf-8", decode_responses=True)
         await r.ping()
         await r.close()
         return True

@@ -69,7 +69,7 @@ async def stream_task_status(
     task_id: str,
     db: AsyncSession = Depends(get_db),
 ):
-    """Stream task status updates via Server‑Sent Events."""
+    """Stream task status updates via Server-Sent Events."""
     import asyncio
 
     async def event_stream():

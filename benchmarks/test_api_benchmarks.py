@@ -1,6 +1,5 @@
 """pytest-benchmark tests for critical API endpoints."""
 
-import pytest
 from fastapi.testclient import TestClient
 
 
@@ -19,8 +18,10 @@ def test_users_list_endpoint(benchmark, client: TestClient):
 
 def test_register_endpoint(benchmark, client: TestClient):
     """Benchmark the register endpoint."""
-    result = benchmark(lambda: client.post(
-        "/api/v1/auth/register",
-        json={"email": "bench@example.com", "username": "benchuser", "password": "BenchPass1!"},
-    ))
+    result = benchmark(
+        lambda: client.post(
+            "/api/v1/auth/register",
+            json={"email": "bench@example.com", "username": "benchuser", "password": "BenchPass1!"},
+        )
+    )
     assert result.status_code == 201

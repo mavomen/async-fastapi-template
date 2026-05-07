@@ -3,7 +3,6 @@
 
 import asyncio
 import os
-import sys
 from uuid import uuid4
 
 os.environ["ENVIRONMENT"] = "development"

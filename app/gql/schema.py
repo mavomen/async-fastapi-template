@@ -2,26 +2,30 @@
 
 import strawberry
 
-from app.gql.queries.user_query import UserQuery
 from app.gql.mutations.user_mutation import UserMutation
+from app.gql.queries.user_query import UserQuery
 from app.gql.subscriptions.user_subscription import UserSubscription
+
 
 @strawberry.type
 class Query(UserQuery):
     """
-    Root Query – all read operations are inherited from UserQuery.
+    Root Query - all read operations are inherited from UserQuery.
     """
+
 
 @strawberry.type
 class Mutation(UserMutation):
     """
-    Root Mutation – all create/update/delete operations are inherited from UserMutation.
+    Root Mutation - all create/update/delete operations are inherited from UserMutation.
     """
+
 
 @strawberry.type
 class Subscription(UserSubscription):
     """
-    Root Subscription – real-time event streams.
+    Root Subscription - real-time event streams.
     """
+
 
 schema = strawberry.Schema(query=Query, mutation=Mutation, subscription=Subscription)

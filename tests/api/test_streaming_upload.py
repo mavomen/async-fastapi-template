@@ -1,8 +1,8 @@
 """Tests for streaming upload SSE event generator."""
 
-import pytest
-from unittest.mock import AsyncMock
 from io import BytesIO
+
+import pytest
 
 
 @pytest.mark.asyncio

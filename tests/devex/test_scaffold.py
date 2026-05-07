@@ -1,9 +1,6 @@
 """Tests for the scaffold CLI tool."""
 
-import os
 import tempfile
-from pathlib import Path
-from unittest.mock import patch
 
 from scripts.scaffold import to_camel, to_snake
 

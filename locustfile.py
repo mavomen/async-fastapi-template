@@ -1,6 +1,6 @@
 """Locust load test for FastAPI application."""
 
-from locust import HttpUser, task, between
+from locust import HttpUser, between, task
 
 
 class FastAPIUser(HttpUser):

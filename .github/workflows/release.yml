@@ -2,9 +2,7 @@ name: Release
 
 on:
   push:
-    tags:
-      - "v*"
-  workflow_dispatch:
+    tags: ["v*"]
 
 jobs:
   release:
@@ -15,24 +13,11 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Generate changelog
-        id: changelog
-        uses: ardalanamini/auto-changelog@v4
-        with:
-          output: CHANGELOG.md
-          commit-types: "feat,fix,chore,docs,test"
-      - name: Create Release
+      - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          body_path: CHANGELOG.md
           generate_release_notes: true
           draft: false
           prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  # Example self-hosted runner job (uncomment if you have self-hosted runners)
-  # self-hosted:
-  #   runs-on: self-hosted
-  #   steps:
-  #     - run: echo "Running on self-hosted runner"

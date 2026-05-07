@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
-"""Interactive CLI scaffold tool – generates model, endpoint, and test boilerplate."""
+"""Interactive CLI scaffold tool - generates model, endpoint, and test boilerplate."""
 
-import os
 import re
 import sys
 from pathlib import Path
@@ -36,12 +35,8 @@ def main():
 
     model_name = prompt("Model name (CamelCase, e.g. Product)", "Product")
     table_name = prompt("Table name (snake_case)", to_snake(model_name) + "s")
-    endpoint_prefix = prompt(
-        "Endpoint prefix (e.g. products)", to_snake(model_name) + "s"
-    )
-    fields = prompt(
-        "Fields (comma‑separated name:type, e.g. title:str,price:float)", "title:str"
-    )
+    endpoint_prefix = prompt("Endpoint prefix (e.g. products)", to_snake(model_name) + "s")
+    fields = prompt("Fields (comma-separated name:type, e.g. title:str,price:float)", "title:str")
 
     # Parse fields
     field_defs = []
@@ -69,16 +64,16 @@ class {camel}(BaseModel):
 '''
     for fname, ftype in field_defs:
         if ftype == "str":
-            col = f"String(255), nullable=False"
+            col = "String(255), nullable=False"
             py_type = "str"
         elif ftype == "float":
-            col = f"Float, nullable=False"
+            col = "Float, nullable=False"
             py_type = "float"
         elif ftype == "int":
-            col = f"Integer, nullable=False"
+            col = "Integer, nullable=False"
             py_type = "int"
         else:
-            col = f"String(255), nullable=False"
+            col = "String(255), nullable=False"
             py_type = "str"
         model_code += f"    {fname}: Mapped[{py_type}] = mapped_column({col})\n"
 
@@ -134,7 +129,7 @@ class {camel}Response(BaseModel):
             py_type = "str"
         schema_code += f"    {fname}: {py_type}\n"
 
-    schema_code += f"    model_config = ConfigDict(from_attributes=True)\n"
+    schema_code += "    model_config = ConfigDict(from_attributes=True)\n"
     (SCHEMAS_DIR / f"{snake}.py").write_text(schema_code)
     print(f"  Schema: {SCHEMAS_DIR / f'{snake}.py'}")
 
@@ -250,9 +245,9 @@ async def test_list_{snake}(async_client: AsyncClient):
     print(f"  Test: {TESTS_DIR / f'test_{snake}.py'}")
 
     print("\n Scaffolding complete! Next steps:")
-    print(f"  1. Register the router in app/api/__init__.py")
+    print("  1. Register the router in app/api/__init__.py")
     print(f"  2. Create Alembic migration for {table_name}")
-    print(f"  3. Run 'make dev' and test your new endpoint!\n")
+    print("  3. Run 'make dev' and test your new endpoint!\n")
 
 
 if __name__ == "__main__":

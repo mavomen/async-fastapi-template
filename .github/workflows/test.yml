@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [main, develop]
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   test:
     name: Python ${{ matrix.python-version }}
@@ -47,17 +50,26 @@ jobs:
       - name: Install Poetry
         run: pip install poetry
       - name: Install dependencies
-        run: poetry install
+        run: |
+          poetry env remove --all
+          poetry install --no-interaction --no-cache
       - name: Run tests
         env:
-          FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
           ENVIRONMENT: test
-          SECRET_KEY: ${{ secrets.TEST_SECRET_KEY || 'ci-test-key-minimum-32-characters!!' }}
           DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:5432/fastapi_test
           REDIS_URL: redis://localhost:6379/0
-        run: poetry run pytest --cov=app --cov-report=xml
+        run: |
+          echo "=== START TESTS ==="
+          echo "Python version: $(python --version)"
+          echo "Poetry version: $(poetry --version)"
+          export SECRET_KEY="${TEST_SECRET_KEY:-ci-test-key-minimum-32-characters!!}"
+          echo "SECRET_KEY length: ${#SECRET_KEY}"
+          poetry run python -c "from app.core.config import settings; print('Settings loaded OK')"
+          poetry run pytest -v --cov=app --cov-report=xml 2>&1 | tee pytest_output.txt
+          echo "=== TESTS DONE ==="
       - name: Upload coverage
         uses: codecov/codecov-action@v3
+        if: always()
         with:
           file: ./coverage.xml
 
@@ -72,8 +84,6 @@ jobs:
       - name: Install Poetry
         run: pip install poetry
       - name: Verify CI boots
-        env:
-          FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
         run: |
           echo "Python version: $(python --version)"
           echo "Poetry version: $(poetry --version)"

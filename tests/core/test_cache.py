@@ -1,7 +1,8 @@
 """Tests for Redis cache connectivity and operations."""
 
-import pytest
 from unittest.mock import AsyncMock, patch
+
+import pytest
 
 from app.core.cache import cache
 

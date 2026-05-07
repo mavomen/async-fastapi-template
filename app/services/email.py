@@ -57,11 +57,10 @@ def send_email_with_retry(
     """
     try:
         import asyncio
+
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
-        loop.run_until_complete(
-            email_service.send_email(to_email, subject, template_name, context)
-        )
+        loop.run_until_complete(email_service.send_email(to_email, subject, template_name, context))
     except Exception as exc:
         logger.exception("Email send failed, retrying...")
-        raise self.retry(exc=exc, countdown=2 ** self.request.retries * 60)
+        raise self.retry(exc=exc, countdown=2**self.request.retries * 60)

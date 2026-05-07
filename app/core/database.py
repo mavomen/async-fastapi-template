@@ -6,8 +6,12 @@ from collections.abc import AsyncGenerator, AsyncIterator
 from contextlib import asynccontextmanager
 
 from sqlalchemy import event
-from sqlalchemy.ext.asyncio import (AsyncEngine, AsyncSession,
-                                    async_sessionmaker, create_async_engine)
+from sqlalchemy.ext.asyncio import (
+    AsyncEngine,
+    AsyncSession,
+    async_sessionmaker,
+    create_async_engine,
+)
 from sqlalchemy.pool import NullPool
 
 from app.core.config import settings
@@ -41,13 +45,13 @@ class DatabaseSessionManager:
 
         # Add slow query profiling on the sync engine
         @event.listens_for(self._engine.sync_engine, "before_cursor_execute")
-        def _before_cursor_execute(
+        def _before_cursor_execute(  # noqa: PLR0913
             conn, cursor, statement, parameters, context, executemany
         ):
             conn.info["query_start_time"] = time.monotonic()
 
         @event.listens_for(self._engine.sync_engine, "after_cursor_execute")
-        def _after_cursor_execute(
+        def _after_cursor_execute(  # noqa: PLR0913
             conn, cursor, statement, parameters, context, executemany
         ):
             start = conn.info.pop("query_start_time", None)

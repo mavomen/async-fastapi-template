@@ -6,9 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 
 @pytest.mark.asyncio
-async def test_create_user_mutation(
-    async_client: AsyncClient, db_session: AsyncSession
-):
+async def test_create_user_mutation(async_client: AsyncClient, db_session: AsyncSession):
     """Test the createUser mutation."""
     mutation = """
       mutation {

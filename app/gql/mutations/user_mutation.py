@@ -3,11 +3,11 @@
 import strawberry
 from strawberry.types import Info
 
+from app.core.database import sessionmanager
+from app.crud.user import user as crud_user
 from app.gql.types.user import UserType
 from app.schemas.user import UserCreate, UserUpdate
-from app.crud.user import user as crud_user
-from app.core.security import get_password_hash
-from app.core.database import sessionmanager
+
 
 @strawberry.type
 class UserMutation:
@@ -18,7 +18,6 @@ class UserMutation:
     @strawberry.mutation(description="Register a new user.")
     async def create_user(
         self,
-        info: Info,
         email: str,
         username: str,
         password: str,
@@ -28,7 +27,9 @@ class UserMutation:
         Create a new user account.
         """
         async with sessionmanager.session() as db:
-            user_in = UserCreate(email=email, username=username, password=password, full_name=full_name)
+            user_in = UserCreate(
+                email=email, username=username, password=password, full_name=full_name
+            )
             user = await crud_user.create(db, obj_in=user_in)
             return UserType(
                 id=user.id,
@@ -54,6 +55,7 @@ class UserMutation:
         Update a user's details. Requires user:write permission.
         """
         from app.auth.permissions import has_permission
+
         current_user = info.context.get("current_user")
         if not current_user or not has_permission(current_user, ["user:write"]):
             raise PermissionError("Not enough permissions")

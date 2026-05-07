@@ -15,17 +15,13 @@ async def test_me_query(async_client: AsyncClient, db_session: AsyncSession):
     # Create a user and get a token
     user = await crud_user.create(
         db_session,
-        obj_in=UserCreate(
-            email="gqlme@example.com", username="gqlme", password="StrongPass1!"
-        ),
+        obj_in=UserCreate(email="gqlme@example.com", username="gqlme", password="StrongPass1!"),
     )
     token = create_access_token(subject=user.id)
     headers = {"Authorization": f"Bearer {token}"}
 
     query = "{ me { id email username } }"
-    response = await async_client.post(
-        "/graphql", json={"query": query}, headers=headers
-    )
+    response = await async_client.post("/graphql", json={"query": query}, headers=headers)
     assert response.status_code == 200
     data = response.json()
     assert "errors" not in data

@@ -3,9 +3,10 @@
 import strawberry
 from strawberry.types import Info
 
-from app.gql.types.user import UserType
-from app.crud.user import user as crud_user
 from app.core.database import sessionmanager
+from app.crud.user import user as crud_user
+from app.gql.types.user import UserType
+
 
 @strawberry.type
 class UserQuery:
@@ -38,6 +39,7 @@ class UserQuery:
         Retrieve a specific user. Requires user:read permission.
         """
         from app.auth.permissions import has_permission
+
         current_user = info.context.get("current_user")
         if not current_user or not has_permission(current_user, ["user:read"]):
             raise PermissionError("Not enough permissions")

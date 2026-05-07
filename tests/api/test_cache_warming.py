@@ -9,11 +9,10 @@ from app.utils.cache_warming import cache_aside, warm_cache
 
 @pytest.mark.asyncio
 async def test_cache_aside_uses_cache_when_present():
-    with patch(
-        "app.utils.cache_warming.cache.get", new_callable=AsyncMock
-    ) as mock_get, patch(
-        "app.utils.cache_warming.cache.set", new_callable=AsyncMock
-    ) as mock_set:
+    with (
+        patch("app.utils.cache_warming.cache.get", new_callable=AsyncMock) as mock_get,
+        patch("app.utils.cache_warming.cache.set", new_callable=AsyncMock) as mock_set,
+    ):
         mock_get.return_value = {"cached": True}
         fetch = AsyncMock()
         result = await cache_aside("test", fetch, ttl=60)
@@ -24,11 +23,10 @@ async def test_cache_aside_uses_cache_when_present():
 
 @pytest.mark.asyncio
 async def test_cache_aside_fetches_on_miss():
-    with patch(
-        "app.utils.cache_warming.cache.get", new_callable=AsyncMock
-    ) as mock_get, patch(
-        "app.utils.cache_warming.cache.set", new_callable=AsyncMock
-    ) as mock_set:
+    with (
+        patch("app.utils.cache_warming.cache.get", new_callable=AsyncMock) as mock_get,
+        patch("app.utils.cache_warming.cache.set", new_callable=AsyncMock) as mock_set,
+    ):
         mock_get.return_value = None
         fetch = AsyncMock(return_value={"fresh": "data"})
         result = await cache_aside("test", fetch, ttl=120)
@@ -46,11 +44,10 @@ async def test_warm_cache_calls_all_fetchers():
         return "b"
 
     keys = {"a": fetcher_a, "b": fetcher_b}
-    with patch(
-        "app.utils.cache_warming.cache.get", new_callable=AsyncMock
-    ) as mock_get, patch(
-        "app.utils.cache_warming.cache.set", new_callable=AsyncMock
-    ) as mock_set:
+    with (
+        patch("app.utils.cache_warming.cache.get", new_callable=AsyncMock) as mock_get,
+        patch("app.utils.cache_warming.cache.set", new_callable=AsyncMock) as mock_set,
+    ):
         mock_get.return_value = None
         await warm_cache(keys)
         assert mock_get.call_count == 2

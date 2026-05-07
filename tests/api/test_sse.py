@@ -9,6 +9,7 @@ from app.models.task_status import TaskStatus
 # Duplicate the generator logic here for direct unit testing
 async def _sse_event_generator(task_id: str, db: AsyncSession):
     import asyncio
+
     from sqlalchemy import select
 
     while True:

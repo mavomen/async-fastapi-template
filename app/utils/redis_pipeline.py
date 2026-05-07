@@ -28,7 +28,4 @@ async def batch_get(redis: aioredis.Redis, keys: list[str]) -> dict[str, Any | N
     for key in keys:
         pipeline.get(key)
     results = await pipeline.execute()
-    return {
-        key: json.loads(val) if val else None
-        for key, val in zip(keys, results)
-    }
+    return {key: json.loads(val) if val else None for key, val in zip(keys, results, strict=False)}

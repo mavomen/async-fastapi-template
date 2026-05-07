@@ -33,7 +33,9 @@ def setup_logging() -> None:
             cache_logger_on_first_use=True,
         )
         # Also configure the root logger for third-party libraries
-        logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(levelname)s %(message)s")
+        logging.basicConfig(
+            level=logging.INFO, format="%(asctime)s %(name)s %(levelname)s %(message)s"
+        )
     else:
         # JSON output for production / staging
         structlog.configure(

@@ -115,7 +115,10 @@ def create_app() -> FastAPI:
     setup_tracing(app)
 
     # GraphQL endpoint
-    graphql_app = GraphQLRouter(schema, context_getter=get_gql_context)
+    graphql_app = GraphQLRouter(
+        schema,
+        context_getter=get_gql_context,  # type: ignore[arg-type]
+    )
     app.include_router(graphql_app, prefix="/graphql")
     return app
 
