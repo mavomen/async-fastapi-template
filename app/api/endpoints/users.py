@@ -2,7 +2,7 @@
 
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Response
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_db
@@ -12,6 +12,8 @@ from app.models.user import User
 from app.schemas.user import UserDetailResponse, UserUpdate
 from app.utils.export_csv import export_to_csv
 from app.utils.export_excel import export_to_excel
+from fastapi import Depends, Body
+from app.schemas.user import UserCreate, UserDetailResponse, UserUpdate
 
 router = APIRouter()
 
@@ -164,3 +166,16 @@ async def delete_user(
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     return {"detail": "User deleted successfully"}
+
+@router.post("/bulk", response_model=list[UserDetailResponse], status_code=status.HTTP_201_CREATED)
+async def bulk_create_users(
+    users: list[UserCreate],
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(PermissionChecker(["user:write"])),
+) -> Any:
+    """Create multiple users in one request (requires user:write)."""
+    created = []
+    for user_in in users:
+        user = await crud_user.create(db, obj_in=user_in)
+        created.append(user)
+    return created
