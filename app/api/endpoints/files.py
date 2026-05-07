@@ -4,6 +4,7 @@ from typing import Any
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from fastapi.responses import Response
+from starlette.responses import StreamingResponse
 
 from app.api.deps import get_current_user, get_storage
 from app.models.user import User
@@ -36,6 +37,37 @@ async def upload_file(
     # Optional: validate file size, type here
     path = await storage.upload(file.file, file.filename)
     return {"filename": file.filename, "path": path}
+
+
+@router.post("/upload/stream", status_code=status.HTTP_201_CREATED)
+async def upload_file_stream(
+    file: UploadFile = File(...),
+    current_user: User = Depends(get_current_user),
+    storage: StorageBackend = Depends(get_storage),
+):
+    """Upload a file with streaming progress via Server‑Sent Events."""
+    import asyncio
+
+    async def event_generator():
+        total_size = file.size or 0
+        chunk_size = 1024 * 256  # 256 KB
+        uploaded = 0
+        yield f"event: start\ndata: {file.filename}\n\n"
+        while chunk := await file.read(chunk_size):
+            uploaded += len(chunk)
+            percentage = (uploaded / total_size * 100) if total_size else 0
+            yield f"event: progress\ndata: {percentage:.1f}%\n\n"
+            await asyncio.sleep(0.05)
+        # Rewind file for final storage write
+        await file.seek(0)
+        path = await storage.upload(file.file, file.filename)
+        yield f"event: complete\ndata: {path}\n\n"
+
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "Connection": "keep-alive"},
+    )
 
 
 @router.get(

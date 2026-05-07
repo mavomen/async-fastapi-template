@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from starlette.responses import StreamingResponse
 
 from app.api.deps import get_db
 from app.models.task_status import TaskStatus
@@ -61,3 +62,30 @@ async def get_task_status(
         "error": task.error,
         "completed_at": task.completed_at,
     }
+
+
+@router.get("/{task_id}/stream")
+async def stream_task_status(
+    task_id: str,
+    db: AsyncSession = Depends(get_db),
+):
+    """Stream task status updates via Server‑Sent Events."""
+    import asyncio
+
+    async def event_stream():
+        while True:
+            result = await db.execute(
+                select(TaskStatus).where(TaskStatus.task_id == task_id)
+            )
+            task = result.scalar_one_or_none()
+            if task and task.status in ("SUCCESS", "FAILURE"):
+                yield f"event: complete\ndata: {task.status}\n\n"
+                break
+            yield f"event: status\ndata: {task.status if task else 'PENDING'}\n\n"
+            await asyncio.sleep(2)
+
+    return StreamingResponse(
+        event_stream(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "Connection": "keep-alive"},
+    )
