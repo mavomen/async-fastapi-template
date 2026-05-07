@@ -1,19 +1,29 @@
 """User management endpoints with RBAC protection and data export."""
 
+import csv
+import io
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
+from fastapi import (
+    APIRouter,
+    Body,
+    Depends,
+    File,
+    HTTPException,
+    Query,
+    Response,
+    UploadFile,
+    status,
+)
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_db
 from app.auth.permissions import PermissionChecker
 from app.crud.user import user as crud_user
 from app.models.user import User
-from app.schemas.user import UserDetailResponse, UserUpdate
+from app.schemas.user import UserCreate, UserDetailResponse, UserUpdate
 from app.utils.export_csv import export_to_csv
 from app.utils.export_excel import export_to_excel
-from fastapi import Depends, Body
-from app.schemas.user import UserCreate, UserDetailResponse, UserUpdate
 
 router = APIRouter()
 
@@ -167,7 +177,12 @@ async def delete_user(
         raise HTTPException(status_code=404, detail="User not found")
     return {"detail": "User deleted successfully"}
 
-@router.post("/bulk", response_model=list[UserDetailResponse], status_code=status.HTTP_201_CREATED)
+
+@router.post(
+    "/bulk",
+    response_model=list[UserDetailResponse],
+    status_code=status.HTTP_201_CREATED,
+)
 async def bulk_create_users(
     users: list[UserCreate],
     db: AsyncSession = Depends(get_db),
@@ -178,4 +193,33 @@ async def bulk_create_users(
     for user_in in users:
         user = await crud_user.create(db, obj_in=user_in)
         created.append(user)
+    return created
+
+
+@router.post(
+    "/import/csv",
+    response_model=list[UserDetailResponse],
+    status_code=status.HTTP_201_CREATED,
+)
+async def import_users_csv(
+    file: UploadFile = File(...),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(PermissionChecker(["user:write"])),
+):
+    """Import users from a CSV file (requires user:write)."""
+    content = await file.read()
+    reader = csv.DictReader(io.StringIO(content.decode()))
+    created = []
+    for row in reader:
+        user_in = UserCreate(
+            email=row["email"],
+            username=row["username"],
+            password=row.get("password", "DefaultPass1!"),
+            full_name=row.get("full_name"),
+        )
+        try:
+            user = await crud_user.create(db, obj_in=user_in)
+            created.append(user)
+        except Exception:
+            continue  # skip duplicate rows
     return created
