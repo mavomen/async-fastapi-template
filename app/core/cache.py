@@ -5,6 +5,7 @@ from typing import Any
 
 import redis.asyncio as aioredis
 
+from app.core.config import settings
 from app.core.metrics import cache_hits_total, cache_misses_total
 
 
@@ -16,6 +17,11 @@ class RedisCache:
 
     async def connect(self) -> None:
         """Initialize the Redis connection pool."""
+        self._redis = aioredis.from_url(
+            settings.REDIS_URL,
+            encoding="utf-8",
+            decode_responses=True,
+        )
 
     async def disconnect(self) -> None:
         """Close the Redis connection."""
@@ -66,12 +72,6 @@ class RedisCache:
         if self._redis is None:
             raise RuntimeError("RedisCache is not connected")
         await self._redis.flushdb()
-
-    # self._redis = aioredis.from_url(  # type: ignore[attr-defined]
-    #     settings.REDIS_URL,
-    #     encoding="utf-8",
-    #     decode_responses=True,
-    # )
 
 
 cache = RedisCache()

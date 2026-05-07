@@ -1,9 +1,9 @@
 # Async FastAPI Template
 
-[![Lint](https://github.com/your-org/async-fastapi-template/actions/workflows/lint.yml/badge.svg)](https://github.com/your-org/async-fastapi-template/actions/workflows/lint.yml)
-[![Type Check](https://github.com/your-org/async-fastapi-template/actions/workflows/typecheck.yml/badge.svg)](https://github.com/your-org/async-fastapi-template/actions/workflows/typecheck.yml)
-[![Test](https://github.com/your-org/async-fastapi-template/actions/workflows/test.yml/badge.svg)](https://github.com/your-org/async-fastapi-template/actions/workflows/test.yml)
-[![Security Scan](https://github.com/your-org/async-fastapi-template/actions/workflows/security.yml/badge.svg)](https://github.com/your-org/async-fastapi-template/actions/workflows/security.yml)
+[![Lint](https://github.com/mavomen-org/async-fastapi-template/actions/workflows/lint.yml/badge.svg)](https://github.com/mavomen-org/async-fastapi-template/actions/workflows/lint.yml)
+[![Type Check](https://github.com/mavomen-org/async-fastapi-template/actions/workflows/typecheck.yml/badge.svg)](https://github.com/mavomen-org/async-fastapi-template/actions/workflows/typecheck.yml)
+[![Test](https://github.com/mavomen-org/async-fastapi-template/actions/workflows/test.yml/badge.svg)](https://github.com/mavomen-org/async-fastapi-template/actions/workflows/test.yml)
+[![Security Scan](https://github.com/mavomen-org/async-fastapi-template/actions/workflows/security.yml/badge.svg)](https://github.com/mavomen-org/async-fastapi-template/actions/workflows/security.yml)
 
 A production‑ready, fully async FastAPI template with:
 
@@ -22,7 +22,7 @@ A production‑ready, fully async FastAPI template with:
 ## Quickstart
 
 ```bash
-git clone https://github.com/your-org/async-fastapi-template.git
+git clone https://github.com/mavomen-org/async-fastapi-template.git
 cd async-fastapi-template
 cp .env.example .env
 docker compose up -d
