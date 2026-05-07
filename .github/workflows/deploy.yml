@@ -8,7 +8,7 @@ on:
 
 jobs:
   deploy:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    if: ${{ github.event.workflow_run.conclusion == 'success' && secrets.SSH_HOST != '' }}
     runs-on: ubuntu-latest
     steps:
       - name: Deploy to production server (example via SSH)

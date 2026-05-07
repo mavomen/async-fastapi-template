@@ -10,6 +10,7 @@ from fastapi.responses import ORJSONResponse
 from app.api import api_router
 from app.api.error_handlers import configure_exception_handlers
 from app.api.health import router as health_router
+from app.core.cache import cache
 from app.core.config import settings
 from app.core.database import sessionmanager
 from app.core.logging import setup_logging
@@ -28,10 +29,12 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     """Manage application lifespan events."""
     # Startup
     sessionmanager.init(settings.DATABASE_URL)
+    await cache.connect()
     yield
     # Shutdown: only close in non‑test environments
     if settings.ENVIRONMENT != "test":
         await sessionmanager.close()
+        await cache.disconnect()
 
 
 def create_app() -> FastAPI:

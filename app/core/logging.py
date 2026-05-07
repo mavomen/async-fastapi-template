@@ -3,7 +3,7 @@
 import logging
 
 import structlog
-from pythonjsonlogger import jsonlogger
+from pythonjsonlogger.json import JsonFormatter
 
 from app.core.config import settings
 
@@ -32,6 +32,8 @@ def setup_logging() -> None:
             wrapper_class=structlog.stdlib.BoundLogger,
             cache_logger_on_first_use=True,
         )
+        # Also configure the root logger for third-party libraries
+        logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(levelname)s %(message)s")
     else:
         # JSON output for production / staging
         structlog.configure(
@@ -42,7 +44,7 @@ def setup_logging() -> None:
             cache_logger_on_first_use=True,
         )
 
-        formatter = jsonlogger.JsonFormatter(fmt="%(asctime)s %(name)s %(levelname)s %(message)s")
+        formatter = JsonFormatter(fmt="%(asctime)s %(name)s %(levelname)s %(message)s")
         handler = logging.StreamHandler()
         handler.setFormatter(formatter)
         root_logger = logging.getLogger()

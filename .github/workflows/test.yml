@@ -46,7 +46,7 @@ jobs:
       - name: Run tests
         env:
           ENVIRONMENT: test
-          SECRET_KEY: ${{ secrets.TEST_SECRET_KEY }}
+          SECRET_KEY: ${{ secrets.TEST_SECRET_KEY || 'ci-test-key-minimum-32-characters!!' }}
           DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:5432/fastapi_test
           REDIS_URL: redis://localhost:6379/0
         run: poetry run pytest --cov=app --cov-report=xml
