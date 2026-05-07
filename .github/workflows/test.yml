@@ -8,7 +8,11 @@ on:
 
 jobs:
   test:
+    name: Python ${{ matrix.python-version }}
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.12", "3.13"]
     services:
       postgres:
         image: postgres:16-alpine
@@ -36,15 +40,17 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: ${{ matrix.python-version }}
       - name: Install Poetry
         run: pip install poetry
       - name: Install dependencies
         run: poetry install
       - name: Run tests
         env:
+          FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
           ENVIRONMENT: test
           SECRET_KEY: ${{ secrets.TEST_SECRET_KEY || 'ci-test-key-minimum-32-characters!!' }}
           DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:5432/fastapi_test
@@ -54,3 +60,22 @@ jobs:
         uses: codecov/codecov-action@v3
         with:
           file: ./coverage.xml
+
+  smoke:
+    name: CI Smoke Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install Poetry
+        run: pip install poetry
+      - name: Verify CI boots
+        env:
+          FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+        run: |
+          echo "Python version: $(python --version)"
+          echo "Poetry version: $(poetry --version)"
+          poetry install --no-interaction
+          echo "CI bootstrapped successfully"

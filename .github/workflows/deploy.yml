@@ -10,6 +10,8 @@ jobs:
   deploy:
     if: ${{ github.event.workflow_run.conclusion == 'success' && secrets.SSH_HOST != '' }}
     runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
       - name: Deploy to production server (example via SSH)
         uses: appleboy/ssh-action@v1.2.1

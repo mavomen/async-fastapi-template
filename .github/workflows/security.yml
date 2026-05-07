@@ -4,11 +4,14 @@ on:
   push:
     branches: [main, develop]
   schedule:
-    - cron: "0 8 * * 1"
+    - cron: "0 8 * * 1"   # Weekly on Monday
+    - cron: "0 2 * * *"   # Nightly at 2:00 UTC
 
 jobs:
-  security:
+  trivy:
     runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
       - uses: actions/checkout@v4
       - name: Run Trivy vulnerability scanner
@@ -19,3 +22,21 @@ jobs:
           format: 'table'
           exit-code: '1'
           severity: 'CRITICAL'
+
+  dependency-check:
+    runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install Poetry
+        run: pip install poetry
+      - name: Install dependencies
+        run: poetry install
+      - name: Check dependency vulnerabilities (safety)
+        run: |
+          pip install safety
+          safety check --full-report

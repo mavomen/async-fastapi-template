@@ -19,4 +19,6 @@ jobs:
       - name: Install dependencies
         run: poetry install
       - name: Run mypy
+        env:
+          FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
         run: poetry run mypy app/
