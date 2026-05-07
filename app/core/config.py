@@ -20,7 +20,7 @@ class Settings(BaseSettings):
 
     # Application
     PROJECT_NAME: str = "FastAPI Async Template"
-    VERSION: str = "0.1.0"
+    VERSION: str = "1.0.1"
     ENVIRONMENT: Literal["development", "staging", "production", "test"] = "development"
     API_V1_STR: str = "/api/v1"
 
@@ -38,15 +38,15 @@ class Settings(BaseSettings):
         description="PostgreSQL connection string with asyncpg driver",
     )
 
-    # Redis
+    # Redis (application cache)
     REDIS_URL: str = Field(
         default="redis://localhost:6379/0",
-        description="Redis connection URL",
+        description="Redis connection URL for application cache",
     )
 
     # Celery / Redis
     CELERY_BROKER_URL: str = Field(
-        default="redis://localhost:6379/0",
+        default="redis://localhost:6379/2",
         description="Redis broker URL for Celery",
     )
     CELERY_RESULT_BACKEND: str = Field(
@@ -81,6 +81,9 @@ class Settings(BaseSettings):
     OTEL_EXPORTER_OTLP_ENDPOINT: str | None = None
 
     FRONTEND_URL: str = "http://localhost:3000"
+
+    # Performance
+    SLOW_QUERY_THRESHOLD_MS: int = 500  # Log queries slower than this
 
 
 settings = Settings()
