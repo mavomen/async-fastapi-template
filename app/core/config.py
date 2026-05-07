@@ -82,6 +82,9 @@ class Settings(BaseSettings):
 
     FRONTEND_URL: str = "http://localhost:3000"
 
+    # Performance
+    SLOW_QUERY_THRESHOLD_MS: int = 500  # Log queries slower than this
+
 
 settings = Settings()
 
