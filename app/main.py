@@ -6,8 +6,10 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import ORJSONResponse
+from strawberry.fastapi import GraphQLRouter
 
 from app.api import api_router
+from app.api.deps import get_gql_context
 from app.api.error_handlers import configure_exception_handlers
 from app.api.health import router as health_router
 from app.core.cache import cache
@@ -15,6 +17,7 @@ from app.core.config import settings
 from app.core.database import sessionmanager
 from app.core.logging import setup_logging
 from app.core.tracing import setup_tracing
+from app.gql.schema import schema
 from app.middleware.correlation import CorrelationIDMiddleware
 from app.middleware.error_logging import error_logging_middleware
 from app.middleware.rate_limit import configure_rate_limit
@@ -111,6 +114,9 @@ def create_app() -> FastAPI:
     # OpenTelemetry tracing (after all routes)
     setup_tracing(app)
 
+    # GraphQL endpoint
+    graphql_app = GraphQLRouter(schema, context_getter=get_gql_context)
+    app.include_router(graphql_app, prefix="/graphql")
     return app
 
 
