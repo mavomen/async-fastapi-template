@@ -1,4 +1,4 @@
-"""Tenant model for multi‑tenancy."""
+"""Tenant model for multi-tenancy."""
 
 from sqlalchemy import String
 from sqlalchemy.orm import Mapped, mapped_column

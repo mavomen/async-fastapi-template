@@ -8,7 +8,7 @@ from app.core.tenant import set_current_tenant
 
 
 class TenantMiddleware(BaseHTTPMiddleware):
-    """Resolve tenant from X‑Tenant‑ID header; safe when tenants table is absent."""
+    """Resolve tenant from X-Tenant-ID header; safe when tenants table is absent."""
 
     async def dispatch(self, request: Request, call_next):
         tenant_id = None
@@ -27,7 +27,7 @@ class TenantMiddleware(BaseHTTPMiddleware):
 
                 async with sessionmanager.session() as db:
                     result = await db.execute(
-                        select(Tenant.id).where(Tenant.is_active == True).limit(1)
+                        select(Tenant.id).where(Tenant.is_active).limit(1)
                     )
                     row = result.scalar_one_or_none()
                     if row:

@@ -4,15 +4,16 @@ import asyncio
 import json
 import logging
 
-from kafka import KafkaProducer, KafkaConsumer
+from kafka import KafkaConsumer, KafkaProducer
 from kafka.errors import NoBrokersAvailable
+
 from app.events.base import Event, EventBus, EventHandler
 
 logger = logging.getLogger("app.events.kafka")
 
 
 class KafkaEventBus(EventBus):
-    """Kafka‑backed event bus (synchronous – wraps async)."""
+    """Kafka-backed event bus (synchronous - wraps async)."""
 
     def __init__(self, bootstrap_servers: str = "localhost:9092", topic: str = "app.events", group_id: str = "app-consumers"):
         self._bootstrap_servers = bootstrap_servers
@@ -42,7 +43,7 @@ class KafkaEventBus(EventBus):
             )
             logger.info("Kafka event bus connected")
         except NoBrokersAvailable:
-            logger.warning("Kafka broker not available – bus will be disabled")
+            logger.warning("Kafka broker not available - bus will be disabled")
 
     async def publish(self, event: Event) -> None:
         """Send event to Kafka topic."""
@@ -74,7 +75,7 @@ class KafkaEventBus(EventBus):
         while True:
             try:
                 records = await loop.run_in_executor(None, self._consumer.poll, 1.0)
-                for tp, messages in records.items():
+                for _tp, messages in records.items():
                     for msg in messages:
                         event_data = msg.value
                         event = Event(

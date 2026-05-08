@@ -82,7 +82,7 @@ async def get_gql_context(request: Request, db: AsyncSession = Depends(get_db)) 
             if user_id:
                 current_user = await crud_user.get(db, id=int(user_id))
         except Exception:
-            pass  # token invalid or expired – resolvers can still check permissions
+            pass  # token invalid or expired - resolvers can still check permissions
     return {"request": request, "db": db, "current_user": current_user}
 
 
@@ -95,6 +95,7 @@ async def get_current_tenant_id() -> int | None:
 
 async def get_event_bus() -> EventBus:
     """FastAPI dependency for event bus."""
+    bus: EventBus
     if settings.EVENT_BUS_BACKEND == "kafka":
         bus = KafkaEventBus(bootstrap_servers=settings.EVENT_BUS_KAFKA_SERVERS)
     else:

@@ -19,6 +19,22 @@ class EmailTaskRequest(BaseModel):
     body: str
 
 
+async def _stream_task_status(task_id: str, db: AsyncSession):
+    """Emit SSE events for a task's status (extracted for testing)."""
+    import asyncio
+
+    while True:
+        result = await db.execute(
+            select(TaskStatus).where(TaskStatus.task_id == task_id)
+        )
+        task = result.scalar_one_or_none()
+        if task and task.status in ("SUCCESS", "FAILURE"):
+            yield f"event: complete\ndata: {task.status}\n\n"
+            break
+        yield f"event: status\ndata: {task.status if task else 'PENDING'}\n\n"
+        await asyncio.sleep(2)
+
+
 @router.post(
     "/email/send",
     summary="Send an email notification",
@@ -70,22 +86,8 @@ async def stream_task_status(
     db: AsyncSession = Depends(get_db),
 ):
     """Stream task status updates via Server-Sent Events."""
-    import asyncio
-
-    async def event_stream():
-        while True:
-            result = await db.execute(
-                select(TaskStatus).where(TaskStatus.task_id == task_id)
-            )
-            task = result.scalar_one_or_none()
-            if task and task.status in ("SUCCESS", "FAILURE"):
-                yield f"event: complete\ndata: {task.status}\n\n"
-                break
-            yield f"event: status\ndata: {task.status if task else 'PENDING'}\n\n"
-            await asyncio.sleep(2)
-
     return StreamingResponse(
-        event_stream(),
+        _stream_task_status(task_id, db),
         media_type="text/event-stream",
         headers={"Cache-Control": "no-cache", "Connection": "keep-alive"},
     )

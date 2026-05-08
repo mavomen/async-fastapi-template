@@ -1,15 +1,17 @@
 """Redis Streams implementation of EventBus."""
 
-from app.events.base import Event, EventBus, EventHandler
-import redis.asyncio as aioredis
 import asyncio
 import logging
+
+import redis.asyncio as aioredis
+
+from app.events.base import Event, EventBus, EventHandler
 
 logger = logging.getLogger("app.events.redis")
 
 
 class RedisStreamsEventBus(EventBus):
-    """Redis Streams‑backed event bus with consumer groups."""
+    """Redis Streams-backed event bus with consumer groups."""
 
     def __init__(self, redis_url: str, stream_name: str = "app:events", group_name: str = "app-consumers"):
         self._redis = aioredis.from_url(redis_url, encoding="utf-8", decode_responses=True)
@@ -54,7 +56,7 @@ class RedisStreamsEventBus(EventBus):
                 results = await self._redis.xreadgroup(
                     self._group, "consumer", {self._stream: ">"}, count=10, block=5000
                 )
-                for stream_name, messages in results:
+                for _stream_name, messages in results:
                     for msg_id, fields in messages:
                         event = Event.from_json(fields["event"])
                         handlers = self._handlers.get(event.event_type, [])

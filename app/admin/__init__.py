@@ -1,12 +1,12 @@
-"""HTMX Admin Dashboard – auto‑discovery of SQLAlchemy models."""
+"""HTMX Admin Dashboard - auto-discovery of SQLAlchemy models."""
 
 from pathlib import Path
 from typing import Any
-from app.models.tenant import Tenant
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from jinja2 import Environment, FileSystemLoader
-from sqlalchemy import Boolean, Integer, String, inspect
+from sqlalchemy import Boolean, Integer, inspect
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.admin.deps import require_admin
@@ -16,6 +16,7 @@ from app.core.security import get_password_hash
 from app.crud.user import user as crud_user
 from app.models import Permission, Role, User
 from app.models.base import BaseModel
+from app.models.tenant import Tenant
 
 # ---------- Registry ----------
 _registry: dict[str, dict[str, Any]] = {}
@@ -43,7 +44,7 @@ def register_admin(model: type[BaseModel], **options) -> None:
     }
 
 
-# Auto‑register known models
+# Auto-register known models
 register_admin(
     User,
     list_display=["email", "username", "is_active", "is_verified"],
@@ -245,9 +246,9 @@ async def admin_edit(
     form_data = await request.form()
     for field in config["form_fields"]:
         if field in form_data:
-            value = _coerce_value(config["model"], field, form_data[field])
+            value = _coerce_value(config["model"], field, str(form_data[field]))
             setattr(obj, field, value)
-    _set_default_password_for_user(obj, dict(form_data))
+    _set_default_password_for_user(obj)
     await db.commit()
     return RedirectResponse(url=f"/admin/{table_name}", status_code=303)
 
@@ -292,9 +293,9 @@ async def admin_create(
     obj = model()
     for field in config["form_fields"]:
         if field in form_data:
-            value = _coerce_value(model, field, form_data[field])
+            value = _coerce_value(model, field, str(form_data[field]))
             setattr(obj, field, value)
-    _set_default_password_for_user(obj, dict(form_data))
+    _set_default_password_for_user(obj)
     db.add(obj)
     await db.commit()
     return RedirectResponse(url=f"/admin/{table_name}", status_code=303)

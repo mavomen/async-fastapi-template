@@ -1,8 +1,9 @@
 """Bridge between EventBus and WebSocket manager."""
 
+import logging
+
 from app.events.base import Event
 from app.websocket.manager import manager
-import logging
 
 logger = logging.getLogger("app.events.websocket")
 

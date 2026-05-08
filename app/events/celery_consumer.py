@@ -1,9 +1,8 @@
 """Celery task that bridges events to the WebSocket manager."""
 
-from celery import shared_task
+from app.core.celery_app import celery_app
 from app.events.base import Event
 from app.events.websocket_bridge import broadcast_event
-from app.core.celery_app import celery_app
 
 
 @celery_app.task(name="app.events.process_event")

@@ -178,7 +178,7 @@ async def test_admin_role_detail(async_client: AsyncClient, admin_headers: dict)
     """View a role detail page via admin."""
     import re
     roles_resp = await async_client.get("/admin/roles", headers=admin_headers)
-    match = re.search(r'/admin/roles/(\d+)/edit', roles_resp.text)
+    match = re.search(r"/admin/roles/(\d+)/edit", roles_resp.text)
     assert match, "No role row found"
     role_id = match.group(1)
 

@@ -1,13 +1,13 @@
-"""Base mixin for tenant‑scoped models."""
+"""Base mixin for tenant-scoped models."""
 
 from sqlalchemy import ForeignKey
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import BaseModel
 
 
 class TenantBaseModel(BaseModel):
-    """Base model with tenant_id for multi‑tenant isolation."""
+    """Base model with tenant_id for multi-tenant isolation."""
 
     __abstract__ = True
 
