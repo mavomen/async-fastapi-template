@@ -25,6 +25,7 @@ from app.middleware.request_logging import RequestLoggingMiddleware
 from app.middleware.security_headers import SecurityHeadersMiddleware
 from app.middleware.sql_injection import SQLInjectionMonitorMiddleware
 from app.websocket.chat import router as websocket_router
+from app.admin import router as admin_router
 
 
 @asynccontextmanager
@@ -103,6 +104,7 @@ def create_app() -> FastAPI:
 
     # Routes
     app.include_router(health_router, prefix="/health", tags=["health"])
+    app.include_router(admin_router, prefix="/admin", tags=["admin"])
     app.include_router(api_router, prefix=settings.API_V1_STR)
     app.include_router(websocket_router)
 

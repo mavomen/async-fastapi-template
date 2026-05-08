@@ -1,0 +1,16 @@
+{% extends "base.html" %} {% block content %}
+<h1 class="text-3xl mb-6">Admin Dashboard</h1>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+  {% for model in models %}
+  <div class="bg-white shadow rounded p-6 hover:shadow-lg transition">
+    <h2 class="text-xl font-bold mb-2">{{ model.label }}</h2>
+    <p class="text-gray-500 mb-4">Permission: {{ model.permission }}</p>
+    <a
+      href="/admin/{{ model.name }}"
+      class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+      >Manage</a
+    >
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}
