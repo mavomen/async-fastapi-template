@@ -7,13 +7,16 @@ from typing import Any
 import pytest
 from fastapi.testclient import TestClient
 from httpx import ASGITransport, AsyncClient
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.pool import NullPool
 
 # Set test environment variables before importing app
 os.environ["ENVIRONMENT"] = "test"
 os.environ["SECRET_KEY"] = "test-secret-key-min-32-characters-long"
-os.environ["DATABASE_URL"] = "postgresql+asyncpg://postgres:postgres@localhost:5432/fastapi_test"
+os.environ["DATABASE_URL"] = (
+    "postgresql+asyncpg://postgres:postgres@localhost:5432/fastapi_test"
+)
 
 from app.core.database import sessionmanager
 from app.main import app
@@ -37,8 +40,9 @@ async def db_engine(test_db_url: str) -> AsyncGenerator[Any, None]:
     yield engine
 
     async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
-
+        for table in reversed(Base.metadata.sorted_tables):
+            await conn.execute(text(f"DROP TABLE IF EXISTS {table.name} CASCADE"))
+        await conn.commit()
     await engine.dispose()
 
 

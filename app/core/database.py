@@ -13,9 +13,11 @@ from sqlalchemy.ext.asyncio import (
     create_async_engine,
 )
 from sqlalchemy.pool import NullPool
+from sqlalchemy.sql import Delete, Insert, Select, Update
 
 from app.core.config import settings
 from app.core.metrics import db_connections_total
+from app.core.tenant import get_current_tenant
 
 logger = logging.getLogger("app.db")
 
@@ -65,6 +67,40 @@ class DatabaseSessionManager:
                             "statement": statement,
                         },
                     )
+
+        # Add Row‑Level Security (tenant isolation)
+        @event.listens_for(self._engine.sync_engine, "before_execute", retval=True)
+        def _add_tenant_filter(
+            conn, clauseelement, multiparams, params, execution_options
+        ):
+            tenant_id = get_current_tenant()
+            if tenant_id is None:
+                return clauseelement, multiparams, params
+
+            if isinstance(clauseelement, Select):
+                for table in clauseelement.get_final_froms():
+                    if hasattr(table, "columns") and "tenant_id" in table.columns:
+                        clauseelement = clauseelement.where(
+                            table.c.tenant_id == tenant_id
+                        )
+                        break
+            elif isinstance(clauseelement, Insert):
+                table = clauseelement.table
+                if (
+                    "tenant_id" in table.columns
+                    and "tenant_id" not in clauseelement._values
+                ):
+                    clauseelement = clauseelement.values(tenant_id=tenant_id)
+            elif isinstance(clauseelement, Update):
+                table = clauseelement.table
+                if "tenant_id" in table.columns:
+                    clauseelement = clauseelement.where(table.c.tenant_id == tenant_id)
+            elif isinstance(clauseelement, Delete):
+                table = clauseelement.table
+                if "tenant_id" in table.columns:
+                    clauseelement = clauseelement.where(table.c.tenant_id == tenant_id)
+
+            return clauseelement, multiparams, params
 
         self._sessionmaker = async_sessionmaker(
             bind=self._engine,

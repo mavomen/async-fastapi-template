@@ -1,0 +1,50 @@
+"""Tenant management endpoints (superuser only)."""
+
+from fastapi import APIRouter, Depends, HTTPException, status
+from pydantic import BaseModel
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.api.deps import get_current_user, get_db
+from app.models.tenant import Tenant
+
+
+class TenantCreate(BaseModel):
+    name: str
+    slug: str | None = None
+
+
+router = APIRouter()
+
+
+@router.post("/")
+async def create_tenant(
+    tenant_in: TenantCreate,
+    db: AsyncSession = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    """Create a new tenant (superuser only)."""
+    if not current_user.is_superuser:
+        raise HTTPException(status_code=403, detail="Superuser required")
+
+    tenant = Tenant(name=tenant_in.name, slug=tenant_in.slug)
+    db.add(tenant)
+    await db.commit()
+    await db.refresh(tenant)
+    return {"id": tenant.id, "name": tenant.name, "slug": tenant.slug}
+
+
+@router.get("/")
+async def list_tenants(
+    db: AsyncSession = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    """List all tenants (superuser only)."""
+    if not current_user.is_superuser:
+        raise HTTPException(status_code=403, detail="Superuser required")
+
+    result = await db.execute(select(Tenant))
+    return [
+        {"id": t.id, "name": t.name, "slug": t.slug, "is_active": t.is_active}
+        for t in result.scalars().all()
+    ]

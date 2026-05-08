@@ -8,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import ORJSONResponse
 from strawberry.fastapi import GraphQLRouter
 
+from app.admin import router as admin_router
 from app.api import api_router
 from app.api.deps import get_gql_context
 from app.api.error_handlers import configure_exception_handlers
@@ -24,8 +25,8 @@ from app.middleware.rate_limit import configure_rate_limit
 from app.middleware.request_logging import RequestLoggingMiddleware
 from app.middleware.security_headers import SecurityHeadersMiddleware
 from app.middleware.sql_injection import SQLInjectionMonitorMiddleware
+from app.middleware.tenant import TenantMiddleware
 from app.websocket.chat import router as websocket_router
-from app.admin import router as admin_router
 
 
 @asynccontextmanager
@@ -92,6 +93,9 @@ def create_app() -> FastAPI:
     # Security middlewares
     app.add_middleware(SecurityHeadersMiddleware)
     app.add_middleware(SQLInjectionMonitorMiddleware)
+
+    # Tenant resolution middleware (after security, before CORS)
+    app.add_middleware(TenantMiddleware)
 
     # CORS
     app.add_middleware(
