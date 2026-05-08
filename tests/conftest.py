@@ -55,7 +55,7 @@ async def db_session(db_engine: Any) -> AsyncGenerator[AsyncSession, None]:
     async with sessionmanager.session() as session:
         yield session
 
-    # Do NOT close the sessionmanager here – it might still be used by other fixtures.
+    # Do NOT close the sessionmanager here - it might still be used by other fixtures.
 
 
 @pytest.fixture(scope="module")

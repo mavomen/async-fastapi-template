@@ -13,6 +13,25 @@ from app.storage.base import StorageBackend
 router = APIRouter()
 
 
+async def _stream_file_upload(file: UploadFile, filename: str, storage: StorageBackend):
+    """Emit SSE events for file upload progress (extracted for testing)."""
+    import asyncio
+
+    total_size = file.size or 0
+    chunk_size = 1024 * 256  # 256 KB
+    uploaded = 0
+    yield f"event: start\ndata: {filename}\n\n"
+    while chunk := await file.read(chunk_size):
+        uploaded += len(chunk)
+        percentage = (uploaded / total_size * 100) if total_size else 0
+        yield f"event: progress\ndata: {percentage:.1f}%\n\n"
+        await asyncio.sleep(0.05)
+    # Rewind file for final storage write
+    await file.seek(0)
+    path = await storage.upload(file.file, filename)
+    yield f"event: complete\ndata: {path}\n\n"
+
+
 @router.post(
     "/upload",
     status_code=status.HTTP_201_CREATED,
@@ -34,7 +53,6 @@ async def upload_file(
     if not file.filename:
         raise HTTPException(status_code=400, detail="No file provided")
 
-    # Optional: validate file size, type here
     path = await storage.upload(file.file, file.filename)
     return {"filename": file.filename, "path": path}
 
@@ -46,25 +64,8 @@ async def upload_file_stream(
     storage: StorageBackend = Depends(get_storage),
 ):
     """Upload a file with streaming progress via Server-Sent Events."""
-    import asyncio
-
-    async def event_generator():
-        total_size = file.size or 0
-        chunk_size = 1024 * 256  # 256 KB
-        uploaded = 0
-        yield f"event: start\ndata: {file.filename}\n\n"
-        while chunk := await file.read(chunk_size):
-            uploaded += len(chunk)
-            percentage = (uploaded / total_size * 100) if total_size else 0
-            yield f"event: progress\ndata: {percentage:.1f}%\n\n"
-            await asyncio.sleep(0.05)
-        # Rewind file for final storage write
-        await file.seek(0)
-        path = await storage.upload(file.file, file.filename)
-        yield f"event: complete\ndata: {path}\n\n"
-
     return StreamingResponse(
-        event_generator(),
+        _stream_file_upload(file, file.filename, storage),
         media_type="text/event-stream",
         headers={"Cache-Control": "no-cache", "Connection": "keep-alive"},
     )
@@ -94,5 +95,4 @@ async def download_file(
         content = await storage.download(filename)
     except FileNotFoundError:
         raise HTTPException(status_code=404, detail="File not found")
-    # Determine media type (basic)
     return Response(content=content, media_type="application/octet-stream")

@@ -1,4 +1,4 @@
-"""Integration tests for multi‑tenancy."""
+"""Integration tests for multi-tenancy."""
 
 import pytest
 from httpx import AsyncClient

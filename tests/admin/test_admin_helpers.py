@@ -1,7 +1,6 @@
 """Unit tests for admin helper functions."""
 
-from app.admin import (_coerce_value, _set_default_password_for_user,
-                       register_admin)
+from app.admin import _coerce_value, _set_default_password_for_user, register_admin
 from app.models.user import User
 
 

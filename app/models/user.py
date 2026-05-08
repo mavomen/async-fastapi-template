@@ -8,7 +8,6 @@ from typing import TYPE_CHECKING
 from sqlalchemy import Boolean, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.models.base import BaseModel
 from app.models.role import user_roles
 from app.models.tenant_base import TenantBaseModel  # association table import
 

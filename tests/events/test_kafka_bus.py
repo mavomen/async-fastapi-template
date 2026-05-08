@@ -1,6 +1,6 @@
 """Mocked test for Kafka event bus (does not require a real Kafka broker)."""
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 

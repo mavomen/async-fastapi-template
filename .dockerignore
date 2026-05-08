@@ -3,6 +3,14 @@
 .gitignore
 .gitattributes
 
+__pycache__
+*.pyc
+.mypy_cache
+.ruff_cache
+htmlcov
+.coverage
+*.log
+
 # Python
 pycache/
 *.py[cod]

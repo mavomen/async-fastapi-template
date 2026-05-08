@@ -36,7 +36,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     sessionmanager.init(settings.DATABASE_URL)
     await cache.connect()
     yield
-    # Shutdown: only close in non‑test environments
+    # Shutdown: only close in non-test environments
     if settings.ENVIRONMENT != "test":
         await sessionmanager.close()
         await cache.disconnect()

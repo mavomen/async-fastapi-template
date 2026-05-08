@@ -15,12 +15,15 @@ def test_event_serialization():
 
 @pytest.mark.asyncio
 async def test_event_bus_publish_subscribe():
-    """Test that a simple in‑memory bus works for unit tests."""
+    """Test that a simple in-memory bus works for unit tests."""
 
     class InMemoryBus(EventBus):
         def __init__(self):
             self.handlers = {}
             self.published = []
+
+        async def connect(self) -> None:
+            pass
 
         async def publish(self, event):
             self.published.append(event)
