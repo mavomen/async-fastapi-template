@@ -13,18 +13,29 @@ from app.schemas.user import UserCreate
 @pytest.fixture
 async def admin_headers(db_session: AsyncSession) -> dict:
     """Create a superuser / admin user with necessary permissions and return auth headers."""
-    # Create required permissions
+    # Create required permissions (only if they don't exist)
     perms = {}
+    from sqlalchemy import select as sa_select
     for perm_name in ["user:admin", "role:admin", "permission:admin"]:
-        perm = Permission(name=perm_name)
-        db_session.add(perm)
+        existing = await db_session.execute(
+            sa_select(Permission).where(Permission.name == perm_name)
+        )
+        perm = existing.scalar_one_or_none()
+        if not perm:
+            perm = Permission(name=perm_name)
+            db_session.add(perm)
         perms[perm_name] = perm
     await db_session.flush()
 
     # Create admin role and assign permissions
-    role = Role(name="admin")
+    existing_role = await db_session.execute(
+        sa_select(Role).where(Role.name == "admin")
+    )
+    role = existing_role.scalar_one_or_none()
+    if not role:
+        role = Role(name="admin")
+        db_session.add(role)
     role.permissions.extend(perms.values())
-    db_session.add(role)
     await db_session.flush()
 
     # Create admin user

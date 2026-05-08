@@ -2,7 +2,7 @@
 
 from pathlib import Path
 from typing import Any
-
+from app.models.tenant import Tenant
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import HTMLResponse, RedirectResponse
 from jinja2 import Environment, FileSystemLoader
@@ -64,6 +64,13 @@ register_admin(
     search_columns=["name"],
     form_fields=["name", "description"],
     permission="permission:admin",
+)
+register_admin(
+    Tenant,
+    list_display=["name", "slug", "is_active"],
+    search_columns=["name"],
+    form_fields=["name", "slug", "is_active"],
+    permission="tenant:admin",
 )
 
 # ---------- Templates ----------

@@ -81,3 +81,10 @@ async def get_gql_context(request: Request, db: AsyncSession = Depends(get_db)) 
         except Exception:
             pass  # token invalid or expired – resolvers can still check permissions
     return {"request": request, "db": db, "current_user": current_user}
+
+
+async def get_current_tenant_id() -> int | None:
+    """FastAPI dependency that returns the current tenant ID."""
+    from app.core.tenant import get_current_tenant
+
+    return get_current_tenant()
