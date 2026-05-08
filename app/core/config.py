@@ -85,6 +85,10 @@ class Settings(BaseSettings):
     # Performance
     SLOW_QUERY_THRESHOLD_MS: int = 500  # Log queries slower than this
 
+    # Event Bus
+    EVENT_BUS_BACKEND: Literal["redis", "kafka"] = "redis"
+    EVENT_BUS_REDIS_URL: str | None = None
+    EVENT_BUS_KAFKA_SERVERS: str = "localhost:9092"
 
 settings = Settings()
 
