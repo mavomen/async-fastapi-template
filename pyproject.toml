@@ -35,6 +35,7 @@ opentelemetry-exporter-otlp = "^1.41.1"
 jinja2 = "^3.1.6"
 openpyxl = "^3.1.5"
 strawberry-graphql = {extras = ["asgi", "fastapi"], version = "^0.315.3"}
+kafka-python = "^2.3.1"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.4"

@@ -8,6 +8,9 @@ from app.core.config import settings
 from app.core.database import get_db
 from app.core.security import decode_access_token
 from app.crud.user import user as crud_user
+from app.events.base import EventBus
+from app.events.kafka_bus import KafkaEventBus
+from app.events.redis_streams import RedisStreamsEventBus
 from app.models.user import User
 from app.services.email import EmailService, email_service
 from app.storage.base import StorageBackend
@@ -88,3 +91,14 @@ async def get_current_tenant_id() -> int | None:
     from app.core.tenant import get_current_tenant
 
     return get_current_tenant()
+
+
+async def get_event_bus() -> EventBus:
+    """FastAPI dependency for event bus."""
+    if settings.EVENT_BUS_BACKEND == "kafka":
+        bus = KafkaEventBus(bootstrap_servers=settings.EVENT_BUS_KAFKA_SERVERS)
+    else:
+        redis_url = settings.EVENT_BUS_REDIS_URL or settings.REDIS_URL
+        bus = RedisStreamsEventBus(redis_url=redis_url)
+    await bus.connect()
+    return bus
