@@ -9,13 +9,14 @@ from sqlalchemy import Boolean, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.role import user_roles
+from app.models.search import SearchMixin
 from app.models.tenant_base import TenantBaseModel  # association table import
 
 if TYPE_CHECKING:
     from app.models.role import Role
 
 
-class User(TenantBaseModel):
+class User(SearchMixin, TenantBaseModel):
     """User model with authentication fields."""
 
     __tablename__ = "users"

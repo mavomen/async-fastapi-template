@@ -16,6 +16,7 @@ from app.core.security import get_password_hash
 from app.crud.user import user as crud_user
 from app.decorators.rate_limit import rate_limit
 from app.models import Permission, Role, User
+from app.models.audit_log import AuditLog
 from app.models.base import BaseModel
 from app.models.tenant import Tenant
 
@@ -71,6 +72,13 @@ register_admin(
     search_columns=["name"],
     form_fields=["name", "slug", "is_active"],
     permission="tenant:admin",
+)
+register_admin(
+    AuditLog,
+    list_display=["table_name", "record_id", "action", "actor_id", "created_at"],
+    search_columns=["table_name", "action"],
+    form_fields=[],
+    permission="audit:admin",
 )
 
 # ---------- Templates ----------
