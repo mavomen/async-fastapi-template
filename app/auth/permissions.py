@@ -1,9 +1,13 @@
 """Permission-based access control utilities."""
 
+import logging
+
 from fastapi import Depends, HTTPException, status
 
 from app.api.deps import get_current_user
 from app.models.user import User
+
+logger = logging.getLogger(__name__)
 
 
 def has_permission(user: User, required_permissions: list[str]) -> bool:
@@ -19,6 +23,8 @@ def has_permission(user: User, required_permissions: list[str]) -> bool:
     """
     if user.is_superuser:
         return True
+    if not user.roles:
+        logger.debug("User %s has no roles, denying all permissions", user.id)
 
     # Collect all permission names from all roles
     user_permissions: set[str] = set()

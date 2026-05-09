@@ -152,7 +152,7 @@ class TestProjectMetadata:
 
         settings = Settings()
 
-        assert settings.VERSION == "1.0.1"
+        assert settings.VERSION == "3.0.0"
 
     def test_version_override(self, monkeypatch):
         """VERSION should be overridable via env var."""

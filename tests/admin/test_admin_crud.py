@@ -79,7 +79,7 @@ async def test_admin_create_and_delete_permission(
     assert match, "No permission row found"
     perm_id = match.group(1)
 
-    del_resp = await async_client.get(
+    del_resp = await async_client.post(
         f"/admin/permissions/{perm_id}/delete",
         headers=superuser_headers,
         follow_redirects=True,

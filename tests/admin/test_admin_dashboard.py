@@ -134,7 +134,7 @@ async def test_admin_role_delete(
     db_session.add(role)
     await db_session.commit()
 
-    delete_resp = await async_client.get(
+    delete_resp = await async_client.post(
         f"/admin/roles/{role.id}/delete",
         headers=admin_headers,
         follow_redirects=True,
@@ -154,7 +154,7 @@ async def test_admin_permission_delete(
     db_session.add(perm)
     await db_session.commit()
 
-    delete_resp = await async_client.get(
+    delete_resp = await async_client.post(
         f"/admin/permissions/{perm.id}/delete",
         headers=admin_headers,
         follow_redirects=True,

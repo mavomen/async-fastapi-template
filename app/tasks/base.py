@@ -2,6 +2,7 @@
 
 from celery import Task
 
+from app.core.config import settings
 from app.tasks.status import update_task_status
 
 
@@ -16,7 +17,9 @@ class BaseTask(Task):
     def on_success(self, _retval, task_id, _args, _kwargs):
         self._update_status(task_id, "SUCCESS")
 
-    def _update_status(self, task_id: str, status: str, error: str | None = None) -> None:
+    def _update_status(
+        self, task_id: str, status: str, error: str | None = None
+    ) -> None:
         import asyncio
 
         from app.core.database import sessionmanager
@@ -28,7 +31,7 @@ class BaseTask(Task):
             asyncio.set_event_loop(loop)
 
         async def _update():
-            sessionmanager.init(sessionmanager._engine.url)
+            sessionmanager.init(settings.DATABASE_URL)
             async with sessionmanager.session() as db:
                 await update_task_status(db, task_id, status, error)
 

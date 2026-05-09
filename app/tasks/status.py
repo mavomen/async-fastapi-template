@@ -1,6 +1,6 @@
 """Task status update operations."""
 
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timezone
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -21,7 +21,7 @@ async def update_task_status(
         task.status = status
         task.error = error
         if status in ("SUCCESS", "FAILURE"):
-            task.completed_at = datetime.now(UTC)
+            task.completed_at = datetime.now(timezone.utc)
     else:
         task = TaskStatus(
             task_id=task_id,
