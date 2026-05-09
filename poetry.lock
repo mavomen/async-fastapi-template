@@ -5319,6 +5319,21 @@ files = [
 ]
 
 [[package]]
+name = "syrupy"
+version = "5.1.0"
+description = "Pytest Snapshot Test Utility"
+optional = false
+python-versions = ">=3.10"
+groups = ["dev"]
+files = [
+    {file = "syrupy-5.1.0-py3-none-any.whl", hash = "sha256:95162d2b05e61ed3e13f117b88dfab7c58bd6f90e66ebbf918e8a77114ad51c5"},
+    {file = "syrupy-5.1.0.tar.gz", hash = "sha256:df543c7aa50d3cf1246e83d58fe490afe5f7dab7b41e74ecc0d8d23ae19bd4b8"},
+]
+
+[package.dependencies]
+pytest = ">=8.0.0"
+
+[[package]]
 name = "tomli"
 version = "2.4.1"
 description = "A lil' TOML parser"
@@ -6224,4 +6239,4 @@ testing = ["coverage[toml]", "zope.event", "zope.testing"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.12"
-content-hash = "72590ab18654d291ad5999895a16f5476eb38101499a4c426a0cdb05f3b43d5a"
+content-hash = "5aaed4a93c2d66ad5eefa12e00cda51317e4bbad2d5f243f3268e0d36d08b998"

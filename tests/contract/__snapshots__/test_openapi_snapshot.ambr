@@ -1,0 +1,2495 @@
+# serializer version: 1
+# name: test_openapi_schema_snapshot[openapi_schema]
+  dict({
+    'components': dict({
+      'schemas': dict({
+        'Body_import_users_csv_api_v1_users_import_csv_post': dict({
+          'properties': dict({
+            'file': dict({
+              'format': 'binary',
+              'title': 'File',
+              'type': 'string',
+            }),
+          }),
+          'required': list([
+            'file',
+          ]),
+          'title': 'Body_import_users_csv_api_v1_users_import_csv_post',
+          'type': 'object',
+        }),
+        'Body_login_for_access_token_api_v1_auth_login_post': dict({
+          'properties': dict({
+            'client_id': dict({
+              'anyOf': list([
+                dict({
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Client Id',
+            }),
+            'client_secret': dict({
+              'anyOf': list([
+                dict({
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'format': 'password',
+              'title': 'Client Secret',
+            }),
+            'grant_type': dict({
+              'anyOf': list([
+                dict({
+                  'pattern': '^password$',
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Grant Type',
+            }),
+            'password': dict({
+              'format': 'password',
+              'title': 'Password',
+              'type': 'string',
+            }),
+            'scope': dict({
+              'default': '',
+              'title': 'Scope',
+              'type': 'string',
+            }),
+            'username': dict({
+              'title': 'Username',
+              'type': 'string',
+            }),
+          }),
+          'required': list([
+            'username',
+            'password',
+          ]),
+          'title': 'Body_login_for_access_token_api_v1_auth_login_post',
+          'type': 'object',
+        }),
+        'Body_profile_avatar_profile_avatar_post': dict({
+          'properties': dict({
+            'avatar': dict({
+              'format': 'binary',
+              'title': 'Avatar',
+              'type': 'string',
+            }),
+          }),
+          'required': list([
+            'avatar',
+          ]),
+          'title': 'Body_profile_avatar_profile_avatar_post',
+          'type': 'object',
+        }),
+        'Body_profile_edit_profile_edit_post': dict({
+          'properties': dict({
+            'email': dict({
+              'title': 'Email',
+              'type': 'string',
+            }),
+            'full_name': dict({
+              'title': 'Full Name',
+              'type': 'string',
+            }),
+          }),
+          'title': 'Body_profile_edit_profile_edit_post',
+          'type': 'object',
+        }),
+        'Body_upload_file_api_v1_files_upload_post': dict({
+          'properties': dict({
+            'file': dict({
+              'format': 'binary',
+              'title': 'File',
+              'type': 'string',
+            }),
+          }),
+          'required': list([
+            'file',
+          ]),
+          'title': 'Body_upload_file_api_v1_files_upload_post',
+          'type': 'object',
+        }),
+        'Body_upload_file_stream_api_v1_files_upload_stream_post': dict({
+          'properties': dict({
+            'file': dict({
+              'format': 'binary',
+              'title': 'File',
+              'type': 'string',
+            }),
+          }),
+          'required': list([
+            'file',
+          ]),
+          'title': 'Body_upload_file_stream_api_v1_files_upload_stream_post',
+          'type': 'object',
+        }),
+        'EmailTaskRequest': dict({
+          'properties': dict({
+            'body': dict({
+              'title': 'Body',
+              'type': 'string',
+            }),
+            'recipient': dict({
+              'title': 'Recipient',
+              'type': 'string',
+            }),
+            'subject': dict({
+              'title': 'Subject',
+              'type': 'string',
+            }),
+          }),
+          'required': list([
+            'recipient',
+            'subject',
+            'body',
+          ]),
+          'title': 'EmailTaskRequest',
+          'type': 'object',
+        }),
+        'EventPublishRequest': dict({
+          'properties': dict({
+            'event_type': dict({
+              'title': 'Event Type',
+              'type': 'string',
+            }),
+            'payload': dict({
+              'additionalProperties': True,
+              'default': dict({
+              }),
+              'title': 'Payload',
+              'type': 'object',
+            }),
+          }),
+          'required': list([
+            'event_type',
+          ]),
+          'title': 'EventPublishRequest',
+          'type': 'object',
+        }),
+        'HTTPValidationError': dict({
+          'properties': dict({
+            'detail': dict({
+              'items': dict({
+                '$ref': '#/components/schemas/ValidationError',
+              }),
+              'title': 'Detail',
+              'type': 'array',
+            }),
+          }),
+          'title': 'HTTPValidationError',
+          'type': 'object',
+        }),
+        'PermissionRead': dict({
+          'properties': dict({
+            'description': dict({
+              'anyOf': list([
+                dict({
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Description',
+            }),
+            'id': dict({
+              'title': 'Id',
+              'type': 'integer',
+            }),
+            'name': dict({
+              'title': 'Name',
+              'type': 'string',
+            }),
+          }),
+          'required': list([
+            'id',
+            'name',
+          ]),
+          'title': 'PermissionRead',
+          'type': 'object',
+        }),
+        'RoleRead': dict({
+          'properties': dict({
+            'description': dict({
+              'anyOf': list([
+                dict({
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Description',
+            }),
+            'id': dict({
+              'title': 'Id',
+              'type': 'integer',
+            }),
+            'name': dict({
+              'title': 'Name',
+              'type': 'string',
+            }),
+            'permissions': dict({
+              'default': list([
+              ]),
+              'items': dict({
+                '$ref': '#/components/schemas/PermissionRead',
+              }),
+              'title': 'Permissions',
+              'type': 'array',
+            }),
+          }),
+          'required': list([
+            'id',
+            'name',
+          ]),
+          'title': 'RoleRead',
+          'type': 'object',
+        }),
+        'TenantCreate': dict({
+          'properties': dict({
+            'name': dict({
+              'title': 'Name',
+              'type': 'string',
+            }),
+            'slug': dict({
+              'anyOf': list([
+                dict({
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Slug',
+            }),
+          }),
+          'required': list([
+            'name',
+          ]),
+          'title': 'TenantCreate',
+          'type': 'object',
+        }),
+        'Token': dict({
+          'description': 'Schema for access and refresh tokens.',
+          'properties': dict({
+            'access_token': dict({
+              'description': 'The JWT access token',
+              'title': 'Access Token',
+              'type': 'string',
+            }),
+            'token_type': dict({
+              'default': 'bearer',
+              'description': 'The type of the token',
+              'title': 'Token Type',
+              'type': 'string',
+            }),
+          }),
+          'required': list([
+            'access_token',
+          ]),
+          'title': 'Token',
+          'type': 'object',
+        }),
+        'UserCreate': dict({
+          'description': 'Schema for creating a new user.',
+          'example': dict({
+            'email': 'user@example.com',
+            'full_name': 'John Doe',
+            'password': 'SecurePassword123!',
+            'username': 'johndoe',
+          }),
+          'properties': dict({
+            'email': dict({
+              'format': 'email',
+              'title': 'Email',
+              'type': 'string',
+            }),
+            'full_name': dict({
+              'anyOf': list([
+                dict({
+                  'maxLength': 100,
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Full Name',
+            }),
+            'password': dict({
+              'maxLength': 100,
+              'minLength': 8,
+              'title': 'Password',
+              'type': 'string',
+            }),
+            'username': dict({
+              'maxLength': 50,
+              'minLength': 3,
+              'pattern': '^[a-zA-Z0-9_-]+$',
+              'title': 'Username',
+              'type': 'string',
+            }),
+          }),
+          'required': list([
+            'email',
+            'username',
+            'password',
+          ]),
+          'title': 'UserCreate',
+          'type': 'object',
+        }),
+        'UserDetailResponse': dict({
+          'description': 'Detailed user response including roles.',
+          'example': dict({
+            'created_at': '2025-05-02T04:30:00Z',
+            'email': 'user@example.com',
+            'full_name': 'John Doe',
+            'id': 1,
+            'is_active': True,
+            'is_verified': False,
+            'updated_at': '2025-05-02T04:30:00Z',
+            'username': 'johndoe',
+          }),
+          'properties': dict({
+            'created_at': dict({
+              'format': 'date-time',
+              'title': 'Created At',
+              'type': 'string',
+            }),
+            'email': dict({
+              'format': 'email',
+              'title': 'Email',
+              'type': 'string',
+            }),
+            'full_name': dict({
+              'anyOf': list([
+                dict({
+                  'maxLength': 100,
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Full Name',
+            }),
+            'id': dict({
+              'title': 'Id',
+              'type': 'integer',
+            }),
+            'is_active': dict({
+              'title': 'Is Active',
+              'type': 'boolean',
+            }),
+            'is_superuser': dict({
+              'default': False,
+              'title': 'Is Superuser',
+              'type': 'boolean',
+            }),
+            'is_verified': dict({
+              'title': 'Is Verified',
+              'type': 'boolean',
+            }),
+            'roles': dict({
+              'default': list([
+              ]),
+              'items': dict({
+                '$ref': '#/components/schemas/RoleRead',
+              }),
+              'title': 'Roles',
+              'type': 'array',
+            }),
+            'updated_at': dict({
+              'format': 'date-time',
+              'title': 'Updated At',
+              'type': 'string',
+            }),
+            'username': dict({
+              'maxLength': 50,
+              'minLength': 3,
+              'pattern': '^[a-zA-Z0-9_-]+$',
+              'title': 'Username',
+              'type': 'string',
+            }),
+          }),
+          'required': list([
+            'email',
+            'username',
+            'id',
+            'is_active',
+            'is_verified',
+            'created_at',
+            'updated_at',
+          ]),
+          'title': 'UserDetailResponse',
+          'type': 'object',
+        }),
+        'UserResponse': dict({
+          'description': 'Schema for user response (public data).',
+          'example': dict({
+            'created_at': '2025-05-02T04:30:00Z',
+            'email': 'user@example.com',
+            'full_name': 'John Doe',
+            'id': 1,
+            'is_active': True,
+            'is_verified': False,
+            'updated_at': '2025-05-02T04:30:00Z',
+            'username': 'johndoe',
+          }),
+          'properties': dict({
+            'created_at': dict({
+              'format': 'date-time',
+              'title': 'Created At',
+              'type': 'string',
+            }),
+            'email': dict({
+              'format': 'email',
+              'title': 'Email',
+              'type': 'string',
+            }),
+            'full_name': dict({
+              'anyOf': list([
+                dict({
+                  'maxLength': 100,
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Full Name',
+            }),
+            'id': dict({
+              'title': 'Id',
+              'type': 'integer',
+            }),
+            'is_active': dict({
+              'title': 'Is Active',
+              'type': 'boolean',
+            }),
+            'is_verified': dict({
+              'title': 'Is Verified',
+              'type': 'boolean',
+            }),
+            'updated_at': dict({
+              'format': 'date-time',
+              'title': 'Updated At',
+              'type': 'string',
+            }),
+            'username': dict({
+              'maxLength': 50,
+              'minLength': 3,
+              'pattern': '^[a-zA-Z0-9_-]+$',
+              'title': 'Username',
+              'type': 'string',
+            }),
+          }),
+          'required': list([
+            'email',
+            'username',
+            'id',
+            'is_active',
+            'is_verified',
+            'created_at',
+            'updated_at',
+          ]),
+          'title': 'UserResponse',
+          'type': 'object',
+        }),
+        'UserUpdate': dict({
+          'description': 'Schema for updating user information.',
+          'example': dict({
+            'full_name': 'John Updated Doe',
+            'is_active': True,
+          }),
+          'properties': dict({
+            'email': dict({
+              'anyOf': list([
+                dict({
+                  'format': 'email',
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Email',
+            }),
+            'full_name': dict({
+              'anyOf': list([
+                dict({
+                  'maxLength': 100,
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Full Name',
+            }),
+            'is_active': dict({
+              'anyOf': list([
+                dict({
+                  'type': 'boolean',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Is Active',
+            }),
+            'password': dict({
+              'anyOf': list([
+                dict({
+                  'maxLength': 100,
+                  'minLength': 8,
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Password',
+            }),
+            'username': dict({
+              'anyOf': list([
+                dict({
+                  'maxLength': 50,
+                  'minLength': 3,
+                  'pattern': '^[a-zA-Z0-9_-]+$',
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Username',
+            }),
+          }),
+          'title': 'UserUpdate',
+          'type': 'object',
+        }),
+        'ValidationError': dict({
+          'properties': dict({
+            'loc': dict({
+              'items': dict({
+                'anyOf': list([
+                  dict({
+                    'type': 'string',
+                  }),
+                  dict({
+                    'type': 'integer',
+                  }),
+                ]),
+              }),
+              'title': 'Location',
+              'type': 'array',
+            }),
+            'msg': dict({
+              'title': 'Message',
+              'type': 'string',
+            }),
+            'type': dict({
+              'title': 'Error Type',
+              'type': 'string',
+            }),
+          }),
+          'required': list([
+            'loc',
+            'msg',
+            'type',
+          ]),
+          'title': 'ValidationError',
+          'type': 'object',
+        }),
+      }),
+      'securitySchemes': dict({
+        'OAuth2PasswordBearer': dict({
+          'flows': dict({
+            'password': dict({
+              'scopes': dict({
+              }),
+              'tokenUrl': '/api/v1/auth/login',
+            }),
+          }),
+          'type': 'oauth2',
+        }),
+      }),
+    }),
+    'info': dict({
+      'title': 'FastAPI Async Template',
+      'version': '3.0.0',
+    }),
+    'openapi': '3.1.0',
+    'paths': dict({
+      '/admin/': dict({
+        'get': dict({
+          'description': 'Admin home page with model index.',
+          'operationId': 'dashboard_admin__get',
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'text/html': dict({
+                  'schema': dict({
+                    'type': 'string',
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+          ]),
+          'summary': 'Dashboard',
+          'tags': list([
+            'admin',
+          ]),
+        }),
+      }),
+      '/admin/{table_name}': dict({
+        'get': dict({
+          'description': 'List records for a model.',
+          'operationId': 'admin_list_admin__table_name__get',
+          'parameters': list([
+            dict({
+              'in': 'path',
+              'name': 'table_name',
+              'required': True,
+              'schema': dict({
+                'title': 'Table Name',
+                'type': 'string',
+              }),
+            }),
+            dict({
+              'in': 'query',
+              'name': 'search',
+              'required': False,
+              'schema': dict({
+                'default': '',
+                'title': 'Search',
+                'type': 'string',
+              }),
+            }),
+            dict({
+              'in': 'query',
+              'name': 'page',
+              'required': False,
+              'schema': dict({
+                'default': 1,
+                'title': 'Page',
+                'type': 'integer',
+              }),
+            }),
+          ]),
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'text/html': dict({
+                  'schema': dict({
+                    'type': 'string',
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+          ]),
+          'summary': 'Admin List',
+          'tags': list([
+            'admin',
+          ]),
+        }),
+      }),
+      '/admin/{table_name}/create': dict({
+        'get': dict({
+          'description': 'Create form for a new record.',
+          'operationId': 'admin_create_form_admin__table_name__create_get',
+          'parameters': list([
+            dict({
+              'in': 'path',
+              'name': 'table_name',
+              'required': True,
+              'schema': dict({
+                'title': 'Table Name',
+                'type': 'string',
+              }),
+            }),
+          ]),
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'text/html': dict({
+                  'schema': dict({
+                    'type': 'string',
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+          ]),
+          'summary': 'Admin Create Form',
+          'tags': list([
+            'admin',
+          ]),
+        }),
+        'post': dict({
+          'description': 'Process create form submission.',
+          'operationId': 'admin_create_admin__table_name__create_post',
+          'parameters': list([
+            dict({
+              'in': 'path',
+              'name': 'table_name',
+              'required': True,
+              'schema': dict({
+                'title': 'Table Name',
+                'type': 'string',
+              }),
+            }),
+          ]),
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+          ]),
+          'summary': 'Admin Create',
+          'tags': list([
+            'admin',
+          ]),
+        }),
+      }),
+      '/admin/{table_name}/{id}': dict({
+        'get': dict({
+          'description': 'View a single record.',
+          'operationId': 'admin_detail_admin__table_name___id__get',
+          'parameters': list([
+            dict({
+              'in': 'path',
+              'name': 'table_name',
+              'required': True,
+              'schema': dict({
+                'title': 'Table Name',
+                'type': 'string',
+              }),
+            }),
+            dict({
+              'in': 'path',
+              'name': 'id',
+              'required': True,
+              'schema': dict({
+                'title': 'Id',
+                'type': 'integer',
+              }),
+            }),
+          ]),
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'text/html': dict({
+                  'schema': dict({
+                    'type': 'string',
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+          ]),
+          'summary': 'Admin Detail',
+          'tags': list([
+            'admin',
+          ]),
+        }),
+      }),
+      '/admin/{table_name}/{id}/delete': dict({
+        'post': dict({
+          'description': 'Delete a record.',
+          'operationId': 'admin_delete_admin__table_name___id__delete_post',
+          'parameters': list([
+            dict({
+              'in': 'path',
+              'name': 'table_name',
+              'required': True,
+              'schema': dict({
+                'title': 'Table Name',
+                'type': 'string',
+              }),
+            }),
+            dict({
+              'in': 'path',
+              'name': 'id',
+              'required': True,
+              'schema': dict({
+                'title': 'Id',
+                'type': 'integer',
+              }),
+            }),
+          ]),
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+          ]),
+          'summary': 'Admin Delete',
+          'tags': list([
+            'admin',
+          ]),
+        }),
+      }),
+      '/admin/{table_name}/{id}/edit': dict({
+        'get': dict({
+          'description': 'Edit form for a record.',
+          'operationId': 'admin_edit_form_admin__table_name___id__edit_get',
+          'parameters': list([
+            dict({
+              'in': 'path',
+              'name': 'table_name',
+              'required': True,
+              'schema': dict({
+                'title': 'Table Name',
+                'type': 'string',
+              }),
+            }),
+            dict({
+              'in': 'path',
+              'name': 'id',
+              'required': True,
+              'schema': dict({
+                'title': 'Id',
+                'type': 'integer',
+              }),
+            }),
+          ]),
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'text/html': dict({
+                  'schema': dict({
+                    'type': 'string',
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+          ]),
+          'summary': 'Admin Edit Form',
+          'tags': list([
+            'admin',
+          ]),
+        }),
+        'post': dict({
+          'description': 'Process edit form submission.',
+          'operationId': 'admin_edit_admin__table_name___id__edit_post',
+          'parameters': list([
+            dict({
+              'in': 'path',
+              'name': 'table_name',
+              'required': True,
+              'schema': dict({
+                'title': 'Table Name',
+                'type': 'string',
+              }),
+            }),
+            dict({
+              'in': 'path',
+              'name': 'id',
+              'required': True,
+              'schema': dict({
+                'title': 'Id',
+                'type': 'integer',
+              }),
+            }),
+          ]),
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+          ]),
+          'summary': 'Admin Edit',
+          'tags': list([
+            'admin',
+          ]),
+        }),
+      }),
+      '/api/v1/auth/.well-known/jwks.json': dict({
+        'get': dict({
+          'description': 'Serve JWKS for RS256 key validation.',
+          'operationId': 'jwks_api_v1_auth__well_known_jwks_json_get',
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+          }),
+          'summary': 'Jwks',
+          'tags': list([
+            'auth',
+          ]),
+        }),
+      }),
+      '/api/v1/auth/login': dict({
+        'post': dict({
+          'description': 'OAuth2 compatible token login. Provide username (email) and password to receive a JWT access token for future authenticated requests.',
+          'operationId': 'login_for_access_token_api_v1_auth_login_post',
+          'requestBody': dict({
+            'content': dict({
+              'application/x-www-form-urlencoded': dict({
+                'schema': dict({
+                  '$ref': '#/components/schemas/Body_login_for_access_token_api_v1_auth_login_post',
+                }),
+              }),
+            }),
+            'required': True,
+          }),
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/Token',
+                  }),
+                }),
+              }),
+              'description': 'Access token returned',
+            }),
+            '401': dict({
+              'description': 'Incorrect email or password',
+            }),
+            '422': dict({
+              'description': 'Validation error',
+            }),
+          }),
+          'summary': 'Login for access token',
+          'tags': list([
+            'auth',
+          ]),
+        }),
+      }),
+      '/api/v1/auth/register': dict({
+        'post': dict({
+          'description': "Create a new user account with email, username, and password. Returns the created user's public information.",
+          'operationId': 'register_api_v1_auth_register_post',
+          'requestBody': dict({
+            'content': dict({
+              'application/json': dict({
+                'schema': dict({
+                  '$ref': '#/components/schemas/UserCreate',
+                }),
+              }),
+            }),
+            'required': True,
+          }),
+          'responses': dict({
+            '201': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/UserResponse',
+                  }),
+                }),
+              }),
+              'description': 'User successfully created',
+            }),
+            '400': dict({
+              'description': 'Email or username already exists',
+            }),
+            '422': dict({
+              'description': 'Validation error',
+            }),
+          }),
+          'summary': 'Register a new user',
+          'tags': list([
+            'auth',
+          ]),
+        }),
+      }),
+      '/api/v1/auth/verify-email': dict({
+        'get': dict({
+          'description': "Verify a user's email address using a token sent via email.",
+          'operationId': 'verify_email_api_v1_auth_verify_email_get',
+          'parameters': list([
+            dict({
+              'in': 'query',
+              'name': 'token',
+              'required': True,
+              'schema': dict({
+                'title': 'Token',
+                'type': 'string',
+              }),
+            }),
+          ]),
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    'title': 'Response Verify Email Api V1 Auth Verify Email Get',
+                  }),
+                }),
+              }),
+              'description': 'Email verified successfully',
+            }),
+            '400': dict({
+              'description': 'Invalid or expired token, or already verified',
+            }),
+            '404': dict({
+              'description': 'User not found',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+          }),
+          'summary': 'Verify email address',
+          'tags': list([
+            'auth',
+          ]),
+        }),
+      }),
+      '/api/v1/auth/verify-request': dict({
+        'post': dict({
+          'description': "Send a verification email to the current user's email address. Requires authentication.",
+          'operationId': 'request_email_verification_api_v1_auth_verify_request_post',
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    'title': 'Response Request Email Verification Api V1 Auth Verify Request Post',
+                  }),
+                }),
+              }),
+              'description': 'Verification email sent',
+            }),
+            '400': dict({
+              'description': 'Email already verified',
+            }),
+            '401': dict({
+              'description': 'Not authenticated',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+          ]),
+          'summary': 'Request email verification',
+          'tags': list([
+            'auth',
+          ]),
+        }),
+      }),
+      '/api/v1/auth/webauthn/login/begin': dict({
+        'post': dict({
+          'description': 'Begin WebAuthn passkey authentication (user_id = email).',
+          'operationId': 'webauthn_login_begin_api_v1_auth_webauthn_login_begin_post',
+          'requestBody': dict({
+            'content': dict({
+              'application/json': dict({
+                'schema': dict({
+                  'additionalProperties': True,
+                  'title': 'Payload',
+                  'type': 'object',
+                }),
+              }),
+            }),
+            'required': True,
+          }),
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+          }),
+          'summary': 'Webauthn Login Begin',
+          'tags': list([
+            'auth',
+          ]),
+        }),
+      }),
+      '/api/v1/auth/webauthn/login/complete': dict({
+        'post': dict({
+          'description': 'Complete WebAuthn passkey authentication and return JWT.',
+          'operationId': 'webauthn_login_complete_api_v1_auth_webauthn_login_complete_post',
+          'requestBody': dict({
+            'content': dict({
+              'application/json': dict({
+                'schema': dict({
+                  'additionalProperties': True,
+                  'title': 'Payload',
+                  'type': 'object',
+                }),
+              }),
+            }),
+            'required': True,
+          }),
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+          }),
+          'summary': 'Webauthn Login Complete',
+          'tags': list([
+            'auth',
+          ]),
+        }),
+      }),
+      '/api/v1/auth/webauthn/register/begin': dict({
+        'post': dict({
+          'description': 'Begin WebAuthn passkey registration.',
+          'operationId': 'webauthn_register_begin_api_v1_auth_webauthn_register_begin_post',
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+          ]),
+          'summary': 'Webauthn Register Begin',
+          'tags': list([
+            'auth',
+          ]),
+        }),
+      }),
+      '/api/v1/auth/webauthn/register/complete': dict({
+        'post': dict({
+          'description': 'Complete WebAuthn passkey registration.',
+          'operationId': 'webauthn_register_complete_api_v1_auth_webauthn_register_complete_post',
+          'requestBody': dict({
+            'content': dict({
+              'application/json': dict({
+                'schema': dict({
+                  'additionalProperties': True,
+                  'title': 'Credential',
+                  'type': 'object',
+                }),
+              }),
+            }),
+            'required': True,
+          }),
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+          ]),
+          'summary': 'Webauthn Register Complete',
+          'tags': list([
+            'auth',
+          ]),
+        }),
+      }),
+      '/api/v1/events/publish': dict({
+        'post': dict({
+          'description': 'Publish an event to the event bus.',
+          'operationId': 'publish_event_api_v1_events_publish_post',
+          'requestBody': dict({
+            'content': dict({
+              'application/json': dict({
+                'schema': dict({
+                  '$ref': '#/components/schemas/EventPublishRequest',
+                }),
+              }),
+            }),
+            'required': True,
+          }),
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+          }),
+          'summary': 'Publish Event',
+          'tags': list([
+            'events',
+          ]),
+        }),
+      }),
+      '/api/v1/files/download/{filename}': dict({
+        'get': dict({
+          'description': 'Download a previously uploaded file by its stored path. Requires authentication.',
+          'operationId': 'download_file_api_v1_files_download__filename__get',
+          'parameters': list([
+            dict({
+              'in': 'path',
+              'name': 'filename',
+              'required': True,
+              'schema': dict({
+                'title': 'Filename',
+                'type': 'string',
+              }),
+            }),
+          ]),
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                  }),
+                }),
+                'application/octet-stream': dict({
+                }),
+              }),
+              'description': 'File content',
+            }),
+            '401': dict({
+              'description': 'Not authenticated',
+            }),
+            '404': dict({
+              'description': 'File not found',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+          ]),
+          'summary': 'Download a file',
+          'tags': list([
+            'files',
+          ]),
+        }),
+      }),
+      '/api/v1/files/upload': dict({
+        'post': dict({
+          'description': 'Upload a file (requires authentication). Returns the stored filename and path.',
+          'operationId': 'upload_file_api_v1_files_upload_post',
+          'requestBody': dict({
+            'content': dict({
+              'multipart/form-data': dict({
+                'schema': dict({
+                  '$ref': '#/components/schemas/Body_upload_file_api_v1_files_upload_post',
+                }),
+              }),
+            }),
+            'required': True,
+          }),
+          'responses': dict({
+            '201': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    'title': 'Response Upload File Api V1 Files Upload Post',
+                  }),
+                }),
+              }),
+              'description': 'File uploaded successfully',
+            }),
+            '400': dict({
+              'description': 'No file provided',
+            }),
+            '401': dict({
+              'description': 'Not authenticated',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+          ]),
+          'summary': 'Upload a file',
+          'tags': list([
+            'files',
+          ]),
+        }),
+      }),
+      '/api/v1/files/upload/stream': dict({
+        'post': dict({
+          'description': 'Upload a file with streaming progress via Server-Sent Events.',
+          'operationId': 'upload_file_stream_api_v1_files_upload_stream_post',
+          'requestBody': dict({
+            'content': dict({
+              'multipart/form-data': dict({
+                'schema': dict({
+                  '$ref': '#/components/schemas/Body_upload_file_stream_api_v1_files_upload_stream_post',
+                }),
+              }),
+            }),
+            'required': True,
+          }),
+          'responses': dict({
+            '201': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+          ]),
+          'summary': 'Upload File Stream',
+          'tags': list([
+            'files',
+          ]),
+        }),
+      }),
+      '/api/v1/tasks/email/send': dict({
+        'post': dict({
+          'description': 'Trigger a background task to send an email notification. Returns the task ID for status tracking.',
+          'operationId': 'trigger_email_task_api_v1_tasks_email_send_post',
+          'requestBody': dict({
+            'content': dict({
+              'application/json': dict({
+                'schema': dict({
+                  '$ref': '#/components/schemas/EmailTaskRequest',
+                }),
+              }),
+            }),
+            'required': True,
+          }),
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                  }),
+                }),
+              }),
+              'description': 'Task triggered',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+          }),
+          'summary': 'Send an email notification',
+          'tags': list([
+            'tasks',
+          ]),
+        }),
+      }),
+      '/api/v1/tasks/{task_id}': dict({
+        'get': dict({
+          'description': 'Check the status of a previously triggered background task.',
+          'operationId': 'get_task_status_api_v1_tasks__task_id__get',
+          'parameters': list([
+            dict({
+              'in': 'path',
+              'name': 'task_id',
+              'required': True,
+              'schema': dict({
+                'title': 'Task Id',
+                'type': 'string',
+              }),
+            }),
+          ]),
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                  }),
+                }),
+              }),
+              'description': 'Task status details',
+            }),
+            '404': dict({
+              'description': 'Task not found',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+          }),
+          'summary': 'Get task status',
+          'tags': list([
+            'tasks',
+          ]),
+        }),
+      }),
+      '/api/v1/tasks/{task_id}/stream': dict({
+        'get': dict({
+          'description': 'Stream task status updates via Server-Sent Events.',
+          'operationId': 'stream_task_status_api_v1_tasks__task_id__stream_get',
+          'parameters': list([
+            dict({
+              'in': 'path',
+              'name': 'task_id',
+              'required': True,
+              'schema': dict({
+                'title': 'Task Id',
+                'type': 'string',
+              }),
+            }),
+          ]),
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+          }),
+          'summary': 'Stream Task Status',
+          'tags': list([
+            'tasks',
+          ]),
+        }),
+      }),
+      '/api/v1/tenants/': dict({
+        'get': dict({
+          'description': 'List all tenants (superuser only).',
+          'operationId': 'list_tenants_api_v1_tenants__get',
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+          ]),
+          'summary': 'List Tenants',
+          'tags': list([
+            'tenants',
+          ]),
+        }),
+        'post': dict({
+          'description': 'Create a new tenant (superuser only).',
+          'operationId': 'create_tenant_api_v1_tenants__post',
+          'requestBody': dict({
+            'content': dict({
+              'application/json': dict({
+                'schema': dict({
+                  '$ref': '#/components/schemas/TenantCreate',
+                }),
+              }),
+            }),
+            'required': True,
+          }),
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+          ]),
+          'summary': 'Create Tenant',
+          'tags': list([
+            'tenants',
+          ]),
+        }),
+      }),
+      '/api/v1/users/': dict({
+        'get': dict({
+          'description': 'Retrieve a paginated list of all users. Requires `user:read` permission.',
+          'operationId': 'list_users_api_v1_users__get',
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    'items': dict({
+                      '$ref': '#/components/schemas/UserDetailResponse',
+                    }),
+                    'title': 'Response List Users Api V1 Users  Get',
+                    'type': 'array',
+                  }),
+                }),
+              }),
+              'description': 'List of users with roles',
+            }),
+            '401': dict({
+              'description': 'Not authenticated',
+            }),
+            '403': dict({
+              'description': 'Not enough permissions',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+          ]),
+          'summary': 'List all users',
+          'tags': list([
+            'users',
+          ]),
+        }),
+      }),
+      '/api/v1/users/bulk': dict({
+        'post': dict({
+          'description': 'Create multiple users in one request (requires user:write).',
+          'operationId': 'bulk_create_users_api_v1_users_bulk_post',
+          'requestBody': dict({
+            'content': dict({
+              'application/json': dict({
+                'schema': dict({
+                  'items': dict({
+                    '$ref': '#/components/schemas/UserCreate',
+                  }),
+                  'title': 'Users',
+                  'type': 'array',
+                }),
+              }),
+            }),
+            'required': True,
+          }),
+          'responses': dict({
+            '201': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    'items': dict({
+                      '$ref': '#/components/schemas/UserDetailResponse',
+                    }),
+                    'title': 'Response Bulk Create Users Api V1 Users Bulk Post',
+                    'type': 'array',
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+          ]),
+          'summary': 'Bulk Create Users',
+          'tags': list([
+            'users',
+          ]),
+        }),
+      }),
+      '/api/v1/users/export': dict({
+        'get': dict({
+          'description': 'Export all users as CSV or Excel. Requires `user:read` permission.',
+          'operationId': 'export_users_api_v1_users_export_get',
+          'parameters': list([
+            dict({
+              'in': 'query',
+              'name': 'format',
+              'required': False,
+              'schema': dict({
+                'default': 'csv',
+                'enum': list([
+                  'csv',
+                  'excel',
+                ]),
+                'title': 'Format',
+                'type': 'string',
+              }),
+            }),
+          ]),
+          'responses': dict({
+            '200': dict({
+              'description': 'Exported file',
+            }),
+            '401': dict({
+              'description': 'Not authenticated',
+            }),
+            '403': dict({
+              'description': 'Not enough permissions',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+          ]),
+          'summary': 'Export users',
+          'tags': list([
+            'users',
+          ]),
+        }),
+      }),
+      '/api/v1/users/import/csv': dict({
+        'post': dict({
+          'description': 'Import users from a CSV file (requires user:write).',
+          'operationId': 'import_users_csv_api_v1_users_import_csv_post',
+          'requestBody': dict({
+            'content': dict({
+              'multipart/form-data': dict({
+                'schema': dict({
+                  '$ref': '#/components/schemas/Body_import_users_csv_api_v1_users_import_csv_post',
+                }),
+              }),
+            }),
+            'required': True,
+          }),
+          'responses': dict({
+            '201': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    'items': dict({
+                      '$ref': '#/components/schemas/UserDetailResponse',
+                    }),
+                    'title': 'Response Import Users Csv Api V1 Users Import Csv Post',
+                    'type': 'array',
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+          ]),
+          'summary': 'Import Users Csv',
+          'tags': list([
+            'users',
+          ]),
+        }),
+      }),
+      '/api/v1/users/{user_id}': dict({
+        'delete': dict({
+          'description': 'Delete a user by ID. Requires `user:delete` permission.',
+          'operationId': 'delete_user_api_v1_users__user_id__delete',
+          'parameters': list([
+            dict({
+              'in': 'path',
+              'name': 'user_id',
+              'required': True,
+              'schema': dict({
+                'title': 'User Id',
+                'type': 'integer',
+              }),
+            }),
+          ]),
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    'additionalProperties': True,
+                    'title': 'Response Delete User Api V1 Users  User Id  Delete',
+                    'type': 'object',
+                  }),
+                }),
+              }),
+              'description': 'User deleted successfully',
+            }),
+            '401': dict({
+              'description': 'Not authenticated',
+            }),
+            '403': dict({
+              'description': 'Not enough permissions',
+            }),
+            '404': dict({
+              'description': 'User not found',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+          ]),
+          'summary': 'Delete a user',
+          'tags': list([
+            'users',
+          ]),
+        }),
+        'get': dict({
+          'description': 'Retrieve a specific user by ID with roles. Requires `user:read` permission.',
+          'operationId': 'get_user_api_v1_users__user_id__get',
+          'parameters': list([
+            dict({
+              'in': 'path',
+              'name': 'user_id',
+              'required': True,
+              'schema': dict({
+                'title': 'User Id',
+                'type': 'integer',
+              }),
+            }),
+          ]),
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/UserDetailResponse',
+                  }),
+                }),
+              }),
+              'description': 'User details with roles',
+            }),
+            '401': dict({
+              'description': 'Not authenticated',
+            }),
+            '403': dict({
+              'description': 'Not enough permissions',
+            }),
+            '404': dict({
+              'description': 'User not found',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+          ]),
+          'summary': 'Get a single user',
+          'tags': list([
+            'users',
+          ]),
+        }),
+        'patch': dict({
+          'description': "Update a user's details. Requires `user:write` permission.",
+          'operationId': 'update_user_api_v1_users__user_id__patch',
+          'parameters': list([
+            dict({
+              'in': 'path',
+              'name': 'user_id',
+              'required': True,
+              'schema': dict({
+                'title': 'User Id',
+                'type': 'integer',
+              }),
+            }),
+          ]),
+          'requestBody': dict({
+            'content': dict({
+              'application/json': dict({
+                'schema': dict({
+                  '$ref': '#/components/schemas/UserUpdate',
+                }),
+              }),
+            }),
+            'required': True,
+          }),
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/UserDetailResponse',
+                  }),
+                }),
+              }),
+              'description': 'Updated user with roles',
+            }),
+            '401': dict({
+              'description': 'Not authenticated',
+            }),
+            '403': dict({
+              'description': 'Not enough permissions',
+            }),
+            '404': dict({
+              'description': 'User not found',
+            }),
+            '422': dict({
+              'description': 'Validation error',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+          ]),
+          'summary': 'Update a user',
+          'tags': list([
+            'users',
+          ]),
+        }),
+      }),
+      '/gql/playground': dict({
+        'get': dict({
+          'description': 'HTMX-powered GraphQL playground.',
+          'operationId': 'htmx_graphql_playground_gql_playground_get',
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'text/html': dict({
+                  'schema': dict({
+                    'type': 'string',
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+          }),
+          'summary': 'Htmx Graphql Playground',
+          'tags': list([
+            'graphql',
+          ]),
+        }),
+      }),
+      '/graphql': dict({
+        'get': dict({
+          'operationId': 'handle_http_get_graphql_get',
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                  }),
+                }),
+              }),
+              'description': 'The GraphiQL integrated development environment.',
+            }),
+            '404': dict({
+              'description': 'Not found if GraphiQL or query via GET are not enabled.',
+            }),
+          }),
+          'summary': 'Handle Http Get',
+        }),
+        'post': dict({
+          'operationId': 'handle_http_post_graphql_post',
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+          }),
+          'summary': 'Handle Http Post',
+        }),
+      }),
+      '/health/': dict({
+        'get': dict({
+          'description': 'Basic health check endpoint.',
+          'operationId': 'health_check_health__get',
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    'additionalProperties': True,
+                    'title': 'Response Health Check Health  Get',
+                    'type': 'object',
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+          }),
+          'summary': 'Health Check',
+          'tags': list([
+            'health',
+            'health',
+          ]),
+        }),
+      }),
+      '/health/dependencies': dict({
+        'get': dict({
+          'description': 'Detailed dependency health check.',
+          'operationId': 'dependencies_check_health_dependencies_get',
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    'additionalProperties': True,
+                    'title': 'Response Dependencies Check Health Dependencies Get',
+                    'type': 'object',
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+          }),
+          'summary': 'Dependencies Check',
+          'tags': list([
+            'health',
+            'health',
+          ]),
+        }),
+      }),
+      '/health/live': dict({
+        'get': dict({
+          'description': 'Liveness check endpoint (for k8s liveness probes).',
+          'operationId': 'liveness_check_health_live_get',
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    'additionalProperties': True,
+                    'title': 'Response Liveness Check Health Live Get',
+                    'type': 'object',
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+          }),
+          'summary': 'Liveness Check',
+          'tags': list([
+            'health',
+            'health',
+          ]),
+        }),
+      }),
+      '/health/ready': dict({
+        'get': dict({
+          'description': 'Readiness check including database and Redis status.',
+          'operationId': 'readiness_check_health_ready_get',
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    'additionalProperties': True,
+                    'title': 'Response Readiness Check Health Ready Get',
+                    'type': 'object',
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+          }),
+          'summary': 'Readiness Check',
+          'tags': list([
+            'health',
+            'health',
+          ]),
+        }),
+      }),
+      '/metrics': dict({
+        'get': dict({
+          'description': 'Endpoint that serves Prometheus metrics.',
+          'operationId': 'metrics_metrics_get',
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+          }),
+          'summary': 'Metrics',
+        }),
+      }),
+      '/profile/': dict({
+        'get': dict({
+          'description': 'Render the user profile page.',
+          'operationId': 'profile_page_profile__get',
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'text/html': dict({
+                  'schema': dict({
+                    'type': 'string',
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+          ]),
+          'summary': 'Profile Page',
+          'tags': list([
+            'profile',
+          ]),
+        }),
+      }),
+      '/profile/avatar': dict({
+        'post': dict({
+          'description': 'Upload a profile avatar (placeholder).',
+          'operationId': 'profile_avatar_profile_avatar_post',
+          'requestBody': dict({
+            'content': dict({
+              'multipart/form-data': dict({
+                'schema': dict({
+                  '$ref': '#/components/schemas/Body_profile_avatar_profile_avatar_post',
+                }),
+              }),
+            }),
+            'required': True,
+          }),
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'text/html': dict({
+                  'schema': dict({
+                    'type': 'string',
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+          ]),
+          'summary': 'Profile Avatar',
+          'tags': list([
+            'profile',
+          ]),
+        }),
+      }),
+      '/profile/edit': dict({
+        'post': dict({
+          'description': 'Inline edit for profile fields (HTMX).',
+          'operationId': 'profile_edit_profile_edit_post',
+          'requestBody': dict({
+            'content': dict({
+              'application/x-www-form-urlencoded': dict({
+                'schema': dict({
+                  '$ref': '#/components/schemas/Body_profile_edit_profile_edit_post',
+                }),
+              }),
+            }),
+          }),
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'text/html': dict({
+                  'schema': dict({
+                    'type': 'string',
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+          ]),
+          'summary': 'Profile Edit',
+          'tags': list([
+            'profile',
+          ]),
+        }),
+      }),
+    }),
+    'tags': list([
+      dict({
+        'description': 'Health check endpoints for readiness, liveness, and dependencies.',
+        'name': 'health',
+      }),
+      dict({
+        'description': 'User registration and JWT token authentication.',
+        'name': 'auth',
+      }),
+      dict({
+        'description': 'User management with role-based access control (RBAC).',
+        'name': 'users',
+      }),
+      dict({
+        'description': 'Background task trigger and status endpoints.',
+        'name': 'tasks',
+      }),
+      dict({
+        'description': 'File upload and download with local or S3 storage.',
+        'name': 'files',
+      }),
+      dict({
+        'description': 'Prometheus metrics endpoint.',
+        'name': 'metrics',
+      }),
+    ]),
+  })
+# ---
