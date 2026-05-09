@@ -6,8 +6,12 @@ from collections.abc import AsyncGenerator, AsyncIterator
 from contextlib import asynccontextmanager
 
 from sqlalchemy import event
-from sqlalchemy.ext.asyncio import (AsyncEngine, AsyncSession,
-                                    async_sessionmaker, create_async_engine)
+from sqlalchemy.ext.asyncio import (
+    AsyncEngine,
+    AsyncSession,
+    async_sessionmaker,
+    create_async_engine,
+)
 from sqlalchemy.pool import NullPool
 from sqlalchemy.sql import Delete, Insert, Select, Update
 
@@ -66,9 +70,7 @@ class DatabaseSessionManager:
 
         # Add Row-Level Security (tenant isolation)
         @event.listens_for(self._engine.sync_engine, "before_execute", retval=True)
-        def _add_tenant_filter(
-            conn, clauseelement, multiparams, params, execution_options
-        ):
+        def _add_tenant_filter(conn, clauseelement, multiparams, params, execution_options):
             tenant_id = get_current_tenant()
             if tenant_id is None:
                 return clauseelement, multiparams, params
@@ -76,9 +78,7 @@ class DatabaseSessionManager:
             if isinstance(clauseelement, Select):
                 for table in clauseelement.get_final_froms():
                     if hasattr(table, "columns") and "tenant_id" in table.columns:
-                        clauseelement = clauseelement.where(
-                            table.c.tenant_id == tenant_id
-                        )
+                        clauseelement = clauseelement.where(table.c.tenant_id == tenant_id)
                         break
             elif isinstance(clauseelement, Insert):
                 table = clauseelement.table
@@ -113,9 +113,7 @@ class DatabaseSessionManager:
     async def session(self) -> AsyncIterator[AsyncSession]:
         """Provide async database session."""
         if self._sessionmaker is None:
-            raise RuntimeError(
-                "DatabaseSessionManager is not initialized. Call init() first."
-            )
+            raise RuntimeError("DatabaseSessionManager is not initialized. Call init() first.")
         async with self._sessionmaker() as session:
             try:
                 yield session

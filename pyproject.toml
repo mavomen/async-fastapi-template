@@ -37,6 +37,8 @@ openpyxl = "^3.1.5"
 strawberry-graphql = {extras = ["asgi", "fastapi"], version = "^0.315.3"}
 kafka-python = "^2.3.1"
 webauthn = "^2.7.1"
+typer = {extras = ["all"], version = "^0.25.1"}
+scalar-fastapi = "^1.8.2"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.4"

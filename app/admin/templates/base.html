@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="">
   <head>
     <meta charset="UTF-8" />
     <title>Admin – {{ user.username }}</title>
@@ -8,6 +8,32 @@
       href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
       rel="stylesheet"
     />
+    <script>
+      // Dark mode toggle
+      (function() {
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        if (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && prefersDark)) {
+          document.documentElement.classList.add('dark');
+          document.documentElement.style.backgroundColor = '#1a202c';
+        }
+        function toggleTheme() {
+          if (document.documentElement.classList.contains('dark')) {
+            document.documentElement.classList.remove('dark');
+            localStorage.setItem('theme', 'light');
+          } else {
+            document.documentElement.classList.add('dark');
+            localStorage.setItem('theme', 'dark');
+          }
+        }
+        window.toggleTheme = toggleTheme;
+      })();
+    </script>
+    <style>
+      .dark .bg-white { background-color: #2d3748 !important; }
+      .dark .bg-gray-100 { background-color: #1a202c !important; }
+      .dark .bg-gray-200 { background-color: #4a5568 !important; }
+      .dark .text-gray-500 { color: #a0aec0 !important; }
+    </style>
   </head>
   <body class="bg-gray-100">
     <nav class="bg-white shadow p-4 flex justify-between">
@@ -15,12 +41,11 @@
         <a href="/admin" class="font-bold text-xl">Admin</a>
         <a href="/admin" class="hover:text-blue-600">Dashboard</a>
         <a href="/docs" class="hover:text-blue-600">API Docs</a>
+        <button onclick="toggleTheme()" class="hover:text-blue-600">🌓</button>
       </div>
       <div>
         <span class="mr-4">{{ user.email }}</span>
-        <a href="/api/v1/auth/login" class="text-red-600 hover:underline"
-          >Logout</a
-        >
+        <a href="/api/v1/auth/login" class="text-red-600 hover:underline">Logout</a>
       </div>
     </nav>
     <main class="container mx-auto mt-8 px-4">
