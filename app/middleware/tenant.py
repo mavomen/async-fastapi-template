@@ -26,9 +26,7 @@ class TenantMiddleware(BaseHTTPMiddleware):
                 from app.models.tenant import Tenant
 
                 async with sessionmanager.session() as db:
-                    result = await db.execute(
-                        select(Tenant.id).where(Tenant.is_active).limit(1)
-                    )
+                    result = await db.execute(select(Tenant.id).where(Tenant.is_active).limit(1))
                     row = result.scalar_one_or_none()
                     if row:
                         tenant_id = row

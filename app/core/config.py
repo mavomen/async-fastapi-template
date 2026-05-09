@@ -90,6 +90,13 @@ class Settings(BaseSettings):
     EVENT_BUS_REDIS_URL: str | None = None
     EVENT_BUS_KAFKA_SERVERS: str = "localhost:9092"
 
+    # WebAuthn
+    WEBAUTHN_RP_ID: str = "localhost"
+    WEBAUTHN_RP_NAME: str = "FastAPI Async Template"
+    WEBAUTHN_ORIGIN: str = "http://localhost:8000"
+    WEBAUTHN_RELYING_PARTY_ID: str = "localhost"  # alias for RP ID
+
+
 settings = Settings()
 
 

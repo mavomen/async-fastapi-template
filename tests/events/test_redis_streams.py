@@ -15,9 +15,7 @@ async def test_redis_streams_publish_and_consume():
         mock_redis = AsyncMock()
         # Simulate an existing consumer group by raising the real exception type
         mock_redis.xgroup_create = AsyncMock(
-            side_effect=aioredis.ResponseError(
-                "BUSYGROUP Consumer Group name already exists"
-            )
+            side_effect=aioredis.ResponseError("BUSYGROUP Consumer Group name already exists")
         )
         mock_redis.xadd = AsyncMock()
         mock_redis.xreadgroup = AsyncMock()
@@ -27,9 +25,7 @@ async def test_redis_streams_publish_and_consume():
 
         from app.events.redis_streams import RedisStreamsEventBus
 
-        bus = RedisStreamsEventBus(
-            redis_url="redis://fake:6379", stream_name="test:events"
-        )
+        bus = RedisStreamsEventBus(redis_url="redis://fake:6379", stream_name="test:events")
         await bus.connect()
 
         event = Event(event_type="test", payload={"msg": "hello"})

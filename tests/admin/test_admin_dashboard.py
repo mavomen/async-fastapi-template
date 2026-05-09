@@ -16,6 +16,7 @@ async def admin_headers(db_session: AsyncSession) -> dict:
     # Create required permissions (only if they don't exist)
     perms = {}
     from sqlalchemy import select as sa_select
+
     for perm_name in ["user:admin", "role:admin", "permission:admin"]:
         existing = await db_session.execute(
             sa_select(Permission).where(Permission.name == perm_name)
@@ -28,9 +29,7 @@ async def admin_headers(db_session: AsyncSession) -> dict:
     await db_session.flush()
 
     # Create admin role and assign permissions
-    existing_role = await db_session.execute(
-        sa_select(Role).where(Role.name == "admin")
-    )
+    existing_role = await db_session.execute(sa_select(Role).where(Role.name == "admin"))
     role = existing_role.scalar_one_or_none()
     if not role:
         role = Role(name="admin")
@@ -41,9 +40,7 @@ async def admin_headers(db_session: AsyncSession) -> dict:
     # Create admin user
     user = await crud_user.create(
         db_session,
-        obj_in=UserCreate(
-            email="admin@example.com", username="admin", password="AdminPass1!"
-        ),
+        obj_in=UserCreate(email="admin@example.com", username="admin", password="AdminPass1!"),
     )
     user.roles.append(role)
     await db_session.commit()
@@ -53,9 +50,7 @@ async def admin_headers(db_session: AsyncSession) -> dict:
 
 
 @pytest.mark.asyncio
-async def test_admin_dashboard_accessible(
-    async_client: AsyncClient, admin_headers: dict
-):
+async def test_admin_dashboard_accessible(async_client: AsyncClient, admin_headers: dict):
     """Admin dashboard home page loads."""
     response = await async_client.get("/admin", headers=admin_headers)
     assert response.status_code == 200
@@ -80,17 +75,13 @@ async def test_admin_user_detail(async_client: AsyncClient, admin_headers: dict)
     assert match, "No user row found in admin list"
     user_id = match.group(1)
 
-    detail_resp = await async_client.get(
-        f"/admin/users/{user_id}", headers=admin_headers
-    )
+    detail_resp = await async_client.get(f"/admin/users/{user_id}", headers=admin_headers)
     assert detail_resp.status_code == 200
     assert "admin" in detail_resp.text
 
 
 @pytest.mark.asyncio
-async def test_admin_user_edit_form_loads(
-    async_client: AsyncClient, admin_headers: dict
-):
+async def test_admin_user_edit_form_loads(async_client: AsyncClient, admin_headers: dict):
     """Edit form page loads for a user."""
     import re
 
@@ -99,9 +90,7 @@ async def test_admin_user_edit_form_loads(
     assert match, "No user row found"
     user_id = match.group(1)
 
-    edit_resp = await async_client.get(
-        f"/admin/users/{user_id}/edit", headers=admin_headers
-    )
+    edit_resp = await async_client.get(f"/admin/users/{user_id}/edit", headers=admin_headers)
     assert edit_resp.status_code == 200
     assert "Edit" in edit_resp.text
 
@@ -113,9 +102,7 @@ async def test_admin_forbidden_for_regular_user(
     """Regular user without admin role should get 403."""
     user = await crud_user.create(
         db_session,
-        obj_in=UserCreate(
-            email="pleb@example.com", username="pleb", password="Password1!"
-        ),
+        obj_in=UserCreate(email="pleb@example.com", username="pleb", password="Password1!"),
     )
     token = create_access_token(subject=user.id)
     headers = {"Authorization": f"Bearer {token}"}
@@ -173,10 +160,12 @@ async def test_admin_user_search(async_client: AsyncClient, admin_headers: dict)
     assert response.status_code == 200
     assert "admin" in response.text
 
+
 @pytest.mark.asyncio
 async def test_admin_role_detail(async_client: AsyncClient, admin_headers: dict):
     """View a role detail page via admin."""
     import re
+
     roles_resp = await async_client.get("/admin/roles", headers=admin_headers)
     match = re.search(r"/admin/roles/(\d+)/edit", roles_resp.text)
     assert match, "No role row found"
@@ -185,6 +174,7 @@ async def test_admin_role_detail(async_client: AsyncClient, admin_headers: dict)
     detail_resp = await async_client.get(f"/admin/roles/{role_id}", headers=admin_headers)
     assert detail_resp.status_code == 200
     assert "admin" in detail_resp.text  # role name should appear
+
 
 @pytest.mark.asyncio
 async def test_admin_user_list_pagination(async_client: AsyncClient, admin_headers: dict):

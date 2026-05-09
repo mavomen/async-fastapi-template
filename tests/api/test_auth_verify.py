@@ -10,14 +10,10 @@ from app.schemas.user import UserCreate
 
 
 @pytest.mark.asyncio
-async def test_verify_request_endpoint(
-    async_client: AsyncClient, db_session: AsyncSession
-):
+async def test_verify_request_endpoint(async_client: AsyncClient, db_session: AsyncSession):
     user = await crud_user.create(
         db_session,
-        obj_in=UserCreate(
-            email="check@test.com", username="check", password="Password1!"
-        ),
+        obj_in=UserCreate(email="check@test.com", username="check", password="Password1!"),
     )
     token = create_access_token(subject=user.id)
     headers = {"Authorization": f"Bearer {token}"}
@@ -32,9 +28,7 @@ async def test_verify_email_invalid_token(async_client: AsyncClient):
 
 
 @pytest.mark.asyncio
-async def test_verify_email_valid_token(
-    async_client: AsyncClient, db_session: AsyncSession
-):
+async def test_verify_email_valid_token(async_client: AsyncClient, db_session: AsyncSession):
     user = await crud_user.create(
         db_session,
         obj_in=UserCreate(email="vvv@test.com", username="vvv", password="Password1!"),

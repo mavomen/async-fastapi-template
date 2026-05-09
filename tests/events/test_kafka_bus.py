@@ -11,8 +11,9 @@ from app.events.kafka_bus import KafkaEventBus
 @pytest.mark.asyncio
 async def test_kafka_bus_mocked():
     """Test that Kafka bus uses producer correctly."""
-    with patch("app.events.kafka_bus.KafkaProducer") as mock_producer, patch(
-        "app.events.kafka_bus.KafkaConsumer"
+    with (
+        patch("app.events.kafka_bus.KafkaProducer") as mock_producer,
+        patch("app.events.kafka_bus.KafkaConsumer"),
     ):
         bus = KafkaEventBus()
         await bus.connect()

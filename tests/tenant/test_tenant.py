@@ -14,9 +14,7 @@ async def superuser_token(db_session: AsyncSession) -> str:
     """Create a superuser and return JWT token."""
     user = await crud_user.create(
         db_session,
-        obj_in=UserCreate(
-            email="super@example.com", username="super", password="SuperPass1!"
-        ),
+        obj_in=UserCreate(email="super@example.com", username="super", password="SuperPass1!"),
     )
     user.is_superuser = True
     await db_session.commit()
@@ -27,9 +25,7 @@ async def superuser_token(db_session: AsyncSession) -> str:
 async def test_create_tenant_requires_superuser(async_client: AsyncClient):
     """Only superuser can create a tenant."""
     headers = {"Authorization": "Bearer fake-token"}
-    resp = await async_client.post(
-        "/api/v1/tenants/", headers=headers, json={"name": "TestCorp"}
-    )
+    resp = await async_client.post("/api/v1/tenants/", headers=headers, json={"name": "TestCorp"})
     assert resp.status_code in (401, 403)
 
 

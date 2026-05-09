@@ -26,11 +26,12 @@ async def _check_database(db: AsyncSession) -> dict:
 async def _check_redis() -> dict:
     try:
         from app.core.cache import cache
+
         if cache._redis:
-            await cache._redis.ping()
+            await cache._redis.ping()  # type: ignore[misc]
         else:
             r = aioredis.from_url(settings.REDIS_URL, encoding="utf-8", decode_responses=True)
-            await r.ping()
+            await r.ping()  # type: ignore[misc]
             await r.close()
         return {"redis": "connected"}
     except Exception:
@@ -60,9 +61,7 @@ async def readiness_check(db: AsyncSession = Depends(get_db)) -> dict[str, Any]:
     db_status = await _check_database(db)
     redis_status = await _check_redis()
 
-    all_connected = all(
-        v == "connected" for v in [db_status["database"], redis_status["redis"]]
-    )
+    all_connected = all(v == "connected" for v in [db_status["database"], redis_status["redis"]])
 
     return {
         "status": "ready" if all_connected else "degraded",

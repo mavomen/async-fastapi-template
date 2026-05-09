@@ -1,7 +1,9 @@
 """Tests for cache invalidation utility."""
 
+from unittest.mock import AsyncMock, patch
+
 import pytest
-from unittest.mock import patch, AsyncMock
+
 from app.utils.cache_invalidation import invalidate_by_prefix
 
 

@@ -82,14 +82,13 @@ class DatabaseSessionManager:
                         break
             elif isinstance(clauseelement, Insert):
                 table = clauseelement.table
-                if (
-                    "tenant_id" in table.columns
-                    and "tenant_id" not in clauseelement._values
-                ):
-                    clauseelement = clauseelement.values(tenant_id=tenant_id)
+                if table.columns.get("tenant_id") is not None:
+                    existing = getattr(clauseelement, "_values", {}) or {}
+                    if "tenant_id" not in existing:
+                        clauseelement = clauseelement.values(tenant_id=tenant_id)
             elif isinstance(clauseelement, Update) or isinstance(clauseelement, Delete):
                 table = clauseelement.table
-                if "tenant_id" in table.columns:
+                if "tenant_id" in table.columns.keys():
                     clauseelement = clauseelement.where(table.c.tenant_id == tenant_id)
 
             return clauseelement, multiparams, params
@@ -144,7 +143,7 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
 def apply_tenant_filter(
     tenant_id: int | None, clauseelement, multiparams, params, execution_options
 ):
-    """Public helper that applies tenant‑RLS filter (callable from tests)."""
+    """Public helper that applies tenant-RLS filter (callable from tests)."""
     if tenant_id is None:
         return clauseelement, multiparams, params
 
@@ -155,11 +154,13 @@ def apply_tenant_filter(
                 break
     elif isinstance(clauseelement, Insert):
         table = clauseelement.table
-        if "tenant_id" in table.columns and "tenant_id" not in clauseelement._values:
-            clauseelement = clauseelement.values(tenant_id=tenant_id)
+        if table.columns.get("tenant_id") is not None:
+            existing = getattr(clauseelement, "_values", {}) or {}
+            if "tenant_id" not in existing:
+                clauseelement = clauseelement.values(tenant_id=tenant_id)
     elif isinstance(clauseelement, Update) or isinstance(clauseelement, Delete):
         table = clauseelement.table
-        if "tenant_id" in table.columns:
+        if "tenant_id" in table.columns.keys():
             clauseelement = clauseelement.where(table.c.tenant_id == tenant_id)
 
     return clauseelement, multiparams, params

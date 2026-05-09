@@ -1,5 +1,5 @@
 """
-API endpoints for user authentication, login, and email verification.
+API endpoints for user authentication, login, email verification, and WebAuthn passkeys.
 """
 
 from datetime import UTC, datetime
@@ -10,11 +10,18 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_user, get_db, get_email_service
+from app.auth.webauthn import (
+    begin_authentication,
+    begin_registration,
+    complete_authentication,
+    complete_registration,
+)
 from app.core.security import (
     authenticate_user,
     create_access_token,
     create_verification_token,
     decode_verification_token,
+    get_jwks,
 )
 from app.crud.user import user as crud_user
 from app.models.user import User
@@ -22,6 +29,12 @@ from app.schemas import Token, UserCreate, UserResponse
 from app.services.email import EmailService
 
 router = APIRouter()
+
+
+@router.get("/.well-known/jwks.json")
+async def jwks():
+    """Serve JWKS for RS256 key validation."""
+    return get_jwks()
 
 
 @router.post(
@@ -86,6 +99,81 @@ async def login_for_access_token(
         )
     access_token = create_access_token(subject=user.id)
     return {"access_token": access_token, "token_type": "bearer"}
+
+
+# ---------- WebAuthn / Passkey endpoints ----------
+
+
+@router.post("/webauthn/register/begin")
+async def webauthn_register_begin(
+    current_user: User = Depends(get_current_user),
+):
+    """Begin WebAuthn passkey registration."""
+    options = await begin_registration(
+        user_id=str(current_user.id),
+        user_name=current_user.email,
+        user_display_name=current_user.full_name or current_user.email,
+    )
+    return options
+
+
+@router.post("/webauthn/register/complete")
+async def webauthn_register_complete(
+    credential: dict,
+    current_user: User = Depends(get_current_user),
+):
+    """Complete WebAuthn passkey registration."""
+    result = await complete_registration(
+        user_id=str(current_user.id),
+        credential=credential,
+    )
+    return result
+
+
+@router.post("/webauthn/login/begin")
+async def webauthn_login_begin(payload: dict):
+    """Begin WebAuthn passkey authentication (user_id = email)."""
+    user_id = payload.get("user_id")
+    if not user_id:
+        raise HTTPException(status_code=400, detail="user_id required")
+    from app.core.database import sessionmanager
+    from app.crud.user import user as crud_user
+
+    async with sessionmanager.session() as db:
+        user = await crud_user.get_by_email(db, email=user_id)
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        options = await begin_authentication(str(user.id))
+        return options
+
+
+@router.post("/webauthn/login/complete")
+async def webauthn_login_complete(
+    payload: dict,
+    db: AsyncSession = Depends(get_db),
+):
+    """Complete WebAuthn passkey authentication and return JWT."""
+    user_id = payload.get("user_id")
+    credential = payload.get("credential", {})
+    if not user_id or not credential:
+        raise HTTPException(status_code=400, detail="user_id and credential required")
+    from app.crud.user import user as crud_user
+
+    user = await crud_user.get_by_email(db, email=user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    success = await complete_authentication(
+        user_id=str(user.id),
+        credential=credential,
+    )
+    if success:
+        access_token = create_access_token(subject=user.id)
+        return {"access_token": access_token, "token_type": "bearer"}
+    raise HTTPException(status_code=401, detail="Authentication failed")
+
+
+# ---------- Email verification ----------
 
 
 @router.post(

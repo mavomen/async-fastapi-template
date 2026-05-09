@@ -10,8 +10,10 @@ from app.events.kafka_bus import KafkaEventBus
 
 @pytest.mark.asyncio
 async def test_kafka_bus_connect_publish_subscribe():
-    with patch("app.events.kafka_bus.KafkaProducer") as mock_prod, \
-         patch("app.events.kafka_bus.KafkaConsumer"):
+    with (
+        patch("app.events.kafka_bus.KafkaProducer") as mock_prod,
+        patch("app.events.kafka_bus.KafkaConsumer"),
+    ):
         bus = KafkaEventBus()
         await bus.connect()
 
@@ -20,8 +22,10 @@ async def test_kafka_bus_connect_publish_subscribe():
         mock_prod.return_value.send.assert_called_once()
 
         received = []
+
         async def handler(e):
             received.append(e)
+
         await bus.subscribe("test", handler)
         # Manually trigger the handler to simulate consumption
         await handler(event)

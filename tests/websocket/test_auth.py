@@ -20,9 +20,11 @@ async def test_get_current_user_ws_no_token():
 async def test_get_current_user_ws_valid_token():
     ws = AsyncMock(spec=WebSocket)
     ws.query_params = {"token": "valid"}
-    with patch("app.websocket.auth.decode_access_token") as mock_decode, \
-         patch("app.websocket.auth.crud_user.get") as mock_get_user, \
-         patch("app.websocket.auth.sessionmanager.session") as mock_session:
+    with (
+        patch("app.websocket.auth.decode_access_token") as mock_decode,
+        patch("app.websocket.auth.crud_user.get") as mock_get_user,
+        patch("app.websocket.auth.sessionmanager.session") as mock_session,
+    ):
         mock_decode.return_value = {"sub": "42"}
         mock_get_user.return_value = AsyncMock(id=42)
         mock_session.return_value.__aenter__.return_value = AsyncMock()

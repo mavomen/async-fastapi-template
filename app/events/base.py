@@ -19,12 +19,14 @@ class Event:
     timestamp: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
 
     def to_json(self) -> str:
-        return json.dumps({
-            "id": self.id,
-            "event_type": self.event_type,
-            "payload": self.payload,
-            "timestamp": self.timestamp,
-        })
+        return json.dumps(
+            {
+                "id": self.id,
+                "event_type": self.event_type,
+                "payload": self.payload,
+                "timestamp": self.timestamp,
+            }
+        )
 
     @classmethod
     def from_json(cls, data: str) -> "Event":

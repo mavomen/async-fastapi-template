@@ -2,9 +2,7 @@
 
 from contextvars import ContextVar
 
-current_tenant_id: ContextVar[int | None] = ContextVar(
-    "current_tenant_id", default=None
-)
+current_tenant_id: ContextVar[int | None] = ContextVar("current_tenant_id", default=None)
 
 
 def set_current_tenant(tenant_id: int | None) -> None:
