@@ -64,8 +64,9 @@ async def upload_file_stream(
     storage: StorageBackend = Depends(get_storage),
 ):
     """Upload a file with streaming progress via Server-Sent Events."""
+
     return StreamingResponse(
-        _stream_file_upload(file, file.filename, storage),
+        _stream_file_upload(file, file.filename or "unnamed", storage),
         media_type="text/event-stream",
         headers={"Cache-Control": "no-cache", "Connection": "keep-alive"},
     )

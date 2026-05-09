@@ -42,9 +42,7 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("task_id"),
     )
-    op.create_index(
-        op.f("ix_task_status_task_id"), "task_status", ["task_id"], unique=True
-    )
+    op.create_index(op.f("ix_task_status_task_id"), "task_status", ["task_id"], unique=True)
 
 
 def downgrade() -> None:

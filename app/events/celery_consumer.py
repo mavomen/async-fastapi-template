@@ -13,6 +13,7 @@ def process_event(event_json: str) -> None:
     """
     event = Event.from_json(event_json)
     import asyncio
+
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
     loop.run_until_complete(broadcast_event(event))

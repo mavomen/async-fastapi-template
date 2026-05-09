@@ -24,9 +24,7 @@ async def _stream_task_status(task_id: str, db: AsyncSession):
     import asyncio
 
     while True:
-        result = await db.execute(
-            select(TaskStatus).where(TaskStatus.task_id == task_id)
-        )
+        result = await db.execute(select(TaskStatus).where(TaskStatus.task_id == task_id))
         task = result.scalar_one_or_none()
         if task and task.status in ("SUCCESS", "FAILURE"):
             yield f"event: complete\ndata: {task.status}\n\n"

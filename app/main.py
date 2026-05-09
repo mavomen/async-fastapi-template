@@ -21,7 +21,9 @@ from app.core.tracing import setup_tracing
 from app.gql.schema import schema
 from app.middleware.correlation import CorrelationIDMiddleware
 from app.middleware.error_logging import error_logging_middleware
+from app.middleware.per_user_rate_limit import PerUserRateLimitMiddleware
 from app.middleware.rate_limit import configure_rate_limit
+from app.middleware.request_id import RequestIDMiddleware
 from app.middleware.request_logging import RequestLoggingMiddleware
 from app.middleware.security_headers import SecurityHeadersMiddleware
 from app.middleware.sql_injection import SQLInjectionMonitorMiddleware
@@ -83,6 +85,12 @@ def create_app() -> FastAPI:
 
     # Correlation ID middleware (must be added early)
     app.add_middleware(CorrelationIDMiddleware)
+
+    # Request ID injection into logs and traces
+    app.add_middleware(RequestIDMiddleware)
+
+    # Per-user rate limiting (after auth resolution)
+    app.add_middleware(PerUserRateLimitMiddleware)
 
     # Request/response logging middleware
     app.add_middleware(RequestLoggingMiddleware)

@@ -26,9 +26,7 @@ async def superuser_headers(db_session: AsyncSession) -> dict:
 
 
 @pytest.mark.asyncio
-async def test_admin_create_and_edit_role(
-    async_client: AsyncClient, superuser_headers: dict
-):
+async def test_admin_create_and_edit_role(async_client: AsyncClient, superuser_headers: dict):
     """Create a new role via admin, then edit it."""
     # Create
     resp = await async_client.post(

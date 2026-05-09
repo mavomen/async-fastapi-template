@@ -15,7 +15,12 @@ logger = logging.getLogger("app.events.kafka")
 class KafkaEventBus(EventBus):
     """Kafka-backed event bus (synchronous - wraps async)."""
 
-    def __init__(self, bootstrap_servers: str = "localhost:9092", topic: str = "app.events", group_id: str = "app-consumers"):
+    def __init__(
+        self,
+        bootstrap_servers: str = "localhost:9092",
+        topic: str = "app.events",
+        group_id: str = "app-consumers",
+    ):
         self._bootstrap_servers = bootstrap_servers
         self._topic = topic
         self._group_id = group_id
@@ -48,12 +53,15 @@ class KafkaEventBus(EventBus):
     async def publish(self, event: Event) -> None:
         """Send event to Kafka topic."""
         if self._producer:
-            self._producer.send(self._topic, {
-                "event_type": event.event_type,
-                "payload": event.payload,
-                "id": event.id,
-                "timestamp": event.timestamp,
-            })
+            self._producer.send(
+                self._topic,
+                {
+                    "event_type": event.event_type,
+                    "payload": event.payload,
+                    "id": event.id,
+                    "timestamp": event.timestamp,
+                },
+            )
             self._producer.flush()
 
     async def subscribe(self, event_type: str, handler: EventHandler) -> None:

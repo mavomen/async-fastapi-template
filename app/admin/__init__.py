@@ -31,9 +31,7 @@ def register_admin(model: type[BaseModel], **options) -> None:
     """Register a SQLAlchemy model for the admin panel."""
     table_name = model.__tablename__
     columns = [
-        c.key
-        for c in inspect(model).columns
-        if c.key not in ("id", "created_at", "updated_at")
+        c.key for c in inspect(model).columns if c.key not in ("id", "created_at", "updated_at")
     ]
     _registry[table_name] = {
         "model": model,
@@ -152,11 +150,7 @@ async def admin_list(
             if hasattr(model, col)
         ]
         if filters:
-            query = (
-                query.where(or_(*filters))
-                if len(filters) > 1
-                else query.where(filters[0])
-            )
+            query = query.where(or_(*filters)) if len(filters) > 1 else query.where(filters[0])
 
     # Pagination
     count_query = select(func.count()).select_from(query.subquery())
@@ -258,9 +252,7 @@ async def admin_edit(
     form_data = await request.form()
     # Duplicate check for User model
     if config["model"] is User and "email" in form_data:
-        existing = await db.execute(
-            select(User).where(User.email == str(form_data["email"]))
-        )
+        existing = await db.execute(select(User).where(User.email == str(form_data["email"])))
         if existing.scalar_one_or_none():
             raise HTTPException(status_code=400, detail="Email already exists")
 
@@ -274,9 +266,7 @@ async def admin_edit(
 
 
 @router.get("/{table_name}/create", response_class=HTMLResponse)
-async def admin_create_form(
-    request: Request, table_name: str, user: User = Depends(require_admin)
-):
+async def admin_create_form(request: Request, table_name: str, user: User = Depends(require_admin)):
     """Create form for a new record."""
     config = _registry.get(table_name)
     if not config:
@@ -312,9 +302,7 @@ async def admin_create(
     form_data = await request.form()
     # Duplicate check for User model
     if config["model"] is User and "email" in form_data:
-        existing = await db.execute(
-            select(User).where(User.email == str(form_data["email"]))
-        )
+        existing = await db.execute(select(User).where(User.email == str(form_data["email"])))
         if existing.scalar_one_or_none():
             raise HTTPException(status_code=400, detail="Email already exists")
 

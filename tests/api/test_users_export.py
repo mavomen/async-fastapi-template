@@ -33,16 +33,12 @@ async def admin_headers(db_session: AsyncSession) -> dict:
 
 @pytest.mark.asyncio
 async def test_export_csv(async_client: AsyncClient, admin_headers: dict):
-    resp = await async_client.get(
-        "/api/v1/users/export?format=csv", headers=admin_headers
-    )
+    resp = await async_client.get("/api/v1/users/export?format=csv", headers=admin_headers)
     assert resp.status_code == 200
     assert "text/csv" in resp.headers["content-type"]
 
 
 @pytest.mark.asyncio
 async def test_export_excel(async_client: AsyncClient, admin_headers: dict):
-    resp = await async_client.get(
-        "/api/v1/users/export?format=excel", headers=admin_headers
-    )
+    resp = await async_client.get("/api/v1/users/export?format=excel", headers=admin_headers)
     assert resp.status_code == 200

@@ -13,7 +13,9 @@ logger = logging.getLogger("app.events.redis")
 class RedisStreamsEventBus(EventBus):
     """Redis Streams-backed event bus with consumer groups."""
 
-    def __init__(self, redis_url: str, stream_name: str = "app:events", group_name: str = "app-consumers"):
+    def __init__(
+        self, redis_url: str, stream_name: str = "app:events", group_name: str = "app-consumers"
+    ):
         self._redis = aioredis.from_url(redis_url, encoding="utf-8", decode_responses=True)
         self._stream = stream_name
         self._group = group_name
@@ -32,7 +34,10 @@ class RedisStreamsEventBus(EventBus):
         """Add event to Redis Stream."""
         data = event.to_json()
         await self._redis.xadd(self._stream, {"event": data}, maxlen=10000)
-        logger.debug("Published event to Redis Stream", extra={"event_type": event.event_type, "id": event.id})
+        logger.debug(
+            "Published event to Redis Stream",
+            extra={"event_type": event.event_type, "id": event.id},
+        )
 
     async def subscribe(self, event_type: str, handler: EventHandler) -> None:
         """Register a local handler and start a consumer task if not already running."""

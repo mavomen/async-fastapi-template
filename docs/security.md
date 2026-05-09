@@ -34,3 +34,39 @@ CORS is configured via `ALLOWED_ORIGINS` settings. In production, restrict to yo
 ### Rate Limiting
 
 Rate limits (slowapi) protect against brute-force attacks.
+
+## WebAuthn / Passkey Authentication
+
+The project supports passwordless authentication using WebAuthn.
+
+### Registration Flow
+
+1. `POST /api/v1/auth/webauthn/register/begin` (authenticated) – generates PublicKeyCredentialCreationOptions.
+2. Client creates a credential using the WebAuthn API.
+3. `POST /api/v1/auth/webauthn/register/complete` – verifies the credential and stores it.
+
+### Authentication Flow
+
+1. `POST /api/v1/auth/webauthn/login/begin` – provides the user ID (email) and receives PublicKeyCredentialRequestOptions.
+2. Client signs the challenge with the registered passkey.
+3. `POST /api/v1/auth/webauthn/login/complete` – verifies the signature and returns a JWT access token.
+
+### Configuration
+
+Set these environment variables:
+
+- `WEBAUTHN_RP_ID` (default `localhost`)
+- `WEBAUTHN_RP_NAME` (default `FastAPI Async Template`)
+- `WEBAUTHN_ORIGIN` (default `http://localhost:8000`)
+
+## Per‑User Rate Limiting
+
+A second rate‑limiting layer uses the authenticated user ID (`sub` claim) as the bucket key. This prevents a single malicious user from exhausting limits for an entire IP range.
+
+## Request ID in Logs & Traces
+
+Every request's correlation ID is automatically injected into structlog context and OpenTelemetry span attributes. This connects logs ↔ traces ↔ metrics out of the box.
+
+## Feature Flags
+
+A lightweight feature‑flag system controls optional features (WebAuthn, GraphQL subscriptions, etc.). Check `app/core/feature_flags.py` for available flags.

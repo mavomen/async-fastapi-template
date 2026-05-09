@@ -26,9 +26,7 @@ async def super_headers(db_session: AsyncSession) -> dict:
 
 
 @pytest.mark.asyncio
-async def test_admin_create_and_edit_permission(
-    async_client: AsyncClient, super_headers: dict
-):
+async def test_admin_create_and_edit_permission(async_client: AsyncClient, super_headers: dict):
     """Create a permission then edit it — covers coerce/password helpers."""
     resp = await async_client.post(
         "/admin/permissions/create",

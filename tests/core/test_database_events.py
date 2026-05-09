@@ -1,6 +1,5 @@
 """Unit tests for Row-Level Security event filter."""
 
-import pytest
 from sqlalchemy import Column, Integer, MetaData, String, Table
 from sqlalchemy.sql import delete, insert, select, update
 

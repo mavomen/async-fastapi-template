@@ -13,18 +13,14 @@ from app.events.redis_streams import RedisStreamsEventBus
 async def test_redis_subscribe_unsubscribe():
     with patch("app.events.redis_streams.aioredis.from_url") as mock_from_url:
         mock_redis = AsyncMock()
-        mock_redis.xgroup_create = AsyncMock(
-            side_effect=aioredis.ResponseError("BUSYGROUP")
-        )
+        mock_redis.xgroup_create = AsyncMock(side_effect=aioredis.ResponseError("BUSYGROUP"))
         mock_redis.xadd = AsyncMock()
         mock_redis.xreadgroup = AsyncMock()
         mock_redis.xack = AsyncMock()
         mock_redis.close = AsyncMock()
         mock_from_url.return_value = mock_redis
 
-        bus = RedisStreamsEventBus(
-            redis_url="redis://fake:6379", stream_name="test:events"
-        )
+        bus = RedisStreamsEventBus(redis_url="redis://fake:6379", stream_name="test:events")
         await bus.connect()
 
         received = []
