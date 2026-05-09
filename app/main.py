@@ -124,7 +124,7 @@ def create_app() -> FastAPI:
     app.include_router(api_router, prefix=settings.API_V1_STR)
     app.include_router(websocket_router)
 
-    # Scalar API reference (modern, dark‑mode capable)
+    # Scalar API reference (modern, dark-mode capable)
     @app.get("/scalar", include_in_schema=False)
     async def scalar_html():
         return get_scalar_api_reference(

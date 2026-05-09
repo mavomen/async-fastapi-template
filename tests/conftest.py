@@ -14,7 +14,9 @@ from sqlalchemy.pool import NullPool
 # Set test environment variables before importing app
 os.environ["ENVIRONMENT"] = "test"
 os.environ["SECRET_KEY"] = "test-secret-key-min-32-characters-long"
-os.environ["DATABASE_URL"] = "postgresql+asyncpg://postgres:postgres@localhost:5432/fastapi_test"
+os.environ["DATABASE_URL"] = (
+    "postgresql+asyncpg://postgres:postgres@localhost:5432/fastapi_test"
+)
 
 from app.core.database import sessionmanager
 from app.main import app
@@ -32,15 +34,30 @@ async def db_engine(test_db_url: str) -> AsyncGenerator[Any, None]:
     """Create test database engine."""
     engine = create_async_engine(test_db_url, poolclass=NullPool)
 
+    # ---------- PRE-CREATE CLEANUP ----------
+    async with engine.begin() as conn:
+        # Drop the trigger and index that Alembic creates (not managed by metadata)
+        await conn.execute(text("DROP TRIGGER IF EXISTS tsvectorupdate ON users"))
+        await conn.execute(text("DROP INDEX IF EXISTS ix_users_search_vector"))
+        # Drop all remaining tables with cascade
+        for table in reversed(Base.metadata.sorted_tables):
+            await conn.execute(text(f"DROP TABLE IF EXISTS {table.name} CASCADE"))
+        await conn.commit()
+
+    # ---------- CREATE TABLES ----------
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
     yield engine
 
+    # ---------- TEARDOWN ----------
     async with engine.begin() as conn:
+        await conn.execute(text("DROP TRIGGER IF EXISTS tsvectorupdate ON users"))
+        await conn.execute(text("DROP INDEX IF EXISTS ix_users_search_vector"))
         for table in reversed(Base.metadata.sorted_tables):
             await conn.execute(text(f"DROP TABLE IF EXISTS {table.name} CASCADE"))
         await conn.commit()
+
     await engine.dispose()
 
 
