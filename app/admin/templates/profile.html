@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Profile – {{ user.username }}</title>
+    <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto mt-8 px-4 max-w-lg">
+        <h1 class="text-3xl mb-6">Your Profile</h1>
+
+        <!-- Avatar upload with live preview -->
+        <div class="mb-6 flex items-center space-x-4">
+            <img id="avatar-img" src="/static/default-avatar.png" class="w-24 h-24 rounded-full" />
+            <form hx-encoding="multipart/form-data"
+                  hx-post="/profile/avatar"
+                  hx-target="#avatar-img"
+                  hx-swap="outerHTML">
+                <input type="file" name="avatar" class="border p-2 rounded" />
+                <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 mt-2">Upload</button>
+            </form>
+        </div>
+
+        <!-- Inline-editable fields -->
+        <div class="space-y-4">
+            <div>
+                <label class="font-bold">Full Name</label>
+                <span hx-trigger="dblclick"
+                      hx-get="/profile/edit?field=full_name&value={{ user.full_name or '' }}"
+                      hx-target="this"
+                      hx-swap="outerHTML"
+                      class="cursor-pointer block">{{ user.full_name or 'Not set' }}</span>
+            </div>
+            <div>
+                <label class="font-bold">Email</label>
+                <span hx-trigger="dblclick"
+                      hx-get="/profile/edit?field=email&value={{ user.email }}"
+                      hx-target="this"
+                      hx-swap="outerHTML"
+                      class="cursor-pointer block">{{ user.email }}</span>
+            </div>
+            <div>
+                <label class="font-bold">Username</label>
+                <span class="block">{{ user.username }}</span>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

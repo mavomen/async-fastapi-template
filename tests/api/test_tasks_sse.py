@@ -1,4 +1,4 @@
-"""Unit tests for the task-status SSE generator (no HTTP)."""
+"""Unit tests for the task‑status SSE generator (no HTTP)."""
 
 from unittest.mock import AsyncMock, MagicMock
 
@@ -10,13 +10,15 @@ from app.models.task_status import TaskStatus
 
 @pytest.mark.asyncio
 async def test_task_status_generator_emits_complete():
-    """Generator yields a 'complete' event when task is terminal."""
+    """Generator yields a 'complete' event when task is SUCCESS."""
     db = AsyncMock()
-    # Simulate a terminal task
     task = MagicMock(spec=TaskStatus)
     task.task_id = "abc"
     task.status = "SUCCESS"
-    db.execute.return_value.scalar_one_or_none.return_value = task
+
+    result_mock = MagicMock()
+    result_mock.scalar_one_or_none.return_value = task
+    db.execute.return_value = result_mock
 
     events = []
     async for event in _stream_task_status("abc", db):

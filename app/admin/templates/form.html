@@ -1,13 +1,16 @@
-{% extends "base.html" %} {% block content %}
+{% extends "base.html" %}
+{% block content %}
 <h1 class="text-2xl mb-6">
-  {% if editing %}Edit{% else %}Create{% endif %} {{ obj.__class__.__name__ if
-  obj else '' }}
+  {% if editing %}Edit{% else %}Create{% endif %}
+  {{ obj.__class__.__name__ if obj else '' }}
 </h1>
+
 <div class="bg-white shadow rounded p-6">
   <form
     method="post"
     action="{% if editing %}/admin/{{ table_name }}/{{ obj.id }}/edit{% else %}/admin/{{ table_name }}/create{% endif %}"
     class="space-y-4"
+    hx-boost="true"
   >
     {% for field in fields %}
     <div>
@@ -20,6 +23,7 @@
       />
     </div>
     {% endfor %}
+
     <div class="space-x-2">
       <button
         type="submit"
@@ -30,9 +34,13 @@
       <a
         href="/admin/{{ table_name }}"
         class="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400"
-        >Cancel</a
       >
+        Cancel
+      </a>
     </div>
   </form>
 </div>
+
+<!-- Toast container (appears after successful save) -->
+<div id="toast-container" class="hidden fixed top-4 right-4 z-50 space-y-2"></div>
 {% endblock %}
