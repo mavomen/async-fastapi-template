@@ -2,15 +2,29 @@
 
 import pytest
 from typer.testing import CliRunner
+
 from app.cli import app
 
 runner = CliRunner()
 
 commands = [
-    "install", "dev", "test", "lint", "migrate", "seed",
-    "docker", "celery", "graphql", "load-test", "profile",
-    "scaffold", "anonymise-db", "verify-env", "setup",
+    "install",
+    "dev",
+    "test",
+    "lint",
+    "migrate",
+    "seed",
+    "docker",
+    "celery",
+    "graphql",
+    "load-test",
+    "profile",
+    "scaffold",
+    "anonymise-db",
+    "verify-env",
+    "setup",
 ]
+
 
 @pytest.mark.parametrize("command", commands)
 def test_command_help(command):

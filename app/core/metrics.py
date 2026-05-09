@@ -36,6 +36,12 @@ cache_misses_total = Counter(
     "Total number of cache misses",
 )
 
+http_queries_per_request = Histogram(
+    "http_queries_per_request",
+    "Number of SQL queries per HTTP request",
+    buckets=[0, 1, 2, 5, 10, 20, 50, 100, 200, 500, 1000],
+)
+
 # Default instrumentator with standard metrics
 instrumentator = Instrumentator(
     should_group_status_codes=False,
