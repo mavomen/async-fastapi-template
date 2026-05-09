@@ -2,79 +2,76 @@
 
 .PHONY: help
 help:
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
+	@poetry run python app/cli.py --help
 
 .PHONY: install
 install:
-	poetry install
+	poetry run python app/cli.py install
 
 .PHONY: dev
 dev:
-	poetry run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+	poetry run python app/cli.py dev
 
 .PHONY: test
 test:
-	poetry run pytest --cov=app --cov-report=html
+	poetry run python app/cli.py test
 
 .PHONY: lint
 lint:
-	poetry run ruff check .
-	poetry run ruff format --check .
-	poetry run mypy app/
+	poetry run python app/cli.py lint
 
 .PHONY: lint-fix
 lint-fix:
-	poetry run ruff check --fix .
-	poetry run ruff format .
+	poetry run python app/cli.py lint --fix
 
 .PHONY: migrate
 migrate:
-	poetry run alembic upgrade head
+	poetry run python app/cli.py migrate
 
 .PHONY: migration
 migration:
-	poetry run alembic revision --autogenerate -m "$(msg)"
+	poetry run python app/cli.py migrate --message "$(msg)"
 
 .PHONY: seed
 seed:
-	poetry run python scripts/seed.py
+	poetry run python app/cli.py seed
 
 .PHONY: docker-up
 docker-up:
-	docker compose -f docker-compose.dev.yml up -d
+	poetry run python app/cli.py docker --up
 
 .PHONY: docker-down
 docker-down:
-	docker compose -f docker-compose.dev.yml down
+	poetry run python app/cli.py docker --down
 
 .PHONY: celery
 celery:
-	poetry run celery -A app.core.celery worker --loglevel=info
-
-.PHONY: setup
-setup: install migrate
+	poetry run python app/cli.py celery
 
 .PHONY: graphql
-graphql:  
-	@echo "Opening GraphQL playground at http://localhost:8000/graphql"
-	@xdg-open http://localhost:8000/graphql 2>/dev/null || open http://localhost:8000/graphql 2>/dev/null || echo "Visit http://localhost:8000/graphql"
+graphql:
+	poetry run python app/cli.py graphql
 
 .PHONY: load-test
 load-test:
-	poetry run locust -f locustfile.py
+	poetry run python app/cli.py load-test
 
 .PHONY: profile
 profile:
-	py-spy record -o profile.svg -- poetry run uvicorn app.main:app --host 0.0.0.0 --port 8000
+	poetry run python app/cli.py profile
 
 .PHONY: scaffold
 scaffold:
-	poetry run python scripts/scaffold.py
+	poetry run python app/cli.py scaffold
 
 .PHONY: anonymise-db
 anonymise-db:
-	poetry run python scripts/anonymise_db.py
+	poetry run python app/cli.py anonymise-db
 
 .PHONY: verify-env
 verify-env:
-	poetry run python scripts/verify_env.py
+	poetry run python app/cli.py verify-env
+
+.PHONY: setup
+setup:
+	poetry run python app/cli.py setup

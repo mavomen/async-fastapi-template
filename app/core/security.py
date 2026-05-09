@@ -35,12 +35,11 @@ def decode_with_rs256(token: str) -> dict:
 
 
 def get_jwks() -> dict:
-    import json
-
+    _generate_keys()
     from jose import jwk as jose_jwk
 
-    _generate_keys()
-    key_dict = json.loads(jose_jwk.construct(_jwks_public_key, algorithm="RS256"))
+    key = jose_jwk.construct(_jwks_public_key, algorithm="RS256")
+    key_dict = key.to_dict()  # JWK object -> dict
     return {"keys": [key_dict]}
 
 

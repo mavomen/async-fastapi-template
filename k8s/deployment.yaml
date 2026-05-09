@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fastapi-template
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: fastapi-template
+  template:
+    metadata:
+      labels:
+        app: fastapi-template
+    spec:
+      containers:
+        - name: app
+          image: ghcr.io/mavomen/async-fastapi-template:latest
+          envFrom:
+            - configMapRef:
+                name: fastapi-config
+            - secretRef:
+                name: fastapi-secret
+          ports:
+            - containerPort: 8000
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: 8000
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 8000
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi

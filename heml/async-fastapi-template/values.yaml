@@ -1,0 +1,18 @@
+replicaCount: 3
+image:
+  repository: ghcr.io/mavomen/async-fastapi-template
+  tag: latest
+service:
+  type: ClusterIP
+  port: 80
+ingress:
+  enabled: true
+  host: fastapi.example.com
+config:
+  ENVIRONMENT: "production"
+  DATABASE_URL: "postgresql+asyncpg://postgres:postgres@postgres:5432/fastapi_db"
+  REDIS_URL: "redis://redis:6379/0"
+  API_V1_STR: "/api/v1"
+secret:
+  SECRET_KEY: "replace-with-a-strong-secret-key!!"
+  POSTGRES_PASSWORD: "postgres"

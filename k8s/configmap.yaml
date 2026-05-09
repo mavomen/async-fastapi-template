@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fastapi-config
+data:
+  ENVIRONMENT: "production"
+  DATABASE_URL: "postgresql+asyncpg://postgres:postgres@postgres:5432/fastapi_db"
+  REDIS_URL: "redis://redis:6379/0"
+  API_V1_STR: "/api/v1"

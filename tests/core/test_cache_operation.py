@@ -1,4 +1,4 @@
-"""Tests for remaining cache methods."""
+"""Tests for remaining cache methods (mocked Redis)."""
 
 from unittest.mock import AsyncMock, patch
 
@@ -21,17 +21,19 @@ async def test_cache_connect():
 @pytest.mark.asyncio
 async def test_cache_exists():
     cache = RedisCache()
-    cache._redis = AsyncMock()
-    cache._redis.exists.return_value = 1
+    mock_redis = AsyncMock()
+    mock_redis.exists.return_value = 1
+    cache._redis = mock_redis
     assert await cache.exists("key") is True
 
 
 @pytest.mark.asyncio
 async def test_cache_flush():
     cache = RedisCache()
-    cache._redis = AsyncMock()
+    mock_redis = AsyncMock()
+    cache._redis = mock_redis
     await cache.flush()
-    cache._redis.flushdb.assert_called_once()
+    mock_redis.flushdb.assert_called_once()
 
 
 @pytest.mark.asyncio

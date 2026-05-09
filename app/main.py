@@ -6,6 +6,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import ORJSONResponse
+from scalar_fastapi import get_scalar_api_reference
 from strawberry.fastapi import GraphQLRouter
 
 from app.admin import router as admin_router
@@ -119,6 +120,14 @@ def create_app() -> FastAPI:
     app.include_router(admin_router, prefix="/admin", tags=["admin"])
     app.include_router(api_router, prefix=settings.API_V1_STR)
     app.include_router(websocket_router)
+
+    # Scalar API reference (modern, dark‑mode capable)
+    @app.get("/scalar", include_in_schema=False)
+    async def scalar_html():
+        return get_scalar_api_reference(
+            openapi_url=app.openapi_url,
+            title=settings.PROJECT_NAME,
+        )
 
     # Prometheus metrics
     from app.core.metrics import instrumentator

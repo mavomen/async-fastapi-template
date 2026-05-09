@@ -1,71 +1,47 @@
 # Developer Experience Guide
 
-## Quickstart
+## CLI Tool
 
-```bash
-# One‑time setup
-chmod +x scripts/setup.sh && ./scripts/setup.sh
+The project includes a Typer CLI for all common tasks. Run `poetry run python app/cli.py --help` to see available commands.
 
-# Start developing
-make dev
-```
+| Command             | Description                      |
+| ------------------- | -------------------------------- |
+| `install`           | Install dependencies with Poetry |
+| `dev`               | Start development server         |
+| `test`              | Run test suite (with coverage)   |
+| `lint`              | Run linters (ruff + mypy)        |
+| `lint --fix`        | Auto‑fix linting issues          |
+| `migrate`           | Run database migrations          |
+| `migrate --message` | Create a new Alembic migration   |
+| `seed`              | Seed the database                |
+| `docker`            | Start/stop Docker services       |
+| `celery`            | Start Celery worker              |
+| `graphql`           | Open GraphQL playground          |
+| `load-test`         | Run Locust load tests            |
+| `profile`           | Profile the application          |
+| `scaffold`          | Interactive scaffolding tool     |
+| `anonymise-db`      | Anonymise local development data |
+| `verify-env`        | Check all services are running   |
+| `setup`             | Full setup (install + migrate)   |
 
-## Makefile Commands
+## Makefile
 
-Run `make` or `make help` to see all available commands.
+The Makefile is still available and delegates to the CLI for convenience.
 
-| Command             | Description                                  |
-| ------------------- | -------------------------------------------- |
-| `make install`      | Install Python dependencies                  |
-| `make dev`          | Start development server                     |
-| `make test`         | Run tests with coverage                      |
-| `make lint`         | Run all linting checks                       |
-| `make lint-fix`     | Auto‑fix linting issues                      |
-| `make migrate`      | Run database migrations                      |
-| `make migration`    | Create a new Alembic migration               |
-| `make seed`         | Seed the database with sample data           |
-| `make graphql`      | Open GraphQL playground in browser           |
-| `make load-test`    | Start Locust load tests                      |
-| `make profile`      | Profile the app with py‑spy                  |
-| `make scaffold`     | Interactive CLI wizard (model/endpoint/test) |
-| `make anonymise-db` | Anonymise local PII data                     |
-| `make verify-env`   | Check all services are running               |
-| `make docker-up`    | Start Docker services                        |
-| `make docker-down`  | Stop Docker services                         |
-| `make celery`       | Start Celery worker                          |
-| `make setup`        | Full setup (install + migrate)               |
+## API Documentation
 
-## Scaffolding Tool
+- **Swagger UI**: `/docs`
+- **ReDoc**: `/redoc`
+- **Scalar**: `/scalar` (modern, dark‑mode, interactive)
 
-Run `make scaffold` or `poetry run python scripts/scaffold.py` to interactively generate:
+## Admin Dashboard
 
-- SQLAlchemy model
-- Pydantic schemas
-- CRUD module
-- API endpoints
-- Pytest test file
+The admin dashboard includes a **dark mode toggle** (sun/moon button in the navbar). Preference is stored in `localStorage`.
 
-Just follow the prompts!
+## Kubernetes
+
+Ready‑to‑use Kubernetes manifests are in the `k8s/` directory. A Helm chart is available in `helm/async-fastapi-template/`.
 
 ## VS Code
 
-Recommended extensions are listed in `.vscode/extensions.json`. Open the project in VS Code and accept the prompt to install them.
-
-Settings are pre‑configured for:
-
-- Formatting on save with Ruff
-- Strict type checking with mypy
-- Pytest integration
-- Debug launch configurations for FastAPI and tests (`.vscode/launch.json`)
-
-## Scripts
-
-- **`scripts/setup.sh`** – interactive setup script.
-- **`scripts/seed.py`** – creates an admin user with full permissions.
-- **`scripts/anonymise_db.py`** – replaces PII in the local database.
-- **`scripts/verify_env.py`** – checks database and Redis connectivity.
-- **`scripts/scaffold.py`** – generates boilerplate from a template.
-
-## Environment Variables
-
-Copy `.env.example` to `.env` and adjust values for your local setup.
+Recommended extensions are in `.vscode/extensions.json`. Debug configurations are in `.vscode/launch.json`.
