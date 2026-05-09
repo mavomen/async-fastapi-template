@@ -1,16 +1,44 @@
-{% extends "base.html" %} {% block content %}
+{% extends "base.html" %}
+{% block content %}
 <h1 class="text-3xl mb-6">Admin Dashboard</h1>
+
+<!-- SSE Task Progress -->
+<div class="mb-8" hx-ext="sse" sse-connect="/api/v1/tasks/latest/stream" sse-swap="task-progress" hx-trigger="sse:task-progress">
+    <h2 class="text-xl font-bold mb-2">Background Tasks</h2>
+    <div id="task-progress" class="bg-white shadow rounded p-4">
+        <span class="text-gray-500">Waiting for updates...</span>
+    </div>
+</div>
+
+<!-- WebSocket Activity Feed -->
+<div class="mb-8" hx-ext="ws" ws-connect="/ws/chat">
+    <h2 class="text-xl font-bold mb-2">Live Activity</h2>
+    <div id="ws-activity" class="bg-white shadow rounded p-4 max-h-64 overflow-y-auto">
+        <ul id="activity-feed" class="space-y-1">
+            <li class="text-gray-500">Connecting to activity stream...</li>
+        </ul>
+    </div>
+    <div hx-swap-oob="true" id="ws-activity">
+        <script>
+            document.addEventListener('wsMessage', function(e) {
+                const feed = document.getElementById('activity-feed');
+                const li = document.createElement('li');
+                li.textContent = e.detail;
+                li.className = 'text-sm';
+                feed.prepend(li);
+            });
+        </script>
+    </div>
+</div>
+
+<!-- Model index -->
 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-  {% for model in models %}
-  <div class="bg-white shadow rounded p-6 hover:shadow-lg transition">
-    <h2 class="text-xl font-bold mb-2">{{ model.label }}</h2>
-    <p class="text-gray-500 mb-4">Permission: {{ model.permission }}</p>
-    <a
-      href="/admin/{{ model.name }}"
-      class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-      >Manage</a
-    >
-  </div>
-  {% endfor %}
+    {% for model in models %}
+    <div class="bg-white shadow rounded p-6 hover:shadow-lg transition">
+        <h2 class="text-xl font-bold mb-2">{{ model.label }}</h2>
+        <p class="text-gray-500 mb-4">Permission: {{ model.permission }}</p>
+        <a href="/admin/{{ model.name }}" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Manage</a>
+    </div>
+    {% endfor %}
 </div>
 {% endblock %}

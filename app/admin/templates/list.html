@@ -1,86 +1,41 @@
-{% extends "base.html" %} {% block content %}
+{% extends "base.html" %}
+{% block content %}
+<div id="toast-container" class="fixed top-4 right-4 z-50 space-y-2"></div>
+
 <h1 class="text-2xl mb-6">{{ model_name }} Management</h1>
 
-<!-- Search -->
-<form method="get" class="mb-4 flex space-x-2">
-  <input
-    type="text"
-    name="search"
-    value="{{ search }}"
-    placeholder="Search..."
-    class="border p-2 rounded w-64"
-  />
-  <button
-    type="submit"
-    class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-  >
-    Search
-  </button>
-  <a
-    href="/admin/{{ table_name }}/create"
-    class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
-    >Create</a
-  >
+<!-- Live search -->
+<form method="get" class="mb-4 flex space-x-2"
+      hx-get="/admin/{{ table_name }}"
+      hx-target="#table-wrapper"
+      hx-trigger="keyup changed from:input delay:300ms"
+      hx-include="[name='search']"
+      hx-push-url="true">
+    <input type="text" name="search" value="{{ search }}" placeholder="Search..."
+           class="border p-2 rounded w-64">
+    <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Search</button>
+    <a href="/admin/{{ table_name }}/create" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Create</a>
 </form>
 
-<!-- Table -->
-<table class="w-full bg-white shadow rounded">
-  <thead>
-    <tr class="bg-gray-200 text-left">
-      {% for col in columns %}
-      <th class="p-3">{{ col }}</th>
-      {% endfor %}
-      <th class="p-3">Actions</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for row in rows %}
-    <tr class="border-t hover:bg-gray-50">
-      {% for col in columns %}
-      <td class="p-3">{{ row[col] }}</td>
-      {% endfor %}
-      <td class="p-3 space-x-2">
-        <a
-          href="/admin/{{ table_name }}/{{ row.id }}"
-          class="text-blue-600 hover:underline"
-          >View</a
-        >
-        <a
-          href="/admin/{{ table_name }}/{{ row.id }}/edit"
-          class="text-yellow-600 hover:underline"
-          >Edit</a
-        >
-        <a
-          href="/admin/{{ table_name }}/{{ row.id }}/delete"
-          hx-delete="/admin/{{ table_name }}/{{ row.id }}/delete"
-          hx-confirm="Are you sure?"
-          class="text-red-600 hover:underline cursor-pointer"
-          >Delete</a
-        >
-      </td>
-    </tr>
-    {% endfor %}
-  </tbody>
-</table>
+<!-- Table wrapper (swapped by HTMX) -->
+<div id="table-wrapper">
+    {% include "list_table.html" %}
+</div>
 
 <!-- Pagination -->
 <div class="mt-4 flex justify-between">
-  {% if page > 1 %}
-  <a
-    href="?page={{ page - 1 }}&search={{ search }}"
-    class="bg-gray-300 px-4 py-2 rounded"
-    >Previous</a
-  >
-  {% endif %}
-  <span class="px=4 py=2"
-    >Page {{ page }} of {{ (total / per_page + 1) | int }}</span
-  >
-  {% if page * per_page < total %}
-  <a
-    href="?page={{ page + 1 }}&search={{ search }}"
-    class="bg-gray-300 px-4 py-2 rounded"
-    >Next</a
-  >
-  {% endif %}
+    {% if page > 1 %}
+    <a href="?page={{ page - 1 }}&search={{ search }}" class="bg-gray-300 px-4 py-2 rounded"
+       hx-get="?page={{ page - 1 }}&search={{ search }}"
+       hx-target="#table-wrapper"
+       hx-push-url="true">Previous</a>
+    {% endif %}
+    <span class="px=4 py=2">Page {{ page }} of {{ (total / per_page + 1) | int }}</span>
+    {% if page * per_page < total %}
+    <a href="?page={{ page + 1 }}&search={{ search }}" class="bg-gray-300 px-4 py-2 rounded"
+       hx-get="?page={{ page + 1 }}&search={{ search }}"
+       hx-target="#table-wrapper"
+       hx-push-url="true">Next</a>
+    {% endif %}
 </div>
 {% endblock %}

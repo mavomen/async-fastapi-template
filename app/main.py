@@ -14,11 +14,13 @@ from app.api import api_router
 from app.api.deps import get_gql_context
 from app.api.error_handlers import configure_exception_handlers
 from app.api.health import router as health_router
+from app.auth.profile import router as profile_router
 from app.core.cache import cache
 from app.core.config import settings
 from app.core.database import sessionmanager
 from app.core.logging import setup_logging
 from app.core.tracing import setup_tracing
+from app.gql import router as gql_playground_router
 from app.gql.schema import schema
 from app.middleware.correlation import CorrelationIDMiddleware
 from app.middleware.error_logging import error_logging_middleware
@@ -121,8 +123,10 @@ def create_app() -> FastAPI:
     # Routes
     app.include_router(health_router, prefix="/health", tags=["health"])
     app.include_router(admin_router, prefix="/admin", tags=["admin"])
+    app.include_router(profile_router, prefix="/profile", tags=["profile"])
     app.include_router(api_router, prefix=settings.API_V1_STR)
     app.include_router(websocket_router)
+    app.include_router(gql_playground_router, prefix="/gql", tags=["graphql"])
 
     # Scalar API reference (modern, dark-mode capable)
     @app.get("/scalar", include_in_schema=False)
