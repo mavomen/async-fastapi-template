@@ -1,12 +1,13 @@
-"""Happy‑path WebAuthn tests using mocked webauthn library."""
+"""Happy-path WebAuthn tests using mocked webauthn library."""
+
+from unittest.mock import MagicMock, patch
 
 import pytest
-from unittest.mock import patch, MagicMock
+
 from app.auth.webauthn import (
-    begin_registration,
-    complete_registration,
     begin_authentication,
     complete_authentication,
+    complete_registration,
 )
 
 
@@ -14,6 +15,7 @@ from app.auth.webauthn import (
 async def test_complete_registration_success():
     """Complete a registration successfully (mocked)."""
     from app.auth.webauthn import _pending_registrations
+
     # Arrange: place a fake pending challenge
     fake_options = MagicMock()
     fake_options.challenge = b"fake-challenge"
@@ -34,6 +36,7 @@ async def test_complete_registration_success():
 async def test_complete_authentication_success():
     """Complete an authentication successfully (mocked)."""
     from app.auth.webauthn import _pending_authentications, _user_credentials
+
     # Arrange: store a credential and a pending challenge
     _user_credentials["user-2"] = [
         {"credential_id": "cred-2", "credential_public_key": "pub-key", "sign_count": 0}
@@ -51,11 +54,14 @@ async def test_complete_authentication_success():
 async def test_begin_authentication_success():
     """Begin authentication with stored credentials succeeds."""
     from app.auth.webauthn import _user_credentials
+
     _user_credentials["user-3"] = [
         {"credential_id": "cred-3", "credential_public_key": "pub-key", "sign_count": 0}
     ]
-    with patch("app.auth.webauthn.generate_authentication_options") as mock_gen, \
-         patch("app.auth.webauthn._options_to_dict") as mock_opt:
+    with (
+        patch("app.auth.webauthn.generate_authentication_options") as mock_gen,
+        patch("app.auth.webauthn._options_to_dict") as mock_opt,
+    ):
         fake_options = MagicMock()
         fake_options.model_dump_json.return_value = '{"challenge":"def"}'
         mock_gen.return_value = fake_options

@@ -1,9 +1,11 @@
 """Unit tests for update_task_status."""
 
-import pytest
 from unittest.mock import AsyncMock, MagicMock
-from app.tasks.status import update_task_status
+
+import pytest
+
 from app.models.task_status import TaskStatus
+from app.tasks.status import update_task_status
 
 
 @pytest.mark.asyncio

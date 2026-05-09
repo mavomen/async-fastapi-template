@@ -1,7 +1,9 @@
-"""Test the feature‑flag cache‑hit branch."""
+"""Test the feature-flag cache-hit branch."""
+
+from unittest.mock import AsyncMock, patch
 
 import pytest
-from unittest.mock import AsyncMock, patch
+
 from app.core.feature_flags import is_feature_enabled
 
 

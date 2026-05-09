@@ -1,7 +1,8 @@
 """Edge case tests for RLS tenant filter."""
 
 from sqlalchemy import Column, Integer, MetaData, String, Table
-from sqlalchemy.sql import insert, update, delete
+from sqlalchemy.sql import delete, insert, update
+
 from app.core.database import apply_tenant_filter
 
 metadata = MetaData()

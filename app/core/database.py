@@ -4,6 +4,7 @@ import logging
 import time
 from collections.abc import AsyncGenerator, AsyncIterator
 from contextlib import asynccontextmanager
+from contextvars import ContextVar
 
 from sqlalchemy import event
 from sqlalchemy.ext.asyncio import (
@@ -20,6 +21,8 @@ from app.core.metrics import db_connections_total
 from app.core.tenant import get_current_tenant
 
 logger = logging.getLogger("app.db")
+
+query_count_var: ContextVar[int] = ContextVar("query_count", default=0)
 
 
 class DatabaseSessionManager:
@@ -51,6 +54,7 @@ class DatabaseSessionManager:
             conn, cursor, statement, parameters, context, executemany
         ):
             conn.info["query_start_time"] = time.monotonic()
+            query_count_var.set(query_count_var.get() + 1)
 
         @event.listens_for(self._engine.sync_engine, "after_cursor_execute")
         def _after_cursor_execute(  # noqa: PLR0913
