@@ -6,7 +6,7 @@ ENV PYTHONUNBUFFERED=1 \
 
 WORKDIR /app
 
-RUN pip install --no-cache-dir poetry==1.8.2
+RUN pip install --no-cache-dir poetry
 
 FROM base AS deps
 

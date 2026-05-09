@@ -6,7 +6,7 @@ from typing import Any
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from jinja2 import Environment, FileSystemLoader
-from sqlalchemy import Boolean, Integer, inspect
+from sqlalchemy import Boolean, Integer, inspect, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.admin.deps import require_admin
@@ -14,6 +14,7 @@ from app.api.deps import get_db
 from app.auth.permissions import has_permission
 from app.core.security import get_password_hash
 from app.crud.user import user as crud_user
+from app.decorators.rate_limit import rate_limit
 from app.models import Permission, Role, User
 from app.models.base import BaseModel
 from app.models.tenant import Tenant
@@ -114,11 +115,13 @@ async def dashboard(request: Request, user: User = Depends(require_admin)):
     models_info = []
     for table_name, config in _registry.items():
         if has_permission(user, [config["permission"]]):
-            models_info.append({
-                "name": table_name,
-                "label": config["model"].__name__,
-                "permission": config["permission"],
-            })
+            models_info.append(
+                {
+                    "name": table_name,
+                    "label": config["model"].__name__,
+                    "permission": config["permission"],
+                }
+            )
     return render("dashboard.html", user=user, models=models_info, request=request)
 
 
@@ -139,7 +142,7 @@ async def admin_list(
         raise HTTPException(status_code=403)
 
     model = config["model"]
-    from sqlalchemy import func, or_, select
+    from sqlalchemy import func, or_
 
     query = select(model)
     if search:
@@ -149,7 +152,11 @@ async def admin_list(
             if hasattr(model, col)
         ]
         if filters:
-            query = query.where(or_(*filters)) if len(filters) > 1 else query.where(filters[0])
+            query = (
+                query.where(or_(*filters))
+                if len(filters) > 1
+                else query.where(filters[0])
+            )
 
     # Pagination
     count_query = select(func.count()).select_from(query.subquery())
@@ -192,7 +199,11 @@ async def admin_detail(
     if not obj:
         raise HTTPException(status_code=404)
     return render(
-        "detail.html", user=user, obj=obj, columns=config["columns"], table_name=table_name
+        "detail.html",
+        user=user,
+        obj=obj,
+        columns=config["columns"],
+        table_name=table_name,
     )
 
 
@@ -225,6 +236,7 @@ async def admin_edit_form(
 
 
 @router.post("/{table_name}/{id}/edit")
+@rate_limit(times=30, seconds=60)
 async def admin_edit(
     request: Request,
     table_name: str,
@@ -244,6 +256,14 @@ async def admin_edit(
         raise HTTPException(status_code=404)
 
     form_data = await request.form()
+    # Duplicate check for User model
+    if config["model"] is User and "email" in form_data:
+        existing = await db.execute(
+            select(User).where(User.email == str(form_data["email"]))
+        )
+        if existing.scalar_one_or_none():
+            raise HTTPException(status_code=400, detail="Email already exists")
+
     for field in config["form_fields"]:
         if field in form_data:
             value = _coerce_value(config["model"], field, str(form_data[field]))
@@ -275,6 +295,7 @@ async def admin_create_form(
 
 
 @router.post("/{table_name}/create")
+@rate_limit(times=30, seconds=60)
 async def admin_create(
     request: Request,
     table_name: str,
@@ -289,6 +310,14 @@ async def admin_create(
         raise HTTPException(status_code=403)
 
     form_data = await request.form()
+    # Duplicate check for User model
+    if config["model"] is User and "email" in form_data:
+        existing = await db.execute(
+            select(User).where(User.email == str(form_data["email"]))
+        )
+        if existing.scalar_one_or_none():
+            raise HTTPException(status_code=400, detail="Email already exists")
+
     model = config["model"]
     obj = model()
     for field in config["form_fields"]:
@@ -301,7 +330,8 @@ async def admin_create(
     return RedirectResponse(url=f"/admin/{table_name}", status_code=303)
 
 
-@router.get("/{table_name}/{id}/delete")
+@router.post("/{table_name}/{id}/delete")
+@rate_limit(times=30, seconds=60)
 async def admin_delete(
     request: Request,
     table_name: str,
@@ -309,7 +339,7 @@ async def admin_delete(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(require_admin),
 ):
-    """Delete a record (GET confirmation handled by HTMX)."""
+    """Delete a record."""
     config = _registry.get(table_name)
     if not config:
         raise HTTPException(status_code=404)
