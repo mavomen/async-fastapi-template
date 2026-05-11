@@ -106,7 +106,17 @@ async def login_for_access_token(
     }
 
 
-@router.post("/refresh", response_model=Token)
+@router.post(
+    "/refresh",
+    response_model=Token,
+    summary="Refresh access token",
+    description="Issue a new access token (and rotated refresh token) using a valid refresh token.",
+    responses={
+        200: {"description": "New access and refresh tokens returned"},
+        401: {"description": "Invalid or expired refresh token, or inactive user"},
+        422: {"description": "Validation error"},
+    },
+)
 async def refresh_access_token(
     refresh_token: str = Form(...),
     db: AsyncSession = Depends(get_db),

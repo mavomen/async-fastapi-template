@@ -56,3 +56,26 @@ register_admin(YourModel, list_display=["column1", "column2"],
 ## Profile Page
 
 `/profile` is an HTMX‑powered user profile page with inline editing and avatar upload.
+
+## CDN Dependency
+
+The admin dashboard loads the following libraries from CDN:
+
+- **HTMX** (`unpkg.com/htmx.org@1.9.12`)
+- **HTMX extensions** (SSE, WebSocket) from the same CDN
+- **Tailwind CSS** (`cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css`)
+
+### Offline / Air‑Gapped Environments
+
+If your deployment environment cannot reach these CDNs, download the files and serve them locally:
+
+1. Download `htmx.min.js` from https://unpkg.com/htmx.org@1.9.12/dist/htmx.min.js and place it in `app/admin/static/htmx.min.js`.
+2. Download the SSE and WS extensions similarly.
+3. Download a compiled Tailwind CSS file or build one locally, and place it in `app/admin/static/tailwind.min.css`.
+4. Update the `<script>` and `<link>` tags in `app/admin/templates/base.html` to reference `/admin/static/htmx.min.js` etc.
+5. Add a static file mount in `main.py`:
+
+```python
+from fastapi.staticfiles import StaticFiles
+app.mount("/admin/static", StaticFiles(directory="app/admin/static"), name="admin_static")
+```

@@ -1138,7 +1138,7 @@
       }),
       '/api/v1/auth/refresh': dict({
         'post': dict({
-          'description': 'Issue a new access token using a valid refresh token.',
+          'description': 'Issue a new access token (and rotated refresh token) using a valid refresh token.',
           'operationId': 'refresh_access_token_api_v1_auth_refresh_post',
           'requestBody': dict({
             'content': dict({
@@ -1159,20 +1159,16 @@
                   }),
                 }),
               }),
-              'description': 'Successful Response',
+              'description': 'New access and refresh tokens returned',
+            }),
+            '401': dict({
+              'description': 'Invalid or expired refresh token, or inactive user',
             }),
             '422': dict({
-              'content': dict({
-                'application/json': dict({
-                  'schema': dict({
-                    '$ref': '#/components/schemas/HTTPValidationError',
-                  }),
-                }),
-              }),
-              'description': 'Validation Error',
+              'description': 'Validation error',
             }),
           }),
-          'summary': 'Refresh Access Token',
+          'summary': 'Refresh access token',
           'tags': list([
             'auth',
           ]),
