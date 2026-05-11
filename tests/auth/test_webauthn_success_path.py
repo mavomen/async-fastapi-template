@@ -1,4 +1,4 @@
-"""Happy‑path WebAuthn tests using mocked DB."""
+"""Happy-path WebAuthn tests using mocked DB."""
 
 from unittest.mock import AsyncMock, MagicMock, patch
 

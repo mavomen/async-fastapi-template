@@ -7,6 +7,6 @@ def test_event_bus_cannot_be_instantiated():
     """EventBus is abstract."""
     try:
         bus = EventBus()
-        assert False, "Should have raised TypeError"
+        raise AssertionError("Should have raised TypeError")
     except TypeError:
         pass

@@ -45,7 +45,7 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("id"),
     )
 
-    # Add full‑text search vector to users
+    # Add full-text search vector to users
     op.add_column(
         "users",
         sa.Column("search_vector", sa.dialects.postgresql.TSVECTOR(), nullable=True),

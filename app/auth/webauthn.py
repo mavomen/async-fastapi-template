@@ -23,7 +23,7 @@ from webauthn.helpers.structs import (
 from app.core.config import settings
 from app.models.webauthn_credential import WebAuthnCredential
 
-# In-memory challenge store – challenges are short‑lived and don’t need persistence
+# In-memory challenge store - challenges are short-lived and don’t need persistence
 _pending_registrations: dict[str, PublicKeyCredentialCreationOptions] = {}
 _pending_authentications: dict[str, PublicKeyCredentialRequestOptions] = {}
 
