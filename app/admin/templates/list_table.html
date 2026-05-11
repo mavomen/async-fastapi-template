@@ -11,16 +11,7 @@
         {% for row in rows %}
         <tr class="border-t hover:bg-gray-50">
             {% for col in columns %}
-            <td class="p-3">
-                <!-- Inline editing enabled for all text columns -->
-                <span
-                    hx-trigger="dblclick"
-                    hx-get="/admin/{{ table_name }}/{{ row.id }}/edit?field={{ col }}&value={{ row[col] }}"
-                    hx-target="this"
-                    hx-swap="outerHTML"
-                    class="cursor-pointer"
-                    title="Double-click to edit">{{ row[col] }}</span>
-            </td>
+            <td class="p-3">{{ row[col] }}</td>
             {% endfor %}
             <td class="p-3 space-x-2">
                 <a href="/admin/{{ table_name }}/{{ row.id }}" class="text-blue-600 hover:underline">View</a>
