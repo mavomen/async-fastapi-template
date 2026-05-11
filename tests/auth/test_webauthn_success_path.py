@@ -1,13 +1,13 @@
 """Happy‑path WebAuthn tests using mocked DB."""
 
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
-from unittest.mock import patch, MagicMock, AsyncMock
 
 from app.auth.webauthn import (
-    begin_registration,
-    complete_registration,
     begin_authentication,
     complete_authentication,
+    complete_registration,
 )
 from app.models.webauthn_credential import WebAuthnCredential
 
@@ -70,9 +70,10 @@ async def test_begin_authentication_success():
     db_cred.public_key = "pub-key"
     db = _mock_db_execute([db_cred])
 
-    with patch("app.auth.webauthn.generate_authentication_options") as mock_gen, patch(
-        "app.auth.webauthn._options_to_dict"
-    ) as mock_opt:
+    with (
+        patch("app.auth.webauthn.generate_authentication_options") as mock_gen,
+        patch("app.auth.webauthn._options_to_dict") as mock_opt,
+    ):
         mock_gen.return_value = MagicMock()
         mock_opt.return_value = {"challenge": "def"}
         result = await begin_authentication("3", db=db)
