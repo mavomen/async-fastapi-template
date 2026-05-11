@@ -7,6 +7,7 @@ class Token(BaseModel):
     """Schema for access and refresh tokens."""
 
     access_token: str = Field(..., description="The JWT access token")
+    refresh_token: str | None = Field(None, description="The JWT refresh token")
     token_type: str = Field("bearer", description="The type of the token")
 
 

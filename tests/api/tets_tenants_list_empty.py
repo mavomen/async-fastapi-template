@@ -13,9 +13,7 @@ from app.schemas.user import UserCreate
 async def su_headers(db_session: AsyncSession) -> dict:
     user = await crud_user.create(
         db_session,
-        obj_in=UserCreate(
-            email="tenantsu@test.com", username="tenantsu", password="SuperPass1!"
-        ),
+        obj_in=UserCreate(email="tenantsu@test.com", username="tenantsu", password="SuperPass1!"),
     )
     user.is_superuser = True
     await db_session.commit()

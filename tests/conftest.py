@@ -14,9 +14,7 @@ from sqlalchemy.pool import NullPool
 # Set test environment variables before importing app
 os.environ["ENVIRONMENT"] = "test"
 os.environ["SECRET_KEY"] = "test-secret-key-min-32-characters-long"
-os.environ["DATABASE_URL"] = (
-    "postgresql+asyncpg://postgres:postgres@localhost:5432/fastapi_test"
-)
+os.environ["DATABASE_URL"] = "postgresql+asyncpg://postgres:postgres@localhost:5432/fastapi_test"
 
 from app.core.database import sessionmanager
 from app.main import app

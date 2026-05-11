@@ -99,6 +99,39 @@ async def authenticate_user(db: AsyncSession, email: str, password: str) -> User
     return user
 
 
+# -------- refresh token --------
+def create_refresh_token(subject: str | Any) -> str:
+    """Create a long-lived refresh token."""
+    expire = datetime.now(UTC) + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
+    to_encode = {"exp": expire, "sub": str(subject), "purpose": "refresh"}
+    if settings.ALGORITHM == "RS256":
+        return sign_with_rs256(to_encode)
+    return jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
+
+
+def decode_refresh_token(token: str) -> dict:
+    """Validate a refresh token and return its payload."""
+    try:
+        if settings.ALGORITHM == "RS256":
+            return decode_with_rs256(token)
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+        if payload.get("purpose") != "refresh":
+            from fastapi import HTTPException, status
+
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token purpose"
+            )
+        return payload
+    except JWTError:
+        from fastapi import HTTPException, status
+
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate refresh token",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+
 # -------- email verification tokens --------
 def create_verification_token(user_id: int) -> str:
     expire = datetime.now(UTC) + timedelta(hours=24)

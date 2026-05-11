@@ -15,9 +15,7 @@ from app.schemas.user import UserCreate
 async def auth_headers(db_session: AsyncSession) -> dict:
     user = await crud_user.create(
         db_session,
-        obj_in=UserCreate(
-            email="prof@test.com", username="prof", password="Password1!"
-        ),
+        obj_in=UserCreate(email="prof@test.com", username="prof", password="Password1!"),
     )
     token = create_access_token(subject=user.id)
     return {"Authorization": f"Bearer {token}"}
@@ -26,9 +24,7 @@ async def auth_headers(db_session: AsyncSession) -> dict:
 @pytest.mark.asyncio
 async def test_profile_edit_full_name(async_client: AsyncClient, auth_headers: dict):
     """Sending full_name updates the user."""
-    with patch(
-        "app.auth.profile.crud_user.update", new_callable=AsyncMock
-    ) as mock_update:
+    with patch("app.auth.profile.crud_user.update", new_callable=AsyncMock) as mock_update:
         resp = await async_client.post(
             "/profile/edit",
             data={"full_name": "New Name"},
@@ -41,9 +37,7 @@ async def test_profile_edit_full_name(async_client: AsyncClient, auth_headers: d
 @pytest.mark.asyncio
 async def test_profile_edit_email(async_client: AsyncClient, auth_headers: dict):
     """Sending email updates the user."""
-    with patch(
-        "app.auth.profile.crud_user.update", new_callable=AsyncMock
-    ) as mock_update:
+    with patch("app.auth.profile.crud_user.update", new_callable=AsyncMock) as mock_update:
         resp = await async_client.post(
             "/profile/edit",
             data={"email": "new@example.com"},

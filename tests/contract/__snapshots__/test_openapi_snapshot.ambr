@@ -104,6 +104,19 @@
           'title': 'Body_profile_edit_profile_edit_post',
           'type': 'object',
         }),
+        'Body_refresh_access_token_api_v1_auth_refresh_post': dict({
+          'properties': dict({
+            'refresh_token': dict({
+              'title': 'Refresh Token',
+              'type': 'string',
+            }),
+          }),
+          'required': list([
+            'refresh_token',
+          ]),
+          'title': 'Body_refresh_access_token_api_v1_auth_refresh_post',
+          'type': 'object',
+        }),
         'Body_upload_file_api_v1_files_upload_post': dict({
           'properties': dict({
             'file': dict({
@@ -286,6 +299,18 @@
               'description': 'The JWT access token',
               'title': 'Access Token',
               'type': 'string',
+            }),
+            'refresh_token': dict({
+              'anyOf': list([
+                dict({
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'description': 'The JWT refresh token',
+              'title': 'Refresh Token',
             }),
             'token_type': dict({
               'default': 'bearer',
@@ -1075,7 +1100,7 @@
       }),
       '/api/v1/auth/login': dict({
         'post': dict({
-          'description': 'OAuth2 compatible token login. Provide username (email) and password to receive a JWT access token for future authenticated requests.',
+          'description': 'OAuth2 compatible token login. Returns access and refresh tokens.',
           'operationId': 'login_for_access_token_api_v1_auth_login_post',
           'requestBody': dict({
             'content': dict({
@@ -1096,7 +1121,7 @@
                   }),
                 }),
               }),
-              'description': 'Access token returned',
+              'description': 'Access and refresh tokens returned',
             }),
             '401': dict({
               'description': 'Incorrect email or password',
@@ -1106,6 +1131,48 @@
             }),
           }),
           'summary': 'Login for access token',
+          'tags': list([
+            'auth',
+          ]),
+        }),
+      }),
+      '/api/v1/auth/refresh': dict({
+        'post': dict({
+          'description': 'Issue a new access token using a valid refresh token.',
+          'operationId': 'refresh_access_token_api_v1_auth_refresh_post',
+          'requestBody': dict({
+            'content': dict({
+              'application/x-www-form-urlencoded': dict({
+                'schema': dict({
+                  '$ref': '#/components/schemas/Body_refresh_access_token_api_v1_auth_refresh_post',
+                }),
+              }),
+            }),
+            'required': True,
+          }),
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/Token',
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+          }),
+          'summary': 'Refresh Access Token',
           'tags': list([
             'auth',
           ]),

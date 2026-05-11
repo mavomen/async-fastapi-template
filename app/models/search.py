@@ -1,8 +1,8 @@
 """Full-text search mixin for PostgreSQL tsvector."""
 
-from sqlalchemy.sql import func
 from sqlalchemy.dialects.postgresql import TSVECTOR
 from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.sql import func
 
 
 class SearchMixin:
