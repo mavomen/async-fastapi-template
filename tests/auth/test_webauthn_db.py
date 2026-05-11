@@ -1,4 +1,4 @@
-"""Tests for DB‑backed WebAuthn credential store."""
+"""Tests for DB-backed WebAuthn credential store."""
 
 from unittest.mock import AsyncMock, MagicMock, patch
 

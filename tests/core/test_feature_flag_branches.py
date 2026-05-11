@@ -1,4 +1,4 @@
-"""Cover feature‑flag branches (cache miss and unknown flags)."""
+"""Cover feature-flag branches (cache miss and unknown flags)."""
 
 from unittest.mock import AsyncMock, patch
 

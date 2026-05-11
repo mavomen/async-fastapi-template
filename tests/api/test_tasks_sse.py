@@ -1,4 +1,4 @@
-"""Unit tests for the task‑status SSE generator (no HTTP)."""
+"""Unit tests for the task-status SSE generator (no HTTP)."""
 
 from unittest.mock import AsyncMock, MagicMock
 

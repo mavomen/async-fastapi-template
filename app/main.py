@@ -47,7 +47,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 
         install_audit_log_listener(User)
     yield
-    # Shutdown: only close in non‑test environments
+    # Shutdown: only close in non-test environments
     if settings.ENVIRONMENT != "test":
         await sessionmanager.close()
         await cache.disconnect()

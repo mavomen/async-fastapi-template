@@ -28,10 +28,10 @@ async def _check_redis() -> dict:
         from app.core.cache import cache
 
         if cache._redis is not None:
-            await cache._redis.ping()  # type: ignore[misc]
+            await cache._redis.ping()  # type: ignore[misc]  # type: ignore[misc]
         else:
             r = aioredis.from_url(settings.REDIS_URL, encoding="utf-8", decode_responses=True)
-            await r.ping()
+            await r.ping()  # type: ignore[misc]
             await r.close()
         return {"redis": "connected"}
     except Exception:

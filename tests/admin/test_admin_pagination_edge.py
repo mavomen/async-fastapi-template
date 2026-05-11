@@ -1,9 +1,8 @@
-"""Test admin detail page for a non-existent record."""
+"""Test admin pagination with higher page number."""
 
 import pytest
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
-
 from app.core.security import create_access_token
 from app.crud.user import user as crud_user
 from app.schemas.user import UserCreate
@@ -14,7 +13,7 @@ async def super_headers(db_session: AsyncSession) -> dict:
     user = await crud_user.create(
         db_session,
         obj_in=UserCreate(
-            email="superadmin@test.com", username="superadmin", password="AdminPass1!"
+            email="pag@admin.com", username="pagadmin", password="AdminPass1!"
         ),
     )
     user.is_superuser = True
@@ -24,7 +23,7 @@ async def super_headers(db_session: AsyncSession) -> dict:
 
 
 @pytest.mark.asyncio
-async def test_admin_user_detail_not_found(async_client: AsyncClient, super_headers: dict):
-    """Requesting a non-existent user returns 404."""
-    resp = await async_client.get("/admin/users/999999", headers=super_headers)
-    assert resp.status_code == 404
+async def test_admin_users_page_two(async_client: AsyncClient, super_headers: dict):
+    """Requesting page 2 of users (even when empty) returns 200."""
+    resp = await async_client.get("/admin/users?page=2", headers=super_headers)
+    assert resp.status_code == 200

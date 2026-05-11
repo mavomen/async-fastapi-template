@@ -1,4 +1,4 @@
-"""Cover tenant‑filter branches not hit by previous tests."""
+"""Cover tenant-filter branches not hit by previous tests."""
 
 from sqlalchemy import Column, Integer, MetaData, String, Table
 from sqlalchemy.sql import delete, insert, update
