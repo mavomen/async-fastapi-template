@@ -3,6 +3,7 @@
 import pytest
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.core.security import create_access_token
 from app.crud.user import user as crud_user
 from app.schemas.user import UserCreate
@@ -12,9 +13,7 @@ from app.schemas.user import UserCreate
 async def super_headers(db_session: AsyncSession) -> dict:
     user = await crud_user.create(
         db_session,
-        obj_in=UserCreate(
-            email="pag@admin.com", username="pagadmin", password="AdminPass1!"
-        ),
+        obj_in=UserCreate(email="pag@admin.com", username="pagadmin", password="AdminPass1!"),
     )
     user.is_superuser = True
     await db_session.commit()
