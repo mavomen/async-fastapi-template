@@ -15,9 +15,7 @@ from app.schemas.user import UserCreate
 async def auth_headers(db_session: AsyncSession) -> dict:
     user = await crud_user.create(
         db_session,
-        obj_in=UserCreate(
-            email="avatar@test.com", username="avatar_test", password="Password1!"
-        ),
+        obj_in=UserCreate(email="avatar@test.com", username="avatar_test", password="Password1!"),
     )
     token = create_access_token(subject=user.id)
     return {"Authorization": f"Bearer {token}"}

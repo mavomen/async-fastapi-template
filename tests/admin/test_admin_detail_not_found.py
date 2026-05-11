@@ -24,9 +24,7 @@ async def super_headers(db_session: AsyncSession) -> dict:
 
 
 @pytest.mark.asyncio
-async def test_admin_user_detail_not_found(
-    async_client: AsyncClient, super_headers: dict
-):
+async def test_admin_user_detail_not_found(async_client: AsyncClient, super_headers: dict):
     """Requesting a non‑existent user returns 404."""
     resp = await async_client.get("/admin/users/999999", headers=super_headers)
     assert resp.status_code == 404

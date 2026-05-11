@@ -1,6 +1,5 @@
 """Cover the health check Redis fallback branch."""
 
-import pytest
 from fastapi.testclient import TestClient
 
 

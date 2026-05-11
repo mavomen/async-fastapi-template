@@ -1,11 +1,12 @@
 """
-API endpoints for user authentication, login, email verification, and WebAuthn passkeys.
+API endpoints for user authentication, login, email verification,
+WebAuthn passkeys, and refresh tokens.
 """
 
 from datetime import UTC, datetime
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, Form, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -19,7 +20,9 @@ from app.auth.webauthn import (
 from app.core.security import (
     authenticate_user,
     create_access_token,
+    create_refresh_token,
     create_verification_token,
+    decode_refresh_token,
     decode_verification_token,
     get_jwks,
 )
@@ -56,14 +59,12 @@ async def register(
     user_in: UserCreate,
 ) -> Any:
     """Register a new user."""
-    # Check for existing user by email
     user = await crud_user.get_by_email(db, email=user_in.email)
     if user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="A user with this email already exists.",
         )
-    # Check for existing user by username
     user = await crud_user.get_by_username(db, username=user_in.username)
     if user:
         raise HTTPException(
@@ -77,10 +78,9 @@ async def register(
     "/login",
     response_model=Token,
     summary="Login for access token",
-    description="OAuth2 compatible token login. Provide username (email) and password "
-    "to receive a JWT access token for future authenticated requests.",
+    description="OAuth2 compatible token login. Returns access and refresh tokens.",
     responses={
-        200: {"description": "Access token returned"},
+        200: {"description": "Access and refresh tokens returned"},
         401: {"description": "Incorrect email or password"},
         422: {"description": "Validation error"},
     },
@@ -89,7 +89,7 @@ async def login_for_access_token(
     db: AsyncSession = Depends(get_db),
     form_data: OAuth2PasswordRequestForm = Depends(),
 ) -> Any:
-    """OAuth2 compatible token login, get an access token for future requests."""
+    """OAuth2 compatible token login."""
     user = await authenticate_user(db, email=form_data.username, password=form_data.password)
     if not user:
         raise HTTPException(
@@ -98,7 +98,32 @@ async def login_for_access_token(
             headers={"WWW-Authenticate": "Bearer"},
         )
     access_token = create_access_token(subject=user.id)
-    return {"access_token": access_token, "token_type": "bearer"}
+    refresh_token = create_refresh_token(subject=user.id)
+    return {
+        "access_token": access_token,
+        "refresh_token": refresh_token,
+        "token_type": "bearer",
+    }
+
+
+@router.post("/refresh", response_model=Token)
+async def refresh_access_token(
+    refresh_token: str = Form(...),
+    db: AsyncSession = Depends(get_db),
+) -> Any:
+    """Issue a new access token using a valid refresh token."""
+    payload = decode_refresh_token(refresh_token)
+    user_id = int(payload["sub"])
+    user = await crud_user.get(db, id=user_id)
+    if not user or not user.is_active:
+        raise HTTPException(status_code=401, detail="Invalid refresh token")
+    new_access = create_access_token(subject=user.id)
+    new_refresh = create_refresh_token(subject=user.id)  # rotation
+    return {
+        "access_token": new_access,
+        "refresh_token": new_refresh,
+        "token_type": "bearer",
+    }
 
 
 # ---------- WebAuthn / Passkey endpoints ----------
@@ -121,30 +146,31 @@ async def webauthn_register_begin(
 async def webauthn_register_complete(
     credential: dict,
     current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
 ):
     """Complete WebAuthn passkey registration."""
     result = await complete_registration(
         user_id=str(current_user.id),
         credential=credential,
+        db=db,
     )
     return result
 
 
 @router.post("/webauthn/login/begin")
-async def webauthn_login_begin(payload: dict):
+async def webauthn_login_begin(
+    payload: dict,
+    db: AsyncSession = Depends(get_db),
+):
     """Begin WebAuthn passkey authentication (user_id = email)."""
     user_id = payload.get("user_id")
     if not user_id:
         raise HTTPException(status_code=400, detail="user_id required")
-    from app.core.database import sessionmanager
-    from app.crud.user import user as crud_user
-
-    async with sessionmanager.session() as db:
-        user = await crud_user.get_by_email(db, email=user_id)
-        if not user:
-            raise HTTPException(status_code=404, detail="User not found")
-        options = await begin_authentication(str(user.id))
-        return options
+    user = await crud_user.get_by_email(db, email=user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    options = await begin_authentication(str(user.id), db=db)
+    return options
 
 
 @router.post("/webauthn/login/complete")
@@ -157,15 +183,13 @@ async def webauthn_login_complete(
     credential = payload.get("credential", {})
     if not user_id or not credential:
         raise HTTPException(status_code=400, detail="user_id and credential required")
-    from app.crud.user import user as crud_user
-
     user = await crud_user.get_by_email(db, email=user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-
     success = await complete_authentication(
         user_id=str(user.id),
         credential=credential,
+        db=db,
     )
     if success:
         access_token = create_access_token(subject=user.id)

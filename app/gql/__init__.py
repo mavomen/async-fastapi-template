@@ -7,7 +7,8 @@ router = APIRouter()
 @router.get("/playground", response_class=HTMLResponse)
 async def htmx_graphql_playground(request: Request):
     """HTMX-powered GraphQL playground."""
-    return HTMLResponse(content='''
+    return HTMLResponse(
+        content="""
     <html>
     <head><script src="https://unpkg.com/htmx.org@1.9.12"></script></head>
     <body>
@@ -22,4 +23,5 @@ async def htmx_graphql_playground(request: Request):
         <pre id="result" class="mt-4 bg-gray-100 p-4"></pre>
     </body>
     </html>
-    ''')
+    """
+    )

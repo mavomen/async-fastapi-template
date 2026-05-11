@@ -13,9 +13,7 @@ from app.schemas.user import UserCreate
 async def super_headers(db_session: AsyncSession) -> dict:
     user = await crud_user.create(
         db_session,
-        obj_in=UserCreate(
-            email="dupadmin@test.com", username="dupadmin", password="AdminPass1!"
-        ),
+        obj_in=UserCreate(email="dupadmin@test.com", username="dupadmin", password="AdminPass1!"),
     )
     user.is_superuser = True
     await db_session.commit()
@@ -31,9 +29,7 @@ async def test_admin_create_duplicate_user(
     # Create the first user directly in the DB
     await crud_user.create(
         db_session,
-        obj_in=UserCreate(
-            email="dupuser@test.com", username="dupuser1", password="Password1!"
-        ),
+        obj_in=UserCreate(email="dupuser@test.com", username="dupuser1", password="Password1!"),
     )
     await db_session.commit()
 
@@ -60,15 +56,11 @@ async def test_admin_edit_to_duplicate_email(
     """Editing a user to an existing email returns 400."""
     user1 = await crud_user.create(
         db_session,
-        obj_in=UserCreate(
-            email="editdup1@test.com", username="editdup1", password="Password1!"
-        ),
+        obj_in=UserCreate(email="editdup1@test.com", username="editdup1", password="Password1!"),
     )
     user2 = await crud_user.create(
         db_session,
-        obj_in=UserCreate(
-            email="editdup2@test.com", username="editdup2", password="Password1!"
-        ),
+        obj_in=UserCreate(email="editdup2@test.com", username="editdup2", password="Password1!"),
     )
     await db_session.commit()
 

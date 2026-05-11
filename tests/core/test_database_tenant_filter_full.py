@@ -1,7 +1,7 @@
 """Cover tenant‑filter branches not hit by previous tests."""
 
 from sqlalchemy import Column, Integer, MetaData, String, Table
-from sqlalchemy.sql import delete, insert, select, update
+from sqlalchemy.sql import delete, insert, update
 
 from app.core.database import apply_tenant_filter
 

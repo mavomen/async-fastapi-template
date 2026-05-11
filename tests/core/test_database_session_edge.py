@@ -1,9 +1,6 @@
 """Test database session rollback on exception."""
 
-from unittest.mock import AsyncMock, MagicMock
-
 import pytest
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import DatabaseSessionManager
 

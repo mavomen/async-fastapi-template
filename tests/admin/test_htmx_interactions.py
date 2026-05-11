@@ -13,9 +13,7 @@ from app.schemas.user import UserCreate
 async def su_headers(db_session: AsyncSession) -> dict:
     user = await crud_user.create(
         db_session,
-        obj_in=UserCreate(
-            email="htmxadmin@test.com", username="htmxadmin", password="AdminPass1!"
-        ),
+        obj_in=UserCreate(email="htmxadmin@test.com", username="htmxadmin", password="AdminPass1!"),
     )
     user.is_superuser = True
     await db_session.commit()
@@ -24,9 +22,7 @@ async def su_headers(db_session: AsyncSession) -> dict:
 
 
 @pytest.mark.asyncio
-async def test_admin_search_returns_partial(
-    async_client: AsyncClient, su_headers: dict
-):
+async def test_admin_search_returns_partial(async_client: AsyncClient, su_headers: dict):
     """Search returns a partial HTML table."""
     resp = await async_client.get(
         "/admin/users?search=htmxadmin",

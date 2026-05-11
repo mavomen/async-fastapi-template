@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.deps import get_current_user, get_db
 from app.crud.user import user as crud_user
 from app.models.user import User
+from app.schemas.user import UserUpdate
 
 router = APIRouter()
 
@@ -42,7 +43,8 @@ async def profile_edit(
     if email is not None:
         update_data["email"] = email
     if update_data:
-        await crud_user.update(db, db_obj=current_user, obj_in=update_data)
+        user_update = UserUpdate(**update_data)
+        await crud_user.update(db, db_obj=current_user, obj_in=user_update)
     return Response(status_code=200, content="Saved", media_type="text/plain")
 
 
