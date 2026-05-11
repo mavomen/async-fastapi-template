@@ -21,7 +21,7 @@ services:
       - app-network
 
   redis:
-    image: redis:7.4-alpine
+    image: redis:7-alpine
     container_name: fastapi_redis
     ports:
       - "${REDIS_PORT:-6379}:6379"
