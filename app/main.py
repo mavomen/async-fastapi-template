@@ -32,8 +32,6 @@ from app.middleware.request_logging import RequestLoggingMiddleware
 from app.middleware.security_headers import SecurityHeadersMiddleware
 from app.middleware.sql_injection import SQLInjectionMonitorMiddleware
 from app.middleware.tenant import TenantMiddleware
-from app.models.audit_log import install_audit_log_listener
-from app.models.user import User
 from app.websocket.chat import router as websocket_router
 
 
@@ -46,6 +44,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     if settings.ENVIRONMENT != "test":
         from app.models.audit_log import install_audit_log_listener
         from app.models.user import User
+
         install_audit_log_listener(User)
     yield
     # Shutdown: only close in non‑test environments

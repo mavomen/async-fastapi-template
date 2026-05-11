@@ -26,7 +26,6 @@ async def _stream_file_upload(file: UploadFile, filename: str, storage: StorageB
         percentage = (uploaded / total_size * 100) if total_size else 0
         yield f"event: progress\ndata: {percentage:.1f}%\n\n"
         await asyncio.sleep(0.05)
-    # Rewind file for final storage write
     await file.seek(0)
     path = await storage.upload(file.file, filename)
     yield f"event: complete\ndata: {path}\n\n"
@@ -43,7 +42,6 @@ async def _stream_file_upload(file: UploadFile, filename: str, storage: StorageB
         400: {"description": "No file provided"},
     },
 )
-@router.post("/upload", status_code=status.HTTP_201_CREATED)
 async def upload_file(
     file: UploadFile = File(...),
     current_user: User = Depends(get_current_user),
@@ -85,7 +83,6 @@ async def upload_file_stream(
         404: {"description": "File not found"},
     },
 )
-@router.get("/download/{filename:path}")
 async def download_file(
     filename: str,
     current_user: User = Depends(get_current_user),

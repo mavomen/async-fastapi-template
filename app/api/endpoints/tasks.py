@@ -42,7 +42,6 @@ async def _stream_task_status(task_id: str, db: AsyncSession):
         200: {"description": "Task triggered"},
     },
 )
-@router.post("/email/send")
 async def trigger_email_task(task_data: EmailTaskRequest):
     task = send_email_notification.delay(
         task_data.recipient,
@@ -61,7 +60,6 @@ async def trigger_email_task(task_data: EmailTaskRequest):
         404: {"description": "Task not found"},
     },
 )
-@router.get("/{task_id}")
 async def get_task_status(
     task_id: str,
     db: AsyncSession = Depends(get_db),

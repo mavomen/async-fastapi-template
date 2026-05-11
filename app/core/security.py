@@ -45,15 +45,32 @@ def get_jwks() -> dict:
 
 # -------- password hashing --------
 def verify_password(plain_password: str, hashed_password: str) -> bool:
+    """
+    Verifies a plain-text password against a bcrypt hashed password.
+    **Important:** Passwords longer than 72 bytes are silently truncated to the first 72 bytes.
+    This is a limitation of bcrypt, not this implementation.
+    """
     plain_bytes = plain_password.encode("utf-8")
     if len(plain_bytes) > 72:
+        import logging
+
+        logger = logging.getLogger("app.security")
+        logger.debug("Password truncated to 72 bytes for bcrypt")
         plain_bytes = plain_bytes[:72]
     return bcrypt.checkpw(plain_bytes, hashed_password.encode("utf-8"))
 
 
 def get_password_hash(password: str) -> str:
+    """
+    Hashes a plain-text password with bcrypt.
+    **Important:** Passwords longer than 72 bytes are silently truncated to the first 72 bytes.
+    """
     plain_bytes = password.encode("utf-8")
     if len(plain_bytes) > 72:
+        import logging
+
+        logger = logging.getLogger("app.security")
+        logger.debug("Password truncated to 72 bytes for bcrypt")
         plain_bytes = plain_bytes[:72]
     salt = bcrypt.gensalt()
     hashed = bcrypt.hashpw(plain_bytes, salt)

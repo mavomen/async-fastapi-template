@@ -1,5 +1,6 @@
 """HTMX Admin Dashboard - auto-discovery of SQLAlchemy models."""
 
+import logging
 from pathlib import Path
 from typing import Any
 
@@ -19,6 +20,8 @@ from app.models import Permission, Role, User
 from app.models.audit_log import AuditLog
 from app.models.base import BaseModel
 from app.models.tenant import Tenant
+
+logger = logging.getLogger("app.admin")
 
 # ---------- Registry ----------
 _registry: dict[str, dict[str, Any]] = {}
@@ -49,7 +52,7 @@ register_admin(
     User,
     list_display=["email", "username", "is_active", "is_verified"],
     search_columns=["email", "username"],
-    form_fields=["email", "username", "full_name", "is_active", "is_verified"],
+    form_fields=["email", "username", "password", "full_name", "is_active", "is_verified"],
     permission="user:admin",
 )
 register_admin(
@@ -106,8 +109,9 @@ def _coerce_value(model: type[BaseModel], field: str, value: str) -> Any:
 
 
 def _set_default_password_for_user(obj: User) -> None:
-    """Assign a default hashed password if this is a User without one."""
+    """Assign a hashed password to a User if one was not provided."""
     if isinstance(obj, User) and not obj.hashed_password:
+        logger.warning("Admin user created without explicit password – using placeholder")
         obj.hashed_password = get_password_hash("Admin123!")  # placeholder
 
 
