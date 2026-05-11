@@ -6,6 +6,7 @@
 [![Security Scan](https://github.com/mavomen/async-fastapi-template/actions/workflows/security.yml/badge.svg)](https://github.com/mavomen/async-fastapi-template/actions/workflows/security.yml)
 [![Coverage](https://img.shields.io/badge/coverage-85%25-brightgreen)](https://github.com/mavomen/async-fastapi-template)
 [![Python](https://img.shields.io/badge/python-3.12%20%7C%203.13-blue)](https://www.python.org)
+[![Version](https://img.shields.io/badge/version-3.1.0-blue)](https://github.com/mavomen/async-fastapi-template/releases)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
 A production‑ready, fully async FastAPI template with everything you need to build modern APIs.
@@ -13,31 +14,32 @@ A production‑ready, fully async FastAPI template with everything you need to b
 ## 🚀 Features
 
 - ⚡ **Async SQLAlchemy 2.0** + Alembic migrations
-- 🔐 **JWT authentication** with role‑based access control (RBAC)
+- 🔐 **JWT authentication** with refresh tokens and role‑based access control (RBAC)
+- 🔑 **WebAuthn / Passkey** support (passwordless authentication)
 - 🧬 **GraphQL** endpoint with Strawberry (queries, mutations, subscriptions)
-- 📦 **File uploads** (local & S3) with streaming progress
+- 🏢 **Multi‑tenancy** with Row‑Level Security via SQLAlchemy events
+- 📦 **File uploads** (local & S3) with SSE streaming progress
 - 🗨️ **WebSocket** chat with JWT auth
 - ⏳ **Background tasks** with Celery + Redis + retry/backoff
 - 💾 **Redis caching** with cache‑aside, warming, and invalidation
-- 🚦 **Rate limiting** with slowapi
+- 🚦 **Rate limiting** (per‑IP and per‑user) with slowapi
 - 📊 **Prometheus metrics** + **Grafana dashboards**
 - 🕵️ **Distributed tracing** with OpenTelemetry
 - ✉️ **Email verification** with Jinja2 templates and Celery retry
 - 📥 **CSV / Excel export and import** utilities
 - 🛡️ **Security headers**, SQL injection monitoring, XSS sanitisation
 - 📝 **Structured logging** with structlog and correlation IDs
+- 🔍 **Full‑text search** (PostgreSQL tsvector) and **audit logging**
+- 🚩 **Feature flags** (env, cache, code defaults)
 - ⚡ **Performance profiling** (slow‑query logging, benchmarks, load tests)
 - 🛠️ **Scaffolding CLI** – generate models, endpoints, and tests instantly
+- 🎨 **HTMX‑powered admin dashboard** with dark mode, inline editing, live search
 - 🐳 **Docker Compose** for dev and production
-- 🔧 **CI/CD workflows** (matrix tests, PR linting, automated releases)
+- ☸️ **Kubernetes manifests** and **Helm chart**
+- 🔧 **CI/CD workflows** (matrix tests, PR linting, mutation testing, benchmark regression, automated releases)
+- ✅ **Snapshot testing** (OpenAPI) and **mutation testing** (mutmut)
 - 🧹 **Code quality** enforced by Ruff, mypy, and pre‑commit
 - 📖 **Extensive documentation** – quickstart, architecture, deployment, and more
-
-## 📸 Screenshots
-
-| Swagger UI     | GraphQL Playground | Grafana Dashboard |
-| -------------- | ------------------ | ----------------- |
-| _[screenshot]_ | _[screenshot]_     | _[screenshot]_    |
 
 ## 🏁 Quickstart
 
@@ -48,36 +50,38 @@ chmod +x scripts/setup.sh && ./scripts/setup.sh
 make dev
 ```
 
-Visit **http://localhost:8000/docs** for the interactive API docs, or **http://localhost:8000/graphql** for the GraphQL playground.
+Visit **http://localhost:8000/docs** for the interactive API docs, **http://localhost:8000/admin** for the admin dashboard, or **http://localhost:8000/graphql** for the GraphQL playground.
 
 ## 📋 How does it compare?
 
-| Feature                    | This Template | Other Templates |
-| -------------------------- | ------------- | --------------- |
-| Async DB (SQLAlchemy 2)    | ✅            | ❌              |
-| RBAC (roles/permissions)   | ✅            | ❌              |
-| GraphQL                    | ✅            | ❌              |
-| Celery + Retry/Backoff     | ✅            | ❌              |
-| File uploads (S3/local)    | ✅            | ❌              |
-| WebSocket                  | ✅            | ❌              |
-| Rate limiting              | ✅            | ❌              |
-| Prometheus + Grafana       | ✅            | ❌              |
-| OpenTelemetry tracing      | ✅            | ❌              |
-| Email verification         | ✅            | ❌              |
-| CSV/Excel export/import    | ✅            | ❌              |
-| Streaming uploads (SSE)    | ✅            | ❌              |
-| Cache warming & aside      | ✅            | ❌              |
-| Scaffolding CLI            | ✅            | ❌              |
-| Docker dev + prod          | ✅            | ✅              |
-| CI/CD + Release automation | ✅            | ✅              |
-| 85%+ test coverage         | ✅            | ❌              |
+| Feature                    | This Template | Typical Templates |
+| -------------------------- | ------------- | ----------------- |
+| Async DB (SQLAlchemy 2)    | ✅            | Varies            |
+| RBAC (roles/permissions)   | ✅            | Rare              |
+| WebAuthn / Passkeys        | ✅            | Very rare         |
+| Multi‑tenancy with RLS     | ✅            | Rare              |
+| GraphQL                    | ✅            | Varies            |
+| Celery + Retry/Backoff     | ✅            | Rare              |
+| File uploads (S3/local)    | ✅            | Varies            |
+| WebSocket                  | ✅            | Varies            |
+| Rate limiting              | ✅            | Varies            |
+| Prometheus + Grafana       | ✅            | Rare              |
+| OpenTelemetry tracing      | ✅            | Rare              |
+| Full‑text search + Audit   | ✅            | Very rare         |
+| HTMX Admin Dashboard       | ✅            | Rare              |
+| Scaffolding CLI            | ✅            | Rare              |
+| K8s manifests + Helm       | ✅            | Rare              |
+| Refresh tokens + rotation  | ✅            | Common            |
+| Docker dev + prod          | ✅            | Common            |
+| CI/CD + Release automation | ✅            | Common            |
+| 85%+ test coverage         | ✅            | Rare              |
 
 ## 📚 Documentation
 
 - [Quickstart Guide](docs/quickstart.md)
 - [API Documentation](docs/api.md)
 - [GraphQL Guide](docs/graphql.md)
-- [Architecture Decisions](docs/architecture.md)
+- [Architecture Decisions](docs/ARCHITECTURE.md)
 - [Database Setup](docs/database.md)
 - [Docker Guide](docs/docker.md)
 - [Background Tasks](docs/background_tasks.md)
@@ -112,11 +116,15 @@ Visit **http://localhost:8000/docs** for the interactive API docs, or **http://l
 - [x] CI/CD polish & release automation
 - [x] Advanced features (SSE, cache warming, batch ops)
 - [x] Developer tooling (scaffolder, scripts)
-- [ ] Admin dashboard (HTMX or React)
-- [ ] Multi‑tenancy support
-- [ ] Event‑driven architecture (Kafka/RabbitMQ)
-
-Have an idea? Open an issue or a pull request!
+- [x] Admin dashboard (HTMX) with dark mode & inline editing
+- [x] Multi‑tenancy with Row‑Level Security
+- [x] Event‑driven architecture (Redis Streams / Kafka)
+- [x] Full‑text search & audit logging
+- [x] WebAuthn / Passkey authentication
+- [x] Refresh tokens with rotation
+- [x] Kubernetes manifests & Helm chart
+- [x] Mutation testing & snapshot testing
+- [x] 85%+ test coverage
 
 ## ❓ FAQ
 

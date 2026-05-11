@@ -1,6 +1,7 @@
 """Locust load test for FastAPI application."""
 
-from locust import HttpUser, between, task
+import uuid
+from locust import HttpUser, task, between
 
 
 class FastAPIUser(HttpUser):
@@ -12,19 +13,18 @@ class FastAPIUser(HttpUser):
 
     @task(2)
     def register_and_login(self):
-        # Register
+        unique_id = uuid.uuid4().hex[:8]
         self.client.post(
             "/api/v1/auth/register",
             json={
-                "email": "load@example.com",
-                "username": "loaduser",
+                "email": f"load-{unique_id}@example.com",
+                "username": f"loaduser-{unique_id}",
                 "password": "LoadPass1!",
             },
         )
-        # Login
         self.client.post(
             "/api/v1/auth/login",
-            data={"username": "load@example.com", "password": "LoadPass1!"},
+            data={"username": f"load-{unique_id}@example.com", "password": "LoadPass1!"},
         )
 
     @task(1)
