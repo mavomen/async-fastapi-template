@@ -23,23 +23,23 @@ This project uses Docker and Docker Compose for containerized deployment. The se
 
 ```bash
 # Build and start all services
-docker-compose up -d
+docker compose up -d
 
 # View logs
-docker-compose logs -f app
+docker compose logs -f app
 
 # Stop services
-docker-compose down
+docker compose down
 
 # Stop and remove volumes
-docker-compose down -v
+docker compose down -v
 ```
 
 ### Development Environment
 
 ```bash
 # Start development services (includes Adminer and Redis Commander)
-docker-compose -f docker-compose.dev.yml up -d
+docker compose -f docker compose.dev.yml up -d
 
 # Access services:
 # - Adminer (PostgreSQL UI): http://localhost:8080
@@ -70,7 +70,7 @@ SECRET_KEY=your_secret_key_here
 
 ### Docker Compose Override
 
-For custom configurations, create `docker-compose.override.yml`:
+For custom configurations, create `docker compose.override.yml`:
 
 ```yaml
 version: "3.8"
@@ -93,16 +93,16 @@ volumes:
 
 ```bash
 # View application logs
-docker-compose logs -f app
+docker compose logs -f app
 
 # Execute commands in container
-docker-compose exec app bash
+docker compose exec app bash
 
 # Run migrations
-docker-compose exec app alembic upgrade head
+docker compose exec app alembic upgrade head
 
 # Create new migration
-docker-compose exec app alembic revision --autogenerate -m "description"
+docker compose exec app alembic revision --autogenerate -m "description"
 ```
 
 ### Database Service
@@ -113,13 +113,13 @@ docker-compose exec app alembic revision --autogenerate -m "description"
 
 ```bash
 # Access PostgreSQL CLI
-docker-compose exec db psql -U postgres -d fastapi_db
+docker compose exec db psql -U postgres -d fastapi_db
 
 # Backup database
-docker-compose exec db pg_dump -U postgres fastapi_db > backup.sql
+docker compose exec db pg_dump -U postgres fastapi_db > backup.sql
 
 # Restore database
-docker-compose exec -T db psql -U postgres fastapi_db < backup.sql
+docker compose exec -T db psql -U postgres fastapi_db < backup.sql
 ```
 
 ### Redis Service
@@ -130,13 +130,13 @@ docker-compose exec -T db psql -U postgres fastapi_db < backup.sql
 
 ```bash
 # Access Redis CLI
-docker-compose exec redis redis-cli
+docker compose exec redis redis-cli
 
 # Monitor Redis commands
-docker-compose exec redis redis-cli MONITOR
+docker compose exec redis redis-cli MONITOR
 
 # Check Redis info
-docker-compose exec redis redis-cli INFO
+docker compose exec redis redis-cli INFO
 ```
 
 ### Celery Worker
@@ -146,13 +146,13 @@ docker-compose exec redis redis-cli INFO
 
 ```bash
 # View worker logs
-docker-compose logs -f celery_worker
+docker compose logs -f celery_worker
 
 # Inspect active tasks
-docker-compose exec celery_worker celery -A app.core.celery inspect active
+docker compose exec celery_worker celery -A app.core.celery inspect active
 
 # Restart worker
-docker-compose restart celery_worker
+docker compose restart celery_worker
 ```
 
 ### Celery Beat
@@ -162,10 +162,10 @@ docker-compose restart celery_worker
 
 ```bash
 # View beat logs
-docker-compose logs -f celery_beat
+docker compose logs -f celery_beat
 
 # Restart beat scheduler
-docker-compose restart celery_beat
+docker compose restart celery_beat
 ```
 
 ## Dockerfile
@@ -193,7 +193,7 @@ docker build --no-cache -t fastapi-app .
 
 ```bash
 # Start only database and Redis
-docker-compose -f docker-compose.dev.yml up db redis -d
+docker compose -f docker compose.dev.yml up db redis -d
 
 # Run application locally
 poetry run uvicorn app.main:app --reload
@@ -204,7 +204,7 @@ poetry run pytest
 
 ### Hot Reload in Container
 
-Add volume mount in `docker-compose.override.yml`:
+Add volume mount in `docker compose.override.yml`:
 
 ```yaml
 services:
@@ -248,7 +248,7 @@ All services include health checks:
 
 ```bash
 # Check service health
-docker-compose ps
+docker compose ps
 
 # View health check logs
 docker inspect --format='{{json .State.Health}}' fastapi_app | jq
@@ -260,26 +260,26 @@ docker inspect --format='{{json .State.Health}}' fastapi_app | jq
 
 ```bash
 # Check logs
-docker-compose logs app
+docker compose logs app
 
 # Check container status
-docker-compose ps
+docker compose ps
 
 # Rebuild without cache
-docker-compose build --no-cache app
+docker compose build --no-cache app
 ```
 
 ### Database Connection Issues
 
 ```bash
 # Verify database is healthy
-docker-compose ps db
+docker compose ps db
 
 # Test connection from app container
-docker-compose exec app pg_isready -h db -U postgres
+docker compose exec app pg_isready -h db -U postgres
 
 # Check environment variables
-docker-compose exec app env | grep DATABASE
+docker compose exec app env | grep DATABASE
 ```
 
 ### Port Conflicts
@@ -291,7 +291,7 @@ POSTGRES_PORT=5433
 REDIS_PORT=6380
 
 # Restart services
-docker-compose down && docker-compose up -d
+docker compose down && docker compose up -d
 ```
 
 ### Performance Issues
@@ -300,7 +300,7 @@ docker-compose down && docker-compose up -d
 # Check resource usage
 docker stats
 
-# Limit container resources in docker-compose.yml
+# Limit container resources in docker compose.yml
 services:
 app:
 deploy:
@@ -324,7 +324,7 @@ memory: 2G
 ```bash
 # Scale workers
 
-docker-compose up -d --scale celery_worker=3
+docker compose up -d --scale celery_worker=3
 
 # Use Docker Swarm or Kubernetes for production orchestration
 ```
@@ -333,7 +333,7 @@ docker-compose up -d --scale celery_worker=3
 
 ```bash
 # Export logs to external system
-docker-compose logs -f | tee -a app.log
+docker compose logs -f | tee -a app.log
 
 # Use Prometheus + Grafana for metrics
 
@@ -347,7 +347,7 @@ docker-compose logs -f | tee -a app.log
 
 #!/bin/bash
 DATE=$(date +%Y%m%d_%H%M%S)
-docker-compose exec -T db pg_dump -U postgres fastapi_db | gzip > backup_$DATE.sql.gz
+docker compose exec -T db pg_dump -U postgres fastapi_db | gzip > backup_$DATE.sql.gz
 ```
 
 ## CI/CD Integration
@@ -367,7 +367,7 @@ steps:
   - name: Build Docker image
     run: docker build -t fastapi-app .
   - name: Run tests
-    run: docker-compose run app pytest
+    run: docker compose run app pytest
 ```
 
 ## Useful Commands
@@ -376,23 +376,23 @@ steps:
 
 # Remove all stopped containers
 
-docker-compose rm -f
+docker compose rm -f
 
 # View resource usage
 
-docker-compose top
+docker compose top
 
 # Execute pytest in container
 
-docker-compose exec app pytest -v
+docker compose exec app pytest -v
 
 # Shell into running container
 
-docker-compose exec app /bin/bash
+docker compose exec app /bin/bash
 
 # View environment variables
 
-docker-compose config
+docker compose config
 
 ```
 

@@ -1,6 +1,5 @@
 """Tests for Celery application configuration."""
 
-from unittest.mock import patch
 
 from app.core.config import settings
 

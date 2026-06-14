@@ -23,7 +23,7 @@ cp .env.example .env
 docker compose -f docker-compose.dev.yml up -d
 ```
 
-This starts PostgreSQL, Redis, Prometheus, and Grafana.
+This starts PostgreSQL and Redis. For Prometheus and Grafana, use the production compose file: `docker compose -f docker-compose.yml up -d`.
 
 ## Step 3: Install Python Dependencies
 

@@ -5,6 +5,7 @@ import time
 from collections.abc import AsyncGenerator, AsyncIterator
 from contextlib import asynccontextmanager
 from contextvars import ContextVar
+from typing import Any
 
 from sqlalchemy import event
 from sqlalchemy.ext.asyncio import (
@@ -34,7 +35,7 @@ class DatabaseSessionManager:
 
     def init(self, database_url: str) -> None:
         """Initialize database engine and session factory."""
-        engine_kwargs: dict = {
+        engine_kwargs: dict[str, Any] = {
             "echo": settings.ENVIRONMENT == "development",
             "pool_pre_ping": True,
         }
@@ -50,14 +51,14 @@ class DatabaseSessionManager:
 
         # Add slow query profiling on the sync engine
         @event.listens_for(self._engine.sync_engine, "before_cursor_execute")
-        def _before_cursor_execute(  # noqa: PLR0913
+        def _before_cursor_execute(  # type: ignore[no-untyped-def]  # noqa: PLR0913
             conn, cursor, statement, parameters, context, executemany
         ):
             conn.info["query_start_time"] = time.monotonic()
             query_count_var.set(query_count_var.get() + 1)
 
         @event.listens_for(self._engine.sync_engine, "after_cursor_execute")
-        def _after_cursor_execute(  # noqa: PLR0913
+        def _after_cursor_execute(  # type: ignore[no-untyped-def]  # noqa: PLR0913
             conn, cursor, statement, parameters, context, executemany
         ):
             start = conn.info.pop("query_start_time", None)
@@ -74,7 +75,9 @@ class DatabaseSessionManager:
 
         # Add Row-Level Security (tenant isolation)
         @event.listens_for(self._engine.sync_engine, "before_execute", retval=True)
-        def _add_tenant_filter(conn, clauseelement, multiparams, params, execution_options):
+        def _add_tenant_filter(  # type: ignore[no-untyped-def]
+            conn, clauseelement, multiparams, params, execution_options
+        ):
             tenant_id = get_current_tenant()
             if tenant_id is None:
                 return clauseelement, multiparams, params
@@ -143,8 +146,8 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
 
 
 def apply_tenant_filter(
-    tenant_id: int | None, clauseelement, multiparams, params, execution_options
-):
+    tenant_id: int | None, clauseelement: Any, multiparams: Any, params: Any, execution_options: Any
+) -> Any:
     """Public helper that applies tenant-RLS filter (callable from tests)."""
     if tenant_id is None:
         return clauseelement, multiparams, params

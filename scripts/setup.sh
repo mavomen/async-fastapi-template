@@ -26,7 +26,26 @@ fi
 # Start Docker services
 docker compose -f docker-compose.dev.yml up -d
 echo "Waiting for PostgreSQL and Redis to be ready..."
-sleep 5
+
+# Poll PostgreSQL until ready
+for i in $(seq 1 30); do
+	if docker compose exec -T db pg_isready -U postgres 2>/dev/null; then
+		echo "PostgreSQL is ready"
+		break
+	fi
+	echo "Waiting for PostgreSQL... ($i/30)"
+	sleep 2
+done
+
+# Quick Redis check
+for i in $(seq 1 15); do
+	if docker compose exec -T redis redis-cli ping 2>/dev/null | grep -q PONG; then
+		echo "Redis is ready"
+		break
+	fi
+	echo "Waiting for Redis... ($i/15)"
+	sleep 2
+done
 
 # Install Python dependencies
 poetry install

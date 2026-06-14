@@ -32,7 +32,8 @@ class LocalStorage(StorageBackend):
         if not full_path.is_file():
             raise FileNotFoundError(f"File {path} not found")
         async with aiofiles.open(full_path, "rb") as f:
-            return await f.read()
+            content = await f.read()
+            return bytes(content)
 
     async def delete(self, path: str) -> None:
         """Delete a file from disk."""

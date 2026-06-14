@@ -4,7 +4,7 @@ import time
 
 from celery.utils.log import get_task_logger
 
-from app.core.celery_app import celery_app  # type: ignore[import-not-found]
+from app.core.celery_app import celery_app
 from app.tasks.base import BaseTask
 
 logger = get_task_logger(__name__)
