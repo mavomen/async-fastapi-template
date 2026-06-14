@@ -54,7 +54,9 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         Returns:
             List of model instances
         """
-        result = await db.execute(select(self.model).offset(skip).limit(limit))
+        result = await db.execute(
+            select(self.model).order_by(self.model.id).offset(skip).limit(limit)
+        )  # type: ignore[attr-defined]
         return list(result.scalars().all())
 
     async def create(self, db: AsyncSession, *, obj_in: CreateSchemaType) -> ModelType:

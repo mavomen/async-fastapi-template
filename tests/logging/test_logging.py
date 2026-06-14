@@ -1,4 +1,4 @@
-"""Tests for logging middleware."""
+"""Tests for logging middleware and context."""
 
 from fastapi.testclient import TestClient
 
@@ -21,7 +21,26 @@ def test_request_logging_middleware_present():
     """RequestLoggingMiddleware is registered."""
     from app.main import app
 
-    # Verify middleware exists by checking user_middleware
     middleware_classes = [m.cls for m in app.user_middleware]
 
     assert RequestLoggingMiddleware in middleware_classes
+
+
+def test_logcontext_does_not_clear_outer_context():
+    """LogContext should unbind only its own keys, not all context vars."""
+    import structlog
+
+    from app.logging.context import LogContext
+
+    structlog.contextvars.bind_contextvars(outer_key="outer_value")
+
+    with LogContext(inner_key="inner_value"):
+        ctx = structlog.contextvars.get_contextvars()
+        assert ctx.get("inner_key") == "inner_value"
+        assert ctx.get("outer_key") == "outer_value"
+
+    ctx_after = structlog.contextvars.get_contextvars()
+    assert ctx_after.get("outer_key") == "outer_value"
+    assert "inner_key" not in ctx_after
+
+    structlog.contextvars.clear_contextvars()

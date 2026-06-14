@@ -4,10 +4,6 @@ from celery import Celery
 
 from app.core.config import settings
 
-celery_app = Celery(  # type: ignore[no-untyped-call]
-    "async_fastapi_template", ...
-)
-
 celery_app = Celery(
     "async_fastapi_template",
     broker=settings.CELERY_BROKER_URL,
