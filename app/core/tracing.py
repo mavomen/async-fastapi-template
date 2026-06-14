@@ -1,5 +1,7 @@
 """OpenTelemetry tracing configuration."""
 
+from typing import Any
+
 from opentelemetry import trace
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 from opentelemetry.instrumentation.sqlalchemy import SQLAlchemyInstrumentor
@@ -9,7 +11,7 @@ from opentelemetry.sdk.trace.export import BatchSpanProcessor, ConsoleSpanExport
 from app.core.config import settings
 
 
-def setup_tracing(app=None) -> None:
+def setup_tracing(app: Any = None) -> None:
     """Initialize OpenTelemetry. Exporter is skipped in test environment."""
     provider = TracerProvider()
     trace.set_tracer_provider(provider)
@@ -34,4 +36,4 @@ def setup_tracing(app=None) -> None:
     if app:
         FastAPIInstrumentor.instrument_app(app)
 
-    SQLAlchemyInstrumentor().instrument(enable_commenter=True)  # type: ignore[no-untyped-call]
+    SQLAlchemyInstrumentor().instrument(enable_commenter=True)

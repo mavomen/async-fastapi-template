@@ -19,6 +19,17 @@ from app.storage.s3 import S3Storage
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 
+__all__ = [
+    "get_cache",
+    "get_current_tenant_id",
+    "get_current_user",
+    "get_db",
+    "get_email_service",
+    "get_event_bus",
+    "get_gql_context",
+    "get_storage",
+]
+
 
 async def get_current_user(
     token: str = Depends(oauth2_scheme),
@@ -80,7 +91,7 @@ async def get_gql_context(request: Request, db: AsyncSession = Depends(get_db)) 
             payload = decode_access_token(token)
             user_id = payload.get("sub")
             if user_id:
-                current_user = await crud_user.get(db, id=int(user_id))
+                current_user = await crud_user.get_with_roles(db, id=int(user_id))
         except Exception:
             pass  # token invalid or expired - resolvers can still check permissions
     return {"request": request, "db": db, "current_user": current_user}

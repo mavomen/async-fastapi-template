@@ -2,6 +2,7 @@
 
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from typing import Any
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -86,6 +87,30 @@ def create_app() -> FastAPI:
                 "description": "File upload and download with local or S3 storage.",
             },
             {"name": "metrics", "description": "Prometheus metrics endpoint."},
+            {
+                "name": "admin",
+                "description": "HTMX-powered admin dashboard for managing application data.",
+            },
+            {
+                "name": "profile",
+                "description": "User profile management endpoints.",
+            },
+            {
+                "name": "tenants",
+                "description": "Multi-tenant management endpoints.",
+            },
+            {
+                "name": "events",
+                "description": "Event bus monitoring and management endpoints.",
+            },
+            {
+                "name": "websocket",
+                "description": "WebSocket chat endpoints with JWT authentication.",
+            },
+            {
+                "name": "graphql",
+                "description": "GraphQL endpoint for queries, mutations, and subscriptions.",
+            },
         ],
     )
 
@@ -135,7 +160,7 @@ def create_app() -> FastAPI:
 
     # Scalar API reference (modern, dark-mode capable)
     @app.get("/scalar", include_in_schema=False)
-    async def scalar_html():
+    async def scalar_html() -> Any:
         return get_scalar_api_reference(
             openapi_url=app.openapi_url,
             title=settings.PROJECT_NAME,

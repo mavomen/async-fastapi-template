@@ -62,6 +62,7 @@ curl -X POST http://localhost:8000/api/v1/auth/login \
 ```json
 {
   "access_token": "eyJhbGci...",
+  "refresh_token": "eyJhbGci...",
   "token_type": "bearer"
 }
 ```

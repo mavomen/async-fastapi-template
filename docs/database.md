@@ -20,17 +20,11 @@ Database settings are managed through Pydantic Settings in `app/core/config.py`:
 ```python
 class Settings(BaseSettings):
   DATABASE_URL: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/fastapi"
-  DB_ECHO: bool = False
-  DB_POOL_SIZE: int = 5
-  DB_MAX_OVERFLOW: int = 10
 ```
 
 Environment variables:
 
 - `DATABASE_URL`: PostgreSQL connection string with asyncpg driver
-- `DB_ECHO`: Enable SQL query logging (default: False)
-- `DB_POOL_SIZE`: Connection pool size (default: 5)
-- `DB_MAX_OVERFLOW`: Max overflow connections (default: 10)
 
 ## Usage
 
@@ -104,12 +98,11 @@ finally:
 
 ## Connection Pooling
 
-SQLAlchemy's connection pool configuration:
+SQLAlchemy's connection pool is configured in `app/core/database.py`:
 
-- **pool_size**: Number of persistent connections (default: 5)
-- **max_overflow**: Additional connections when pool exhausted (default: 10)
+- **pool_size**: Number of persistent connections
+- **max_overflow**: Additional connections when pool exhausted
 - **pool_pre_ping**: Verify connections before use (enabled)
-- **echo**: Log all SQL statements (configurable via `DB_ECHO`)
 
 ## Testing
 

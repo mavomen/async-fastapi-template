@@ -2,6 +2,7 @@
 
 import logging
 from pathlib import Path
+from typing import Any
 
 from jinja2 import Environment, FileSystemLoader
 
@@ -22,7 +23,7 @@ class EmailService:
         to_email: str,
         subject: str,
         template_name: str,
-        context: dict | None = None,
+        context: dict[str, Any] | None = None,
     ) -> None:
         """Render template and send email (simulated)."""
         template = env.get_template(template_name)
@@ -49,7 +50,7 @@ def send_email_with_retry(
     to_email: str,
     subject: str,
     template_name: str,
-    context: dict | None = None,
+    context: dict[str, Any] | None = None,
 ) -> None:
     """
     Celery task that sends an email with exponential backoff retry.

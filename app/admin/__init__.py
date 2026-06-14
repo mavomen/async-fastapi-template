@@ -13,7 +13,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.admin.deps import require_admin
 from app.api.deps import get_db
 from app.auth.permissions import has_permission
-from app.core.security import get_password_hash
 from app.crud.user import user as crud_user
 from app.decorators.rate_limit import rate_limit
 from app.models import Permission, Role, User

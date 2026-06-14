@@ -65,7 +65,8 @@ class RedisCache:
         """Check if a key exists in cache."""
         if self._redis is None:
             raise RuntimeError("RedisCache is not connected")
-        return await self._redis.exists(key) > 0
+        n = await self._redis.exists(key)
+        return bool(n > 0)
 
     async def flush(self) -> None:
         """Clear all keys in the current database."""

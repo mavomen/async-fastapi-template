@@ -1,6 +1,7 @@
 """Audit log model for tracking mutations."""
 
 from datetime import UTC, datetime
+from typing import Any
 
 from sqlalchemy import Integer, String, event
 from sqlalchemy.orm import Mapped, mapped_column
@@ -25,7 +26,7 @@ class AuditLog(BaseModel):
         return f"<AuditLog(table={self.table_name}, action={self.action}, id={self.id})>"
 
 
-def _get_changed_fields(connection, target, action):
+def _get_changed_fields(connection: Any, target: Any, action: str) -> dict[str, str]:
     """Return a dict of changed fields and their old/new values."""
     import json
 
@@ -37,7 +38,7 @@ def _get_changed_fields(connection, target, action):
         new = {c.key: getattr(target, c.key) for c in target.__table__.columns}
         return {"new_values": json.dumps(new, default=str)}
     # update
-    changes = {}
+    changes: dict[str, str] = {}
     old_vals = {}
     new_vals = {}
     for attr in state.attrs:
@@ -51,13 +52,13 @@ def _get_changed_fields(connection, target, action):
     }
 
 
-def install_audit_log_listener(target_model):
+def install_audit_log_listener(target_model: Any) -> None:
     """Register before_flush listeners for a model to capture audit logs."""
 
     @event.listens_for(target_model, "before_insert", propagate=True)
-    def _before_insert(mapper, connection, target):
+    def _before_insert(mapper: Any, connection: Any, target: Any) -> None:
         connection.execute(
-            AuditLog.__table__.insert().values(
+            AuditLog.__table__.insert().values(  # type: ignore[attr-defined]
                 table_name=target.__tablename__,
                 record_id=target.id,
                 action="INSERT",
@@ -69,9 +70,9 @@ def install_audit_log_listener(target_model):
         )
 
     @event.listens_for(target_model, "before_update", propagate=True)
-    def _before_update(mapper, connection, target):
+    def _before_update(mapper: Any, connection: Any, target: Any) -> None:
         connection.execute(
-            AuditLog.__table__.insert().values(
+            AuditLog.__table__.insert().values(  # type: ignore[attr-defined]
                 table_name=target.__tablename__,
                 record_id=target.id,
                 action="UPDATE",
@@ -83,9 +84,9 @@ def install_audit_log_listener(target_model):
         )
 
     @event.listens_for(target_model, "before_delete", propagate=True)
-    def _before_delete(mapper, connection, target):
+    def _before_delete(mapper: Any, connection: Any, target: Any) -> None:
         connection.execute(
-            AuditLog.__table__.insert().values(
+            AuditLog.__table__.insert().values(  # type: ignore[attr-defined]
                 table_name=target.__tablename__,
                 record_id=target.id,
                 action="DELETE",
