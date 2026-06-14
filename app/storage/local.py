@@ -1,6 +1,5 @@
 """Local file system storage backend."""
 
-import asyncio
 from pathlib import Path
 from typing import BinaryIO
 
@@ -21,9 +20,17 @@ class LocalStorage(StorageBackend):
         """Save uploaded file to disk and return the relative path."""
         safe_name = Path(filename).name
         file_path = self.storage_path / safe_name
-        content = await asyncio.to_thread(file.read)
         async with aiofiles.open(file_path, "wb") as out_file:
-            await out_file.write(content)
+            while chunk := file.read(1024 * 1024):
+                await out_file.write(chunk)
+        return str(file_path.relative_to(self.storage_path))
+
+    async def upload_bytes(self, data: bytes, filename: str) -> str:
+        """Write raw bytes directly to disk without a wrapping BytesIO."""
+        safe_name = Path(filename).name
+        file_path = self.storage_path / safe_name
+        async with aiofiles.open(file_path, "wb") as out_file:
+            await out_file.write(data)
         return str(file_path.relative_to(self.storage_path))
 
     async def download(self, path: str) -> bytes:

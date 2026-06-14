@@ -43,10 +43,12 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     sessionmanager.init(settings.DATABASE_URL)
     await cache.connect()
     if settings.ENVIRONMENT != "test":
+        from app.middleware.tenant import TenantMiddleware
         from app.models.audit_log import install_audit_log_listener
         from app.models.user import User
 
         install_audit_log_listener(User)
+        await TenantMiddleware.warm_default_tenant()
     yield
     # Shutdown: only close in non-test environments
     if settings.ENVIRONMENT != "test":

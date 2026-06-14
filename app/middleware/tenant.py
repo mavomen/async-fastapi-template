@@ -12,6 +12,24 @@ class TenantMiddleware(BaseHTTPMiddleware):
 
     _default_tenant_id: int | None = None
 
+    @classmethod
+    async def warm_default_tenant(cls) -> None:
+        """Pre-warm the default tenant cache at startup to avoid a DB query on the first request."""
+        if cls._default_tenant_id is not None:
+            return
+        try:
+            from sqlalchemy import select
+
+            from app.models.tenant import Tenant
+
+            async with sessionmanager.session() as db:
+                result = await db.execute(select(Tenant.id).where(Tenant.is_active).limit(1))
+                row = result.scalar_one_or_none()
+                if row:
+                    cls._default_tenant_id = row
+        except Exception:
+            pass
+
     async def dispatch(self, request: Request, call_next):
         tenant_id = None
 
@@ -23,22 +41,6 @@ class TenantMiddleware(BaseHTTPMiddleware):
             cached = type(self)._default_tenant_id
             if cached is not None:
                 tenant_id = cached
-            else:
-                try:
-                    from sqlalchemy import select
-
-                    from app.models.tenant import Tenant
-
-                    async with sessionmanager.session() as db:
-                        result = await db.execute(
-                            select(Tenant.id).where(Tenant.is_active).limit(1)
-                        )
-                        row = result.scalar_one_or_none()
-                        if row:
-                            type(self)._default_tenant_id = row
-                            tenant_id = row
-                except Exception:
-                    pass
 
         set_current_tenant(tenant_id)
         response = await call_next(request)
