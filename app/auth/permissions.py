@@ -25,6 +25,7 @@ def has_permission(user: User, required_permissions: list[str]) -> bool:
         return True
     if not user.roles:
         logger.debug("User %s has no roles, denying all permissions", user.id)
+        return False
 
     # Collect all permission names from all roles
     user_permissions: set[str] = set()

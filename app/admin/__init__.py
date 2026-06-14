@@ -109,10 +109,9 @@ def _coerce_value(model: type[BaseModel], field: str, value: str) -> Any:
 
 
 def _set_default_password_for_user(obj: User) -> None:
-    """Assign a hashed password to a User if one was not provided."""
+    """Validate that a password was provided for new User objects."""
     if isinstance(obj, User) and not obj.hashed_password:
-        logger.warning("Admin user created without explicit password - using placeholder")
-        obj.hashed_password = get_password_hash("Admin123!")  # placeholder
+        raise HTTPException(status_code=400, detail="Password is required when creating a user")
 
 
 # ---------- Router ----------
