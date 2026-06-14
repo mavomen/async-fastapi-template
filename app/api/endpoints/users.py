@@ -14,6 +14,7 @@ from fastapi import (
     UploadFile,
     status,
 )
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_db
@@ -213,12 +214,13 @@ async def import_users_csv(
         user_in = UserCreate(
             email=row["email"],
             username=row["username"],
-            password=row.get("password", "DefaultPass1!"),
+            password=row["password"],
             full_name=row.get("full_name"),
         )
         try:
             user = await crud_user.create(db, obj_in=user_in)
             created.append(user)
-        except Exception:
+        except IntegrityError:
+            await db.rollback()
             continue  # skip duplicate rows
     return created

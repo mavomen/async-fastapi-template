@@ -18,11 +18,19 @@ class LocalStorage(StorageBackend):
 
     async def upload(self, file: BinaryIO, filename: str) -> str:
         """Save uploaded file to disk and return the relative path."""
-        safe_name = Path(filename).name  # strip any directory
+        safe_name = Path(filename).name
         file_path = self.storage_path / safe_name
         async with aiofiles.open(file_path, "wb") as out_file:
-            content = file.read()
-            await out_file.write(content)
+            while chunk := file.read(1024 * 1024):
+                await out_file.write(chunk)
+        return str(file_path.relative_to(self.storage_path))
+
+    async def upload_bytes(self, data: bytes, filename: str) -> str:
+        """Write raw bytes directly to disk without a wrapping BytesIO."""
+        safe_name = Path(filename).name
+        file_path = self.storage_path / safe_name
+        async with aiofiles.open(file_path, "wb") as out_file:
+            await out_file.write(data)
         return str(file_path.relative_to(self.storage_path))
 
     async def download(self, path: str) -> bytes:
@@ -31,7 +39,8 @@ class LocalStorage(StorageBackend):
         if not full_path.is_file():
             raise FileNotFoundError(f"File {path} not found")
         async with aiofiles.open(full_path, "rb") as f:
-            return await f.read()
+            content = await f.read()
+            return bytes(content)
 
     async def delete(self, path: str) -> None:
         """Delete a file from disk."""

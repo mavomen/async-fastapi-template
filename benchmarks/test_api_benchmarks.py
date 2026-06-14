@@ -1,5 +1,7 @@
 """pytest-benchmark tests for critical API endpoints."""
 
+from itertools import count
+
 from fastapi.testclient import TestClient
 
 
@@ -18,10 +20,18 @@ def test_users_list_endpoint(benchmark, client: TestClient):
 
 def test_register_endpoint(benchmark, client: TestClient):
     """Benchmark the register endpoint."""
-    result = benchmark(
-        lambda: client.post(
+    _counter = count()
+
+    def _register():
+        i = next(_counter)
+        return client.post(
             "/api/v1/auth/register",
-            json={"email": "bench@example.com", "username": "benchuser", "password": "BenchPass1!"},
+            json={
+                "email": f"bench-{i}@example.com",
+                "username": f"benchuser-{i}",
+                "password": "BenchPass1!",
+            },
         )
-    )
+
+    result = benchmark(_register)
     assert result.status_code == 201

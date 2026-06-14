@@ -24,20 +24,13 @@ jobs:
           --health-retries 5
 
     env:
-      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
       ENVIRONMENT: test
       DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:5432/fastapi_test
       SECRET_KEY: ${{ secrets.TEST_SECRET_KEY || 'ci-test-key-minimum-32-characters!!' }}
 
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Install Poetry
-        run: pip install poetry
-      - name: Install dependencies
-        run: poetry install
+      - uses: ./.github/actions/setup-python-poetry
       - name: Run mutation tests (subset to keep CI fast)
         run: |
           poetry run mutmut run --paths-to-mutate app/core/security.py app/crud/base.py app/auth/permissions.py --no-progress

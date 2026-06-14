@@ -3,7 +3,8 @@
 import structlog
 from fastapi import Request
 from opentelemetry import trace
-from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
+from starlette.responses import Response
 
 logger = structlog.get_logger(__name__)
 
@@ -11,7 +12,7 @@ logger = structlog.get_logger(__name__)
 class RequestIDMiddleware(BaseHTTPMiddleware):
     """Inject correlation ID into structlog and OpenTelemetry."""
 
-    async def dispatch(self, request: Request, call_next):
+    async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
         correlation_id = getattr(request.state, "correlation_id", None)
         if correlation_id:
             structlog.contextvars.bind_contextvars(correlation_id=correlation_id)

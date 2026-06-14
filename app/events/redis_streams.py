@@ -20,7 +20,7 @@ class RedisStreamsEventBus(EventBus):
         self._stream = stream_name
         self._group = group_name
         self._handlers: dict[str, list[EventHandler]] = {}
-        self._consumer_tasks: list[asyncio.Task] = []
+        self._consumer_tasks: list[asyncio.Task[None]] = []
 
     async def connect(self) -> None:
         """Create consumer group if not exists."""
@@ -65,12 +65,15 @@ class RedisStreamsEventBus(EventBus):
                     for msg_id, fields in messages:
                         event = Event.from_json(fields["event"])
                         handlers = self._handlers.get(event.event_type, [])
+                        failed = False
                         for handler in handlers:
                             try:
                                 await handler(event)
                             except Exception:
                                 logger.exception("Handler failed for event %s", event.event_type)
-                        await self._redis.xack(self._stream, self._group, msg_id)
+                                failed = True
+                        if not failed:
+                            await self._redis.xack(self._stream, self._group, msg_id)
             except asyncio.CancelledError:
                 break
             except Exception:

@@ -10,9 +10,10 @@ ingress:
   host: fastapi.example.com
 config:
   ENVIRONMENT: "production"
-  DATABASE_URL: "postgresql+asyncpg://postgres:postgres@postgres:5432/fastapi_db"
   REDIS_URL: "redis://redis:6379/0"
   API_V1_STR: "/api/v1"
+# Override at deploy time via --set or an encrypted values file
 secret:
   SECRET_KEY: "replace-with-a-strong-secret-key!!"
+  DATABASE_URL: "postgresql+asyncpg://postgres:postgres@postgres:5432/fastapi_db"
   POSTGRES_PASSWORD: "postgres"

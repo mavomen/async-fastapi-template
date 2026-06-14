@@ -53,7 +53,9 @@ def upgrade() -> None:
     op.execute(
         "UPDATE users SET search_vector = to_tsvector('english', coalesce(email, '') || ' ' || coalesce(username, '') || ' ' || coalesce(full_name, ''))"
     )
-    op.execute("CREATE INDEX ix_users_search_vector ON users USING gin(search_vector)")
+    # Production note: for large tables, use CREATE INDEX CONCURRENTLY outside of a
+    # transaction block via op.get_context().autocommit_block() to avoid table locks.
+    op.create_index("ix_users_search_vector", "users", ["search_vector"], postgresql_using="gin")
     op.execute("""
         CREATE TRIGGER tsvectorupdate BEFORE INSERT OR UPDATE
         ON users FOR EACH ROW EXECUTE FUNCTION

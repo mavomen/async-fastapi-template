@@ -4,11 +4,15 @@ import logging
 import time
 
 from fastapi import Request
+from starlette.middleware.base import RequestResponseEndpoint
+from starlette.responses import Response
 
 logger = logging.getLogger("app.error")
 
 
-async def error_logging_middleware(request: Request, call_next):
+async def error_logging_middleware(
+    request: Request, call_next: RequestResponseEndpoint
+) -> Response:
     """Log all requests and capture any unhandled exceptions."""
     start_time = time.monotonic()
     try:

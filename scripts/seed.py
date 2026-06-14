@@ -7,6 +7,8 @@ import os
 os.environ["ENVIRONMENT"] = "development"
 os.environ["SECRET_KEY"] = "dev-secret-key-min-32-characters!!!"
 
+from sqlalchemy import select
+
 from app.core.config import settings
 from app.core.database import sessionmanager
 from app.crud.user import user as crud_user
@@ -31,22 +33,38 @@ SEED_USERS = [
 SEED_PERMISSIONS = ["user:read", "user:write", "user:delete"]
 
 
+async def get_or_create_permission(db, name: str) -> Permission:
+    result = await db.execute(select(Permission).where(Permission.name == name))
+    perm = result.scalar_one_or_none()
+    if perm is None:
+        perm = Permission(name=name)
+        db.add(perm)
+        await db.flush()
+    return perm
+
+
+async def get_or_create_role(db, name: str, description: str) -> Role:
+    result = await db.execute(select(Role).where(Role.name == name))
+    role = result.scalar_one_or_none()
+    if role is None:
+        role = Role(name=name, description=description)
+        db.add(role)
+        await db.flush()
+    return role
+
+
 async def main():
     sessionmanager.init(settings.DATABASE_URL)
 
     async with sessionmanager.session() as db:
-        # Create permissions
+        # Create or fetch permissions
         perms = {}
         for name in SEED_PERMISSIONS:
-            perm = Permission(name=name)
-            db.add(perm)
-            perms[name] = perm
-        await db.flush()
+            perms[name] = await get_or_create_permission(db, name)
 
-        # Create admin role with all permissions
-        role = Role(name="admin", description="Administrator")
-        role.permissions.extend(perms.values())
-        db.add(role)
+        # Create or fetch admin role
+        role = await get_or_create_role(db, "admin", "Administrator")
+        role.permissions.extend(p for p in perms.values() if p not in role.permissions)
         await db.flush()
 
         # Create seed users
@@ -54,7 +72,6 @@ async def main():
             existing = await crud_user.get_by_email(db, email=user_data["email"])
             if not existing:
                 user = await crud_user.create(db, obj_in=UserCreate(**user_data))
-                # Assign admin role to admin user
                 if user_data["username"] == "admin":
                     user.roles.append(role)
                     await db.commit()

@@ -2,7 +2,7 @@
 
 ## Reporting a Vulnerability
 
-If you discover a security vulnerability, please **do not** open a public issue. Send an email to [security@example.com](mailto:security@example.com) with details.
+If you discover a security vulnerability, please **do not** open a public issue. Send an email to [security@asyncfastapi.dev](mailto:security@asyncfastapi.dev) with details.
 
 We will respond within 48 hours and work with you to resolve the issue promptly.
 
@@ -10,8 +10,8 @@ We will respond within 48 hours and work with you to resolve the issue promptly.
 
 | Version | Supported          |
 | ------- | ------------------ |
-| 1.x.x   | :white_check_mark: |
-| < 1.0.0 | :x:                |
+| 3.x.x   | :white_check_mark: |
+| < 3.0.0 | :x:                |
 
 ## Security Best Practices
 

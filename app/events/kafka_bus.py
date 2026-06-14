@@ -27,7 +27,7 @@ class KafkaEventBus(EventBus):
         self._producer: KafkaProducer | None = None
         self._consumer: KafkaConsumer | None = None
         self._handlers: dict[str, list[EventHandler]] = {}
-        self._consumer_task: asyncio.Task | None = None
+        self._consumer_task: asyncio.Task[None] | None = None
 
     async def connect(self) -> None:
         """Initialize producer and consumer."""
@@ -53,7 +53,10 @@ class KafkaEventBus(EventBus):
     async def publish(self, event: Event) -> None:
         """Send event to Kafka topic."""
         if self._producer:
-            self._producer.send(
+            loop = asyncio.get_event_loop()
+            await loop.run_in_executor(
+                None,
+                self._producer.send,
                 self._topic,
                 {
                     "event_type": event.event_type,
@@ -62,7 +65,7 @@ class KafkaEventBus(EventBus):
                     "timestamp": event.timestamp,
                 },
             )
-            self._producer.flush()
+            await loop.run_in_executor(None, self._producer.flush)
 
     async def subscribe(self, event_type: str, handler: EventHandler) -> None:
         self._handlers.setdefault(event_type, []).append(handler)

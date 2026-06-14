@@ -1,11 +1,15 @@
 """Global exception handlers for FastAPI."""
 
+import logging
+
 from fastapi import Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import ORJSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.core.exceptions import AppException
+
+logger = logging.getLogger(__name__)
 
 
 def configure_exception_handlers(app):
@@ -50,7 +54,7 @@ def configure_exception_handlers(app):
     @app.exception_handler(Exception)
     async def unhandled_exception_handler(request: Request, exc: Exception):
         """Catch-all for unhandled exceptions, logs and returns 500."""
-        # Log the exception here if configured
+        logger.exception("Unhandled exception: %s", exc)
         return ORJSONResponse(
             status_code=500,
             content={"detail": "Internal server error"},

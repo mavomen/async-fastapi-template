@@ -9,8 +9,6 @@ from app.core.database import get_db
 from app.core.security import decode_access_token
 from app.crud.user import user as crud_user
 from app.events.base import EventBus
-from app.events.kafka_bus import KafkaEventBus
-from app.events.redis_streams import RedisStreamsEventBus
 from app.models.user import User
 from app.services.email import EmailService, email_service
 from app.storage.base import StorageBackend
@@ -18,6 +16,17 @@ from app.storage.local import LocalStorage
 from app.storage.s3 import S3Storage
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
+
+__all__ = [
+    "get_cache",
+    "get_current_tenant_id",
+    "get_current_user",
+    "get_db",
+    "get_email_service",
+    "get_event_bus",
+    "get_gql_context",
+    "get_storage",
+]
 
 
 async def get_current_user(
@@ -80,7 +89,7 @@ async def get_gql_context(request: Request, db: AsyncSession = Depends(get_db)) 
             payload = decode_access_token(token)
             user_id = payload.get("sub")
             if user_id:
-                current_user = await crud_user.get(db, id=int(user_id))
+                current_user = await crud_user.get_with_roles(db, id=int(user_id))
         except Exception:
             pass  # token invalid or expired - resolvers can still check permissions
     return {"request": request, "db": db, "current_user": current_user}
@@ -94,12 +103,7 @@ async def get_current_tenant_id() -> int | None:
 
 
 async def get_event_bus() -> EventBus:
-    """FastAPI dependency for event bus."""
-    bus: EventBus
-    if settings.EVENT_BUS_BACKEND == "kafka":
-        bus = KafkaEventBus(bootstrap_servers=settings.EVENT_BUS_KAFKA_SERVERS)
-    else:
-        redis_url = settings.EVENT_BUS_REDIS_URL or settings.REDIS_URL
-        bus = RedisStreamsEventBus(redis_url=redis_url)
-    await bus.connect()
-    return bus
+    """FastAPI dependency returning the shared singleton event bus."""
+    from app.events import get_event_bus as _get_bus
+
+    return await _get_bus()

@@ -12,6 +12,12 @@ class StorageBackend(ABC):
         """Store a file and return the retrieval path/URL."""
         ...
 
+    async def upload_bytes(self, data: bytes, filename: str) -> str:
+        """Store raw bytes and return the retrieval path/URL."""
+        from io import BytesIO
+
+        return await self.upload(BytesIO(data), filename)
+
     @abstractmethod
     async def download(self, path: str) -> bytes:
         """Retrieve file contents by path."""

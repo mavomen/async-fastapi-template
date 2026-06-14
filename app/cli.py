@@ -89,7 +89,7 @@ def celery() -> None:
             "run",
             "celery",
             "-A",
-            "app.core.celery",
+            "app.core.celery_app",
             "worker",
             "--loglevel=info",
         ],
