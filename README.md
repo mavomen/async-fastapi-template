@@ -11,37 +11,37 @@
 
 A production‑ready, fully async FastAPI template with everything you need to build modern APIs.
 
-## 🚀 Features
+## Features
 
-- ⚡ **Async SQLAlchemy 2.0** + Alembic migrations
-- 🔐 **JWT authentication** with refresh tokens and role‑based access control (RBAC)
-- 🔑 **WebAuthn / Passkey** support (passwordless authentication)
-- 🧬 **GraphQL** endpoint with Strawberry (queries, mutations, subscriptions)
-- 🏢 **Multi‑tenancy** with Row‑Level Security via SQLAlchemy events
-- 📦 **File uploads** (local & S3) with SSE streaming progress
-- 🗨️ **WebSocket** chat with JWT auth
-- ⏳ **Background tasks** with Celery + Redis + retry/backoff
-- 💾 **Redis caching** with cache‑aside, warming, and invalidation
-- 🚦 **Rate limiting** (per‑IP and per‑user) with slowapi
-- 📊 **Prometheus metrics** + **Grafana dashboards**
-- 🕵️ **Distributed tracing** with OpenTelemetry
-- ✉️ **Email verification** with Jinja2 templates and Celery retry
-- 📥 **CSV / Excel export and import** utilities
-- 🛡️ **Security headers**, SQL injection monitoring, XSS sanitisation
-- 📝 **Structured logging** with structlog and correlation IDs
-- 🔍 **Full‑text search** (PostgreSQL tsvector) and **audit logging**
-- 🚩 **Feature flags** (env, cache, code defaults)
-- ⚡ **Performance profiling** (slow‑query logging, benchmarks, load tests)
-- 🛠️ **Scaffolding CLI** – generate models, endpoints, and tests instantly
-- 🎨 **HTMX‑powered admin dashboard** with dark mode, inline editing, live search
-- 🐳 **Docker Compose** for dev and production
-- ☸️ **Kubernetes manifests** and **Helm chart**
-- 🔧 **CI/CD workflows** (matrix tests, PR linting, mutation testing, benchmark regression, automated releases)
-- ✅ **Snapshot testing** (OpenAPI) and **mutation testing** (mutmut)
-- 🧹 **Code quality** enforced by Ruff, mypy, and pre‑commit
-- 📖 **Extensive documentation** – quickstart, architecture, deployment, and more
+- **Async SQLAlchemy 2.0** + Alembic migrations
+- **JWT authentication** with refresh tokens and role‑based access control (RBAC)
+- **WebAuthn / Passkey** support (passwordless authentication)
+- **GraphQL** endpoint with Strawberry (queries, mutations, subscriptions)
+- **Multi‑tenancy** with Row‑Level Security via SQLAlchemy events
+- **File uploads** (local & S3) with SSE streaming progress
+- **WebSocket** chat with JWT auth
+- **Background tasks** with Celery + Redis + retry/backoff
+- **Redis caching** with cache‑aside, warming, and invalidation
+- **Rate limiting** (per‑IP and per‑user) with slowapi
+- **Prometheus metrics** + **Grafana dashboards**
+- **Distributed tracing** with OpenTelemetry
+- **Email verification** with Jinja2 templates and Celery retry
+- **CSV / Excel export and import** utilities
+- **Security headers**, SQL injection monitoring, XSS sanitisation
+- **Structured logging** with structlog and correlation IDs
+- **Full‑text search** (PostgreSQL tsvector) and **audit logging**
+- **Feature flags** (env, cache, code defaults)
+- **Performance profiling** (slow‑query logging, benchmarks, load tests)
+- **Scaffolding CLI** – generate models, endpoints, and tests instantly
+- **HTMX‑powered admin dashboard** with dark mode, inline editing, live search
+- **Docker Compose** for dev and production
+- **Kubernetes manifests** and **Helm chart**
+- **CI/CD workflows** (matrix tests, PR linting, mutation testing, benchmark regression, automated releases)
+- **Snapshot testing** (OpenAPI) and **mutation testing** (mutmut)
+- **Code quality** enforced by Ruff, mypy, and pre‑commit
+- **Extensive documentation** – quickstart, architecture, deployment, and more
 
-## 🏁 Quickstart
+## Quickstart
 
 ```bash
 git clone https://github.com/mavomen/async-fastapi-template.git
@@ -76,7 +76,7 @@ Visit **http://localhost:8000/docs** for the interactive API docs, **http://loca
 | CI/CD + Release automation | ✅            | Common            |
 | 85%+ test coverage         | ✅            | Rare              |
 
-## 📚 Documentation
+## Documentation
 
 - [Quickstart Guide](docs/quickstart.md)
 - [API Documentation](docs/api.md)
@@ -104,27 +104,6 @@ Visit **http://localhost:8000/docs** for the interactive API docs, **http://loca
 - [Security](SECURITY.md)
 - [Contributing](CONTRIBUTING.md)
 - [Changelog](CHANGELOG.md)
-
-## 🗺️ Roadmap
-
-- [x] Core FastAPI app with async SQLAlchemy
-- [x] JWT auth and RBAC
-- [x] Background tasks, caching, rate limiting
-- [x] File storage, WebSocket, email verification
-- [x] GraphQL integration
-- [x] Performance profiling & load testing
-- [x] CI/CD polish & release automation
-- [x] Advanced features (SSE, cache warming, batch ops)
-- [x] Developer tooling (scaffolder, scripts)
-- [x] Admin dashboard (HTMX) with dark mode & inline editing
-- [x] Multi‑tenancy with Row‑Level Security
-- [x] Event‑driven architecture (Redis Streams / Kafka)
-- [x] Full‑text search & audit logging
-- [x] WebAuthn / Passkey authentication
-- [x] Refresh tokens with rotation
-- [x] Kubernetes manifests & Helm chart
-- [x] Mutation testing & snapshot testing
-- [x] 85%+ test coverage
 
 ## ❓ FAQ
 

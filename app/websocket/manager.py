@@ -36,21 +36,37 @@ class ConnectionManager:
                 await websocket.send_text(message)
             except Exception:
                 dead.append(websocket)
-        for ws in dead:
-            await self.disconnect(ws, user_id)
+        if dead:
+            async with self._lock:
+                user_conns = self.active_connections.get(user_id)
+                if user_conns:
+                    for ws in dead:
+                        user_conns.discard(ws)
+                    if not user_conns:
+                        del self.active_connections[user_id]
 
     async def broadcast(self, message: str) -> None:
         async with self._lock:
-            snapshot = list(self.active_connections.items())
+            items = [(uid, set(conns)) for uid, conns in self.active_connections.items()]
         dead: list[tuple[str, WebSocket]] = []
-        for user_id, connections in snapshot:
-            for websocket in connections:
-                try:
-                    await websocket.send_text(message)
-                except Exception:
-                    dead.append((user_id, websocket))
-        for user_id, ws in dead:
-            await self.disconnect(ws, user_id)
+
+        async def _send(uid: str, ws: WebSocket) -> None:
+            try:
+                await ws.send_text(message)
+            except Exception:
+                dead.append((uid, ws))
+
+        tasks = [_send(uid, ws) for uid, conns in items for ws in conns]
+        if tasks:
+            await asyncio.gather(*tasks)
+        if dead:
+            async with self._lock:
+                for uid, ws in dead:
+                    user_conns = self.active_connections.get(uid)
+                    if user_conns:
+                        user_conns.discard(ws)
+                        if not user_conns:
+                            del self.active_connections[uid]
 
 
 manager = ConnectionManager()
