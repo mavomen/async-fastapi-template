@@ -128,9 +128,16 @@ async def complete_authentication(
     if not creds:
         raise HTTPException(status_code=400, detail="No registered passkeys")
 
-    # In practice, you’d match the credential_id from the response to a specific credential.
-    # For simplicity, we use the first stored credential.
-    db_cred = creds[0]
+    credential_id = credential.get("id")
+    if not credential_id:
+        raise HTTPException(status_code=400, detail="Missing credential ID in response")
+
+    db_cred = next(
+        (c for c in creds if c.credential_id == credential_id),
+        None,
+    )
+    if not db_cred:
+        raise HTTPException(status_code=400, detail="Passkey not found for the given credential ID")
 
     try:
         verify_authentication_response(

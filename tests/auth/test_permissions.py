@@ -47,3 +47,9 @@ def test_has_permission_requires_all():
     user.roles.append(role)
     assert has_permission(user, ["write:docs", "publish:docs"]) is True
     assert has_permission(user, ["write:docs", "delete:docs"]) is False
+
+
+def test_has_permission_no_roles_denies_all():
+    user = create_mock_user()
+    assert has_permission(user, ["anything"]) is False
+    assert has_permission(user, []) is False

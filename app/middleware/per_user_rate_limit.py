@@ -2,6 +2,7 @@
 
 from fastapi import Request
 from slowapi import Limiter
+from slowapi.middleware import _find_route_handler, _should_exempt, async_check_limits
 from slowapi.util import get_remote_address
 from starlette.middleware.base import BaseHTTPMiddleware
 
@@ -22,13 +23,20 @@ class PerUserRateLimitMiddleware(BaseHTTPMiddleware):
     """Apply rate limits scoped to authenticated user ID."""
 
     async def dispatch(self, request: Request, call_next):
-        # The user ID is set by the auth dependency earlier in the stack
-        # We just let the limiter evaluate; if the request has no user_id, it falls back to IP
-        from slowapi import _rate_limit_exceeded_handler
-        from slowapi.errors import RateLimitExceeded
+        if not per_user_limiter.enabled:
+            return await call_next(request)
 
-        try:
-            response = await call_next(request)
-        except RateLimitExceeded:
-            return _rate_limit_exceeded_handler(request, RateLimitExceeded)  # type: ignore[arg-type]
+        handler = _find_route_handler(request.app.routes, request.scope)
+        if _should_exempt(per_user_limiter, handler):
+            return await call_next(request)
+
+        error_response, should_inject_headers = await async_check_limits(
+            per_user_limiter, request, handler, request.app
+        )
+        if error_response is not None:
+            return error_response
+
+        response = await call_next(request)
+        if should_inject_headers:
+            response = per_user_limiter._inject_headers(response, request.state.view_rate_limit)
         return response

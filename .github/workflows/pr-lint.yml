@@ -18,12 +18,12 @@ jobs:
     runs-on: ubuntu-latest
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+      BRANCH_NAME: ${{ github.head_ref }}
     steps:
       - name: Check branch name
         run: |
-          BRANCH="${{ github.head_ref }}"
-          if [[ ! "$BRANCH" =~ ^(feat|fix|chore|docs|test)/ ]]; then
-            echo "Branch name '$BRANCH' does not follow convention (feat/*, fix/*, chore/*, docs/*, test/*)."
+          if [[ ! "$BRANCH_NAME" =~ ^(feat|fix|chore|docs|test)/ ]]; then
+            echo "Branch name '$BRANCH_NAME' does not follow convention (feat/*, fix/*, chore/*, docs/*, test/*)."
             exit 1
           fi
-          echo "Branch name '$BRANCH' is valid."
+          echo "Branch name '$BRANCH_NAME' is valid."
