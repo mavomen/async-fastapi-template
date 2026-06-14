@@ -1,0 +1,27 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: fastapi-template
+spec:
+  podSelector:
+    matchLabels:
+      app: fastapi-template
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - namespaceSelector: {}
+      ports:
+        - port: 8000
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app: fastapi-postgres
+        - podSelector:
+            matchLabels:
+              app: fastapi-redis
+      ports:
+        - port: 5432
+        - port: 6379

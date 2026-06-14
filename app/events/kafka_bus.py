@@ -27,7 +27,7 @@ class KafkaEventBus(EventBus):
         self._producer: KafkaProducer | None = None
         self._consumer: KafkaConsumer | None = None
         self._handlers: dict[str, list[EventHandler]] = {}
-        self._consumer_task: asyncio.Task | None = None
+        self._consumer_task: asyncio.Task[None] | None = None
 
     async def connect(self) -> None:
         """Initialize producer and consumer."""

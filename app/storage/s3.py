@@ -29,7 +29,8 @@ class S3Storage(StorageBackend):
     async def download(self, path: str) -> bytes:
         async with self.session.client("s3", **self.client_kwargs) as s3:
             response = await s3.get_object(Bucket=self.bucket, Key=path)
-            return await response["Body"].read()
+            body = await response["Body"].read()
+            return bytes(body)
 
     async def delete(self, path: str) -> None:
         async with self.session.client("s3", **self.client_kwargs) as s3:

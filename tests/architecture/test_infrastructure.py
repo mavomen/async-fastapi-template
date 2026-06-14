@@ -1,6 +1,5 @@
 """Tests for infrastructure configuration files."""
 
-import os
 from pathlib import Path
 
 import yaml
@@ -48,8 +47,7 @@ def test_dockerfile_has_healthcheck():
 
 def test_production_compose_no_internal_ports():
     compose_file = PROJECT_ROOT / "docker-compose.yml"
-    with open(compose_file) as f:
-        compose = yaml.safe_load(f)
+    compose = yaml.safe_load(compose_file.read_text())
 
     internal_services = {"db", "redis", "prometheus", "grafana"}
     for name, service in compose.get("services", {}).items():
@@ -64,8 +62,7 @@ def test_production_compose_no_internal_ports():
 
 def test_production_compose_app_port_exposed():
     compose_file = PROJECT_ROOT / "docker-compose.yml"
-    with open(compose_file) as f:
-        compose = yaml.safe_load(f)
+    compose = yaml.safe_load(compose_file.read_text())
 
     app = compose["services"].get("app", {})
     ports = app.get("ports", [])
@@ -73,7 +70,6 @@ def test_production_compose_app_port_exposed():
 
 
 def test_search_migration_uses_create_index():
-    import re
 
     migrations_dir = PROJECT_ROOT / "alembic" / "versions"
     target = None

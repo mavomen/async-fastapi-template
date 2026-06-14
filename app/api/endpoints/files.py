@@ -20,14 +20,16 @@ async def _stream_file_upload(file: UploadFile, filename: str, storage: StorageB
     total_size = file.size or 0
     chunk_size = 1024 * 256  # 256 KB
     uploaded = 0
+    chunks: list[bytes] = []
     yield f"event: start\ndata: {filename}\n\n"
     while chunk := await file.read(chunk_size):
+        chunks.append(chunk)
         uploaded += len(chunk)
         percentage = (uploaded / total_size * 100) if total_size else 0
         yield f"event: progress\ndata: {percentage:.1f}%\n\n"
         await asyncio.sleep(0.05)
-    await file.seek(0)
-    path = await storage.upload(file.file, filename)
+    content = b"".join(chunks)
+    path = await storage.upload_bytes(content, filename)
     yield f"event: complete\ndata: {path}\n\n"
 
 

@@ -15,7 +15,7 @@ _jwks_private_key = None
 _jwks_public_key = None
 
 
-def _generate_keys():
+def _generate_keys() -> None:
     global _jwks_private_key, _jwks_public_key  # noqa: PLW0603
     if _jwks_private_key is None:
         _jwks_private_key = rsa.generate_private_key(
@@ -24,17 +24,17 @@ def _generate_keys():
         _jwks_public_key = _jwks_private_key.public_key()
 
 
-def sign_with_rs256(payload: dict) -> str:
+def sign_with_rs256(payload: dict[str, Any]) -> str:
     _generate_keys()
-    return jwt.encode(payload, _jwks_private_key, algorithm="RS256")
+    return jwt.encode(payload, _jwks_private_key, algorithm="RS256")  # type: ignore[no-any-return]
 
 
-def decode_with_rs256(token: str) -> dict:
+def decode_with_rs256(token: str) -> dict[str, Any]:
     _generate_keys()
-    return jwt.decode(token, _jwks_public_key, algorithms=["RS256"])
+    return jwt.decode(token, _jwks_public_key, algorithms=["RS256"])  # type: ignore[no-any-return]
 
 
-def get_jwks() -> dict:
+def get_jwks() -> dict[str, Any]:
     _generate_keys()
     from jose import jwk as jose_jwk
 
@@ -87,14 +87,15 @@ def create_access_token(subject: str | Any, expires_delta: timedelta | None = No
 
     if settings.ALGORITHM == "RS256":
         return sign_with_rs256(to_encode)
-    return jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
+    return jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)  # type: ignore[no-any-return]
 
 
-def decode_access_token(token: str) -> dict:
+# -------- access token validation --------
+def decode_access_token(token: str) -> dict[str, Any]:
     try:
         if settings.ALGORITHM == "RS256":
             return decode_with_rs256(token)
-        return jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+        return jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])  # type: ignore[no-any-return]
     except JWTError:
         from fastapi import HTTPException, status
 
@@ -123,10 +124,10 @@ def create_refresh_token(subject: str | Any) -> str:
     to_encode = {"exp": expire, "sub": str(subject), "purpose": "refresh"}
     if settings.ALGORITHM == "RS256":
         return sign_with_rs256(to_encode)
-    return jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
+    return jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)  # type: ignore[no-any-return]
 
 
-def decode_refresh_token(token: str) -> dict:
+def decode_refresh_token(token: str) -> dict[str, Any]:
     """Validate a refresh token and return its payload."""
     try:
         if settings.ALGORITHM == "RS256":
@@ -138,7 +139,7 @@ def decode_refresh_token(token: str) -> dict:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token purpose"
             )
-        return payload
+        return payload  # type: ignore[no-any-return]
     except JWTError:
         from fastapi import HTTPException, status
 
@@ -153,10 +154,10 @@ def decode_refresh_token(token: str) -> dict:
 def create_verification_token(user_id: int) -> str:
     expire = datetime.now(UTC) + timedelta(hours=24)
     to_encode = {"exp": expire, "sub": str(user_id), "purpose": "email_verify"}
-    return jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
+    return jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)  # type: ignore[no-any-return]
 
 
-def decode_verification_token(token: str) -> dict:
+def decode_verification_token(token: str) -> dict[str, Any]:
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
     except JWTError:
@@ -173,4 +174,4 @@ def decode_verification_token(token: str) -> dict:
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Invalid token purpose",
         )
-    return payload
+    return payload  # type: ignore[no-any-return]

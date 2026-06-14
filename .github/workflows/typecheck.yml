@@ -11,14 +11,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Install Poetry
-        run: pip install poetry
-      - name: Install dependencies
-        run: poetry install
+      - uses: ./.github/actions/setup-python-poetry
       - name: Run mypy
-        env:
-          FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
         run: poetry run mypy app/

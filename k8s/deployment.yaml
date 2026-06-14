@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: app
-          image: ghcr.io/mavomen/async-fastapi-template:latest
+          image: ghcr.io/mavomen/async-fastapi-template:{{ .Values.image.tag | default "latest" }}
           envFrom:
             - configMapRef:
                 name: fastapi-config

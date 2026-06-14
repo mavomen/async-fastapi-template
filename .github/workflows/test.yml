@@ -6,9 +6,6 @@ on:
   pull_request:
     branches: [main, develop]
 
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-
 jobs:
   test:
     name: Python ${{ matrix.python-version }}
@@ -43,16 +40,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+      - uses: ./.github/actions/setup-python-poetry
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Install Poetry
-        run: pip install poetry
-      - name: Install dependencies
-        run: |
-          poetry env remove --all
-          poetry install --no-interaction --no-cache
       - name: Run tests
         env:
           ENVIRONMENT: test
@@ -78,16 +68,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Install Poetry
-        run: pip install poetry
+      - uses: ./.github/actions/setup-python-poetry
       - name: Verify CI boots
         run: |
           echo "Python version: $(python --version)"
           echo "Poetry version: $(poetry --version)"
-          poetry install --no-interaction
           echo "CI bootstrapped successfully"
 
   benchmark:
@@ -120,20 +105,19 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Install Poetry
-        run: pip install poetry
-      - name: Install dependencies
-        run: poetry install
+      - uses: ./.github/actions/setup-python-poetry
+      - name: Run migrations
+        env:
+          ENVIRONMENT: test
+          DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:5432/fastapi_test
+        run: poetry run alembic upgrade head
       - name: Run benchmarks
         env:
           ENVIRONMENT: test
           SECRET_KEY: ${{ secrets.TEST_SECRET_KEY || 'ci-test-key-minimum-32-characters!!' }}
           DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:5432/fastapi_test
           REDIS_URL: redis://localhost:6379/0
-        run: poetry run pytest benchmarks/ --benchmark-only --benchmark-json=benchmark.json
+        run: poetry run pytest benchmarks/ --benchmark-only --benchmark-json=benchmark.json --no-cov
       - name: Compare with baseline
         run: poetry run python scripts/compare_benchmarks.py benchmark.json
       - name: Upload baseline artifact

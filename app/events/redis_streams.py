@@ -20,7 +20,7 @@ class RedisStreamsEventBus(EventBus):
         self._stream = stream_name
         self._group = group_name
         self._handlers: dict[str, list[EventHandler]] = {}
-        self._consumer_tasks: list[asyncio.Task] = []
+        self._consumer_tasks: list[asyncio.Task[None]] = []
 
     async def connect(self) -> None:
         """Create consumer group if not exists."""

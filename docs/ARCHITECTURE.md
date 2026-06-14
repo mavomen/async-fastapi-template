@@ -123,6 +123,5 @@ Feature flags are managed via environment variables (`FEATURE_<NAME>={true|false
 
 ### ADR 13: Feature Flags via Environment Variables
 
-**Decision:** Feature flags with env‑var, cache, and code defaults in that priority order.
+**Decision:** Feature flags with env-var, cache, and code defaults in that priority order.
 **Reason:** Flexible, overridable at runtime without code changes.
-```
