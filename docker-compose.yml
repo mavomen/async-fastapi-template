@@ -8,8 +8,8 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       POSTGRES_DB: ${POSTGRES_DB:-fastapi_db}
-    ports:
-      - "${POSTGRES_PORT:-5432}:5432"
+    # ports:  # Production: no host exposure; use docker network
+    #   - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -23,8 +23,8 @@ services:
   redis:
     image: redis:7-alpine
     container_name: fastapi_redis
-    ports:
-      - "${REDIS_PORT:-6379}:6379"
+    # ports:  # Production: no host exposure
+    #   - "${REDIS_PORT:-6379}:6379"
     volumes:
       - redis_data:/data
     healthcheck:
@@ -60,7 +60,7 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: fastapi_celery_worker
-    command: celery -A app.core.celery worker --loglevel=info
+    command: celery -A app.core.celery_app worker --loglevel=info
     environment:
       DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-fastapi_db}
       REDIS_URL: redis://redis:6379/0
@@ -80,7 +80,7 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: fastapi_celery_beat
-    command: celery -A app.core.celery beat --loglevel=info
+    command: celery -A app.core.celery_app beat --loglevel=info
     environment:
       DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-fastapi_db}
       REDIS_URL: redis://redis:6379/0
@@ -104,8 +104,8 @@ services:
     command:
       - "--config.file=/etc/prometheus/prometheus.yml"
       - "--storage.tsdb.path=/prometheus"
-    ports:
-      - "9090:9090"
+    # ports:  # Production: no host exposure
+    #   - "9090:9090"
     networks:
       - app-network
     restart: unless-stopped
@@ -113,8 +113,8 @@ services:
   grafana:
     image: grafana/grafana:latest
     container_name: fastapi_grafana
-    ports:
-      - "3000:3000"
+    # ports:  # Production: no host exposure
+    #   - "3000:3000"
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
     volumes:

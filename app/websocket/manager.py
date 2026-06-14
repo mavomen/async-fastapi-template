@@ -1,6 +1,10 @@
 """WebSocket connection manager for broadcasting messages."""
 
+import logging
+
 from fastapi import WebSocket
+
+logger = logging.getLogger(__name__)
 
 
 class ConnectionManager:
@@ -20,13 +24,25 @@ class ConnectionManager:
                 del self.active_connections[user_id]
 
     async def send_personal_message(self, message: str, user_id: str) -> None:
+        dead: list[WebSocket] = []
         for websocket in self.active_connections.get(user_id, set()):
-            await websocket.send_text(message)
+            try:
+                await websocket.send_text(message)
+            except Exception:
+                dead.append(websocket)
+        for ws in dead:
+            self.disconnect(ws, user_id)
 
     async def broadcast(self, message: str) -> None:
-        for connections in self.active_connections.values():
+        dead: list[tuple[str, WebSocket]] = []
+        for user_id, connections in self.active_connections.items():
             for websocket in connections:
-                await websocket.send_text(message)
+                try:
+                    await websocket.send_text(message)
+                except Exception:
+                    dead.append((user_id, websocket))
+        for user_id, ws in dead:
+            self.disconnect(ws, user_id)
 
 
 manager = ConnectionManager()

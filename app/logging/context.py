@@ -8,13 +8,15 @@ class LogContext:
 
     def __init__(self, **kwargs):
         self.kwargs = kwargs
+        self._keys: list[str] = []
 
     def __enter__(self):
+        self._keys = list(self.kwargs)
         structlog.contextvars.bind_contextvars(**self.kwargs)
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        structlog.contextvars.clear_contextvars()
+        structlog.contextvars.unbind_contextvars(*self._keys)
 
     async def __aenter__(self):
         return self.__enter__()
