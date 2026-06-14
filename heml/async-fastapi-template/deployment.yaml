@@ -37,7 +37,6 @@ metadata:
   name: {{ .Release.Name }}-config
 data:
   ENVIRONMENT: {{ .Values.config.ENVIRONMENT }}
-  DATABASE_URL: {{ .Values.config.DATABASE_URL }}
   REDIS_URL: {{ .Values.config.REDIS_URL }}
   API_V1_STR: {{ .Values.config.API_V1_STR }}
 ---
@@ -48,4 +47,5 @@ metadata:
 type: Opaque
 stringData:
   SECRET_KEY: {{ .Values.secret.SECRET_KEY }}
+  DATABASE_URL: {{ .Values.secret.DATABASE_URL }}
   POSTGRES_PASSWORD: {{ .Values.secret.POSTGRES_PASSWORD }}
