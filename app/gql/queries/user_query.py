@@ -1,5 +1,7 @@
 """User-related GraphQL queries."""
 
+from typing import Any
+
 import strawberry
 from strawberry.types import Info
 
@@ -9,7 +11,7 @@ from app.gql.types.role import RoleType
 from app.gql.types.user import UserType
 
 
-def _user_to_type(user) -> UserType:
+def _user_to_type(user: Any) -> UserType:
     return UserType(
         id=user.id,
         email=user.email,
@@ -37,7 +39,7 @@ class UserQuery:
     Queries for reading user data.
     """
 
-    @strawberry.field(description="Fetch the currently authenticated user.")
+    @strawberry.field(description="Fetch the currently authenticated user.")  # type: ignore[untyped-decorator]
     async def me(self, info: Info) -> UserType:
         """
         Returns the current user from the request context.
@@ -45,7 +47,7 @@ class UserQuery:
         user = info.context["current_user"]
         return _user_to_type(user)
 
-    @strawberry.field(description="Fetch a user by ID. Requires authentication.")
+    @strawberry.field(description="Fetch a user by ID. Requires authentication.")  # type: ignore[untyped-decorator]
     async def user(self, info: Info, user_id: int) -> UserType | None:
         """
         Retrieve a specific user. Requires user:read permission.

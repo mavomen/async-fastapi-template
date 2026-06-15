@@ -2,6 +2,7 @@
 
 import hashlib
 import json
+from collections.abc import AsyncGenerator, Awaitable, Callable
 
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -12,7 +13,9 @@ from app.core.cache import cache
 class CacheMiddleware(BaseHTTPMiddleware):
     """Cache responses for GET requests with a TTL."""
 
-    async def dispatch(self, request: Request, call_next) -> Response:
+    async def dispatch(
+        self, request: Request, call_next: Callable[[Request], Awaitable[Response]]
+    ) -> Response:
         if request.method != "GET":
             return await call_next(request)
 
@@ -36,9 +39,9 @@ class CacheMiddleware(BaseHTTPMiddleware):
             "content-type", ""
         ):
             body = b""
-            async for chunk in response.body_iterator:
+            async for chunk in response.body_iterator:  # type: ignore[attr-defined]
                 body += chunk
-            response.body_iterator = _single_body_iterator(body)
+            response.body_iterator = _single_body_iterator(body)  # type: ignore[attr-defined]
             try:
                 data = json.loads(body)
                 await cache.set(
@@ -56,5 +59,5 @@ class CacheMiddleware(BaseHTTPMiddleware):
         return response
 
 
-async def _single_body_iterator(body: bytes):
+async def _single_body_iterator(body: bytes) -> AsyncGenerator[bytes, None]:
     yield body

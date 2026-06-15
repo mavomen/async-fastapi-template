@@ -9,7 +9,7 @@ router = APIRouter()
 
 
 @router.websocket("/ws/chat")
-async def chat_endpoint(websocket: WebSocket):
+async def chat_endpoint(websocket: WebSocket) -> None:
     """Chat WebSocket: authenticate, join, and broadcast messages."""
     user_id = await get_current_user_ws(websocket)
     await manager.connect(websocket, str(user_id))

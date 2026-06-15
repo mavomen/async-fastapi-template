@@ -17,7 +17,7 @@ router = APIRouter()
         },
     },
 )
-async def get_metrics():
+async def get_metrics() -> Response:
     """Expose Prometheus metrics."""
     return Response(
         content=generate_latest(REGISTRY),

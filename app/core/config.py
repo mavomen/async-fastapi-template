@@ -59,6 +59,7 @@ class Settings(BaseSettings):
     RATE_LIMIT_PER_MINUTE: int = 60
     RATE_LIMIT_PER_HOUR: int = 1000
     RATE_LIMIT_PER_DAY: int = 10000
+    RATE_LIMIT_ENABLED: bool = True
 
     @field_validator("ENVIRONMENT")
     @classmethod
@@ -95,7 +96,6 @@ class Settings(BaseSettings):
     WEBAUTHN_RP_ID: str = "localhost"
     WEBAUTHN_RP_NAME: str = "FastAPI Async Template"
     WEBAUTHN_ORIGIN: str = "http://localhost:8000"
-    WEBAUTHN_RELYING_PARTY_ID: str = "localhost"  # alias for RP ID
 
 
 settings = Settings()

@@ -1,6 +1,7 @@
 """Middleware that logs every request and its response using structlog."""
 
 import time
+from collections.abc import Awaitable, Callable
 
 import structlog
 from fastapi import Request
@@ -11,7 +12,9 @@ logger = structlog.get_logger("app.request")
 
 
 class RequestLoggingMiddleware(BaseHTTPMiddleware):
-    async def dispatch(self, request: Request, call_next) -> Response:
+    async def dispatch(
+        self, request: Request, call_next: Callable[[Request], Awaitable[Response]]
+    ) -> Response:
         start = time.monotonic()
         response = await call_next(request)
         duration_ms = (time.monotonic() - start) * 1000

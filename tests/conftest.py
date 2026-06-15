@@ -71,7 +71,7 @@ async def db_session(db_engine: Any) -> AsyncGenerator[AsyncSession, None]:
     # Do NOT close the sessionmanager here - it might still be used by other fixtures.
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="function")
 def client() -> Generator[TestClient, None, None]:
     """Provide synchronous test client."""
     with TestClient(app) as c:

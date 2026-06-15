@@ -24,12 +24,14 @@ from app.core.tracing import setup_tracing
 from app.gql import router as gql_playground_router
 from app.gql.schema import schema
 from app.middleware.correlation import CorrelationIDMiddleware
+from app.middleware.csrf import CSRFTokenMiddleware
 from app.middleware.error_logging import error_logging_middleware
 from app.middleware.per_user_rate_limit import PerUserRateLimitMiddleware
 from app.middleware.query_count import QueryCountMiddleware
 from app.middleware.rate_limit import configure_rate_limit
 from app.middleware.request_id import RequestIDMiddleware
 from app.middleware.request_logging import RequestLoggingMiddleware
+from app.middleware.request_timeout import RequestTimeoutMiddleware
 from app.middleware.security_headers import SecurityHeadersMiddleware
 from app.middleware.sql_injection import SQLInjectionMonitorMiddleware
 from app.middleware.tenant import TenantMiddleware
@@ -117,7 +119,11 @@ def create_app() -> FastAPI:
     )
 
     configure_exception_handlers(app)
-    configure_rate_limit(app)
+    if settings.ENVIRONMENT != "test" and settings.RATE_LIMIT_ENABLED:
+        configure_rate_limit(app)
+
+    # Request timeout (must be outermost — wraps the full request lifecycle)
+    app.add_middleware(RequestTimeoutMiddleware, timeout=30)
 
     # Correlation ID middleware (must be added early)
     app.add_middleware(CorrelationIDMiddleware)
@@ -138,6 +144,7 @@ def create_app() -> FastAPI:
 
     # Security middlewares
     app.add_middleware(SecurityHeadersMiddleware)
+    app.add_middleware(CSRFTokenMiddleware)
     app.add_middleware(SQLInjectionMonitorMiddleware)
 
     # Tenant resolution middleware (after security, before CORS)

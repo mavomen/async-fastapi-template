@@ -1,5 +1,7 @@
 """User-related GraphQL mutations."""
 
+from typing import Any
+
 import strawberry
 from strawberry.types import Info
 
@@ -10,7 +12,7 @@ from app.gql.types.user import UserType
 from app.schemas.user import UserCreate, UserUpdate
 
 
-def _user_to_type(user) -> UserType:
+def _user_to_type(user: Any) -> UserType:
     return UserType(
         id=user.id,
         email=user.email,
@@ -38,7 +40,7 @@ class UserMutation:
     Mutations for creating and updating users.
     """
 
-    @strawberry.mutation(description="Register a new user.")
+    @strawberry.mutation(description="Register a new user.")  # type: ignore[untyped-decorator]
     async def create_user(
         self,
         email: str,
@@ -66,7 +68,7 @@ class UserMutation:
                 roles=[],
             )
 
-    @strawberry.mutation(description="Update an existing user.")
+    @strawberry.mutation(description="Update an existing user.")  # type: ignore[untyped-decorator]
     async def update_user(
         self,
         info: Info,

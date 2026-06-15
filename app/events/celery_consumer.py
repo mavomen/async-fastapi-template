@@ -5,7 +5,7 @@ from app.events.base import Event
 from app.events.websocket_bridge import broadcast_event
 
 
-@celery_app.task(name="app.events.process_event")
+@celery_app.task(name="app.events.process_event")  # type: ignore[untyped-decorator]
 def process_event(event_json: str) -> None:
     """
     Celery task that processes an event.

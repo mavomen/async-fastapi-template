@@ -1,5 +1,7 @@
 """WebAuthn / Passkey support backed by the database."""
 
+from typing import Any
+
 from fastapi import HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -28,21 +30,21 @@ _pending_registrations: dict[str, PublicKeyCredentialCreationOptions] = {}
 _pending_authentications: dict[str, PublicKeyCredentialRequestOptions] = {}
 
 
-def _options_to_dict(options) -> dict:
+def _options_to_dict(options: Any) -> dict[str, Any]:
     import json
 
     from pydantic import BaseModel
 
     if isinstance(options, BaseModel):
-        return json.loads(options.model_dump_json())
-    return options
+        return json.loads(options.model_dump_json())  # type: ignore[no-any-return]
+    return options  # type: ignore[no-any-return]
 
 
 async def begin_registration(
     user_id: str,
     user_name: str,
     user_display_name: str,
-) -> dict:
+) -> dict[str, Any]:
     options = generate_registration_options(
         rp_id=settings.WEBAUTHN_RP_ID,
         rp_name=settings.WEBAUTHN_RP_NAME,
@@ -60,9 +62,9 @@ async def begin_registration(
 
 async def complete_registration(
     user_id: str,
-    credential: dict,
+    credential: dict[str, Any],
     db: AsyncSession,
-) -> dict:
+) -> dict[str, Any]:
     expected_options = _pending_registrations.pop(user_id, None)
     if not expected_options:
         raise HTTPException(status_code=400, detail="Registration session not found")
@@ -89,7 +91,7 @@ async def complete_registration(
     return {"status": "ok", "credential_id": verified.credential_id}
 
 
-async def begin_authentication(user_id: str, db: AsyncSession) -> dict:
+async def begin_authentication(user_id: str, db: AsyncSession) -> dict[str, Any]:
     result = await db.execute(
         select(WebAuthnCredential).where(WebAuthnCredential.user_id == int(user_id))
     )
@@ -114,7 +116,7 @@ async def begin_authentication(user_id: str, db: AsyncSession) -> dict:
 
 async def complete_authentication(
     user_id: str,
-    credential: dict,
+    credential: dict[str, Any],
     db: AsyncSession,
 ) -> bool:
     expected_options = _pending_authentications.pop(user_id, None)

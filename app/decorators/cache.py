@@ -4,13 +4,14 @@ import functools
 import hashlib
 import json
 from collections.abc import Callable
+from typing import Any
 
 from fastapi import Request, Response
 
 from app.core.cache import cache
 
 
-def cached(ttl: int = 60, key_prefix: str = ""):
+def cached(ttl: int = 60, key_prefix: str = "") -> Callable[..., Any]:
     """Decorator to cache endpoint response in Redis.
 
     Args:
@@ -21,9 +22,9 @@ def cached(ttl: int = 60, key_prefix: str = ""):
         Decorated function.
     """
 
-    def decorator(func: Callable) -> Callable:
+    def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
         @functools.wraps(func)
-        async def wrapper(*args, **kwargs):
+        async def wrapper(*args: Any, **kwargs: Any) -> Any:
             # Build cache key from URL path and query params (using request if available)
             request: Request | None = None
             for arg in args:

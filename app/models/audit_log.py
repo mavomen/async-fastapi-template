@@ -1,6 +1,5 @@
 """Audit log model for tracking mutations."""
 
-from datetime import UTC, datetime
 from typing import Any
 
 from sqlalchemy import Integer, String, event
@@ -64,8 +63,6 @@ def install_audit_log_listener(target_model: Any) -> None:
                 action="INSERT",
                 actor_id=getattr(target, "_audit_actor_id", None),
                 **_get_changed_fields(connection, target, "insert"),
-                created_at=datetime.now(UTC),
-                updated_at=datetime.now(UTC),
             )
         )
 
@@ -78,8 +75,6 @@ def install_audit_log_listener(target_model: Any) -> None:
                 action="UPDATE",
                 actor_id=getattr(target, "_audit_actor_id", None),
                 **_get_changed_fields(connection, target, "update"),
-                created_at=datetime.now(UTC),
-                updated_at=datetime.now(UTC),
             )
         )
 
@@ -92,7 +87,5 @@ def install_audit_log_listener(target_model: Any) -> None:
                 action="DELETE",
                 actor_id=getattr(target, "_audit_actor_id", None),
                 **_get_changed_fields(connection, target, "delete"),
-                created_at=datetime.now(UTC),
-                updated_at=datetime.now(UTC),
             )
         )

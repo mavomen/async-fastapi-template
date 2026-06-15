@@ -12,12 +12,13 @@ from app.events.base import Event
 
 @strawberry.type
 class UserSubscription:
-    @strawberry.subscription(description="Receive a welcome message when a user logs in.")
-    async def user_logged_in(self, _info: Info, user_id: int) -> AsyncGenerator[str, None]:
+    @strawberry.subscription(description="Receive a welcome message when a user logs in.")  # type: ignore[untyped-decorator]
+    async def user_logged_in(self, _info: Info, _user_id: int) -> AsyncGenerator[str, None]:
         bus = await get_event_bus()
 
-        async def handler(event: Event):
-            yield f"User {user_id} logged in. Event: {event.event_type}"
+        async def handler(event: Event) -> None:
+            event_bus = await get_event_bus()
+            await event_bus.publish(event)
 
         await bus.subscribe("user.logged_in", handler)
         try:
