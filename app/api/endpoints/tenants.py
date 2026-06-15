@@ -1,5 +1,7 @@
 """Tenant management endpoints (superuser only)."""
 
+from typing import Any
+
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy import select
@@ -7,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_user, get_db
 from app.models.tenant import Tenant
+from app.models.user import User
 
 
 class TenantCreate(BaseModel):
@@ -21,8 +24,8 @@ router = APIRouter()
 async def create_tenant(
     tenant_in: TenantCreate,
     db: AsyncSession = Depends(get_db),
-    current_user=Depends(get_current_user),
-):
+    current_user: User = Depends(get_current_user),
+) -> dict[str, Any]:
     """Create a new tenant (superuser only)."""
     if not current_user.is_superuser:
         raise HTTPException(status_code=403, detail="Superuser required")
@@ -37,8 +40,8 @@ async def create_tenant(
 @router.get("/")
 async def list_tenants(
     db: AsyncSession = Depends(get_db),
-    current_user=Depends(get_current_user),
-):
+    current_user: User = Depends(get_current_user),
+) -> list[dict[str, Any]]:
     """List all tenants (superuser only)."""
     if not current_user.is_superuser:
         raise HTTPException(status_code=403, detail="Superuser required")

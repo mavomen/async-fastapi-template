@@ -1,10 +1,13 @@
 """Per-user rate limiting middleware (JWT sub-based)."""
 
+from collections.abc import Awaitable, Callable
+
 from fastapi import Request
 from slowapi import Limiter
 from slowapi.middleware import _find_route_handler, _should_exempt, async_check_limits
 from slowapi.util import get_remote_address
 from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import Response
 
 from app.core.config import settings
 
@@ -22,7 +25,9 @@ per_user_limiter = Limiter(
 class PerUserRateLimitMiddleware(BaseHTTPMiddleware):
     """Apply rate limits scoped to authenticated user ID."""
 
-    async def dispatch(self, request: Request, call_next):
+    async def dispatch(
+        self, request: Request, call_next: Callable[[Request], Awaitable[Response]]
+    ) -> Response:
         if not per_user_limiter.enabled:
             return await call_next(request)
 

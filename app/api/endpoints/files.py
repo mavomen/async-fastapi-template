@@ -13,7 +13,7 @@ from app.storage.base import StorageBackend
 router = APIRouter()
 
 
-async def _stream_file_upload(file: UploadFile, filename: str, storage: StorageBackend):
+async def _stream_file_upload(file: UploadFile, filename: str, storage: StorageBackend) -> Any:
     """Emit SSE events for file upload progress (extracted for testing)."""
     import asyncio
 
@@ -62,7 +62,7 @@ async def upload_file_stream(
     file: UploadFile = File(...),
     current_user: User = Depends(get_current_user),
     storage: StorageBackend = Depends(get_storage),
-):
+) -> Any:
     """Upload a file with streaming progress via Server-Sent Events."""
 
     return StreamingResponse(
@@ -89,7 +89,7 @@ async def download_file(
     filename: str,
     current_user: User = Depends(get_current_user),
     storage: StorageBackend = Depends(get_storage),
-):
+) -> Response:
     """Download a file by its stored path."""
     try:
         content = await storage.download(filename)

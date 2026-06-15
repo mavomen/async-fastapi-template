@@ -1,3 +1,5 @@
+from typing import Any
+
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -75,7 +77,7 @@ async def get_email_service() -> EmailService:
     return email_service
 
 
-async def get_gql_context(request: Request, db: AsyncSession = Depends(get_db)) -> dict:
+async def get_gql_context(request: Request, db: AsyncSession = Depends(get_db)) -> dict[str, Any]:
     """
     Build GraphQL context with database session and optional authenticated user.
     """

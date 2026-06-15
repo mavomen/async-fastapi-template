@@ -1,7 +1,10 @@
 """Middleware that resolves the current tenant from subdomain or header."""
 
+from collections.abc import Awaitable, Callable
+
 from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import Response
 
 from app.core.database import sessionmanager
 from app.core.tenant import set_current_tenant
@@ -30,7 +33,9 @@ class TenantMiddleware(BaseHTTPMiddleware):
         except Exception:
             pass
 
-    async def dispatch(self, request: Request, call_next):
+    async def dispatch(
+        self, request: Request, call_next: Callable[[Request], Awaitable[Response]]
+    ) -> Response:
         tenant_id = None
 
         header_value = request.headers.get("X-Tenant-ID")

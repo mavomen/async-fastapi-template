@@ -30,7 +30,7 @@ _custom_crud: dict[str, Any] = {
 }
 
 
-def register_admin(model: type[BaseModel], **options) -> None:
+def register_admin(model: type[BaseModel], **options: Any) -> None:
     """Register a SQLAlchemy model for the admin panel."""
     table_name = model.__tablename__
     columns = [
@@ -88,7 +88,7 @@ TEMPLATES_DIR = Path(__file__).parent / "templates"
 env = Environment(loader=FileSystemLoader(str(TEMPLATES_DIR)))
 
 
-def render(template_name: str, **kwargs) -> str:
+def render(template_name: str, **kwargs: Any) -> str:
     template = env.get_template(template_name)
     return template.render(**kwargs)
 
@@ -118,7 +118,7 @@ router = APIRouter()
 
 
 @router.get("/", response_class=HTMLResponse)
-async def dashboard(request: Request, user: User = Depends(require_admin)):
+async def dashboard(request: Request, user: User = Depends(require_admin)) -> Any:
     """Admin home page with model index."""
     models_info = []
     for table_name, config in _registry.items():
@@ -141,7 +141,7 @@ async def admin_list(
     user: User = Depends(require_admin),
     search: str = "",
     page: int = 1,
-):
+) -> Any:
     """List records for a model."""
     config = _registry.get(table_name)
     if not config:
@@ -191,7 +191,7 @@ async def admin_detail(
     id: int,
     db: AsyncSession = Depends(get_db),
     user: User = Depends(require_admin),
-):
+) -> Any:
     """View a single record."""
     config = _registry.get(table_name)
     if not config:
@@ -218,7 +218,7 @@ async def admin_edit_form(
     id: int,
     db: AsyncSession = Depends(get_db),
     user: User = Depends(require_admin),
-):
+) -> Any:
     """Edit form for a record."""
     config = _registry.get(table_name)
     if not config:
@@ -240,14 +240,14 @@ async def admin_edit_form(
 
 
 @router.post("/{table_name}/{id}/edit")
-@rate_limit(times=30, seconds=60)
+@rate_limit(times=30, seconds=60)  # type: ignore[untyped-decorator]
 async def admin_edit(
     request: Request,
     table_name: str,
     id: int,
     db: AsyncSession = Depends(get_db),
     user: User = Depends(require_admin),
-):
+) -> Any:
     """Process edit form submission."""
     config = _registry.get(table_name)
     if not config:
@@ -276,7 +276,9 @@ async def admin_edit(
 
 
 @router.get("/{table_name}/create", response_class=HTMLResponse)
-async def admin_create_form(request: Request, table_name: str, user: User = Depends(require_admin)):
+async def admin_create_form(
+    request: Request, table_name: str, user: User = Depends(require_admin)
+) -> Any:
     """Create form for a new record."""
     config = _registry.get(table_name)
     if not config:
@@ -295,13 +297,13 @@ async def admin_create_form(request: Request, table_name: str, user: User = Depe
 
 
 @router.post("/{table_name}/create")
-@rate_limit(times=30, seconds=60)
+@rate_limit(times=30, seconds=60)  # type: ignore[untyped-decorator]
 async def admin_create(
     request: Request,
     table_name: str,
     db: AsyncSession = Depends(get_db),
     user: User = Depends(require_admin),
-):
+) -> Any:
     """Process create form submission."""
     config = _registry.get(table_name)
     if not config:
@@ -329,14 +331,14 @@ async def admin_create(
 
 
 @router.post("/{table_name}/{id}/delete")
-@rate_limit(times=30, seconds=60)
+@rate_limit(times=30, seconds=60)  # type: ignore[untyped-decorator]
 async def admin_delete(
     request: Request,
     table_name: str,
     id: int,
     db: AsyncSession = Depends(get_db),
     user: User = Depends(require_admin),
-):
+) -> Any:
     """Delete a record."""
     config = _registry.get(table_name)
     if not config:

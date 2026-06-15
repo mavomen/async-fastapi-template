@@ -6,7 +6,7 @@ WebAuthn passkeys, and refresh tokens.
 from datetime import UTC, datetime
 from typing import Any
 
-from fastapi import APIRouter, Depends, Form, HTTPException, status
+from fastapi import APIRouter, Depends, Form, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -36,7 +36,7 @@ router = APIRouter()
 
 
 @router.get("/.well-known/jwks.json")
-async def jwks():
+async def jwks() -> Any:
     """Serve JWKS for RS256 key validation."""
     return get_jwks()
 
@@ -54,8 +54,9 @@ async def jwks():
         422: {"description": "Validation error"},
     },
 )
-@rate_limit(times=5, seconds=60)
+@rate_limit(times=5, seconds=60)  # type: ignore[untyped-decorator]
 async def register(
+    request: Request,
     *,
     db: AsyncSession = Depends(get_db),
     user_in: UserCreate,
@@ -87,8 +88,9 @@ async def register(
         422: {"description": "Validation error"},
     },
 )
-@rate_limit(times=10, seconds=60)
+@rate_limit(times=10, seconds=60)  # type: ignore[untyped-decorator]
 async def login_for_access_token(
+    request: Request,
     db: AsyncSession = Depends(get_db),
     form_data: OAuth2PasswordRequestForm = Depends(),
 ) -> Any:
@@ -145,7 +147,7 @@ async def refresh_access_token(
 @router.post("/webauthn/register/begin")
 async def webauthn_register_begin(
     current_user: User = Depends(get_current_user),
-):
+) -> Any:
     """Begin WebAuthn passkey registration."""
     options = await begin_registration(
         user_id=str(current_user.id),
@@ -157,10 +159,10 @@ async def webauthn_register_begin(
 
 @router.post("/webauthn/register/complete")
 async def webauthn_register_complete(
-    credential: dict,
+    credential: dict[str, Any],
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-):
+) -> Any:
     """Complete WebAuthn passkey registration."""
     result = await complete_registration(
         user_id=str(current_user.id),
@@ -172,9 +174,9 @@ async def webauthn_register_complete(
 
 @router.post("/webauthn/login/begin")
 async def webauthn_login_begin(
-    payload: dict,
+    payload: dict[str, Any],
     db: AsyncSession = Depends(get_db),
-):
+) -> Any:
     """Begin WebAuthn passkey authentication (user_id = email)."""
     user_id = payload.get("user_id")
     if not user_id:
@@ -188,9 +190,9 @@ async def webauthn_login_begin(
 
 @router.post("/webauthn/login/complete")
 async def webauthn_login_complete(
-    payload: dict,
+    payload: dict[str, Any],
     db: AsyncSession = Depends(get_db),
-):
+) -> Any:
     """Complete WebAuthn passkey authentication and return JWT."""
     user_id = payload.get("user_id")
     credential = payload.get("credential", {})

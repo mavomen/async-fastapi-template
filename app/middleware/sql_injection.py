@@ -1,10 +1,12 @@
 """Middleware to log potential SQL injection attempts."""
 
 import re
+from collections.abc import Awaitable, Callable
 
 import structlog
 from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import Response
 
 logger = structlog.get_logger("app.security")
 
@@ -19,7 +21,9 @@ SQL_PATTERNS = [
 class SQLInjectionMonitorMiddleware(BaseHTTPMiddleware):
     """Log requests containing suspicious SQL patterns."""
 
-    async def dispatch(self, request: Request, call_next):
+    async def dispatch(
+        self, request: Request, call_next: Callable[[Request], Awaitable[Response]]
+    ) -> Response:
         query_str = str(request.url)
         body_str = ""
         if request.method in ("POST", "PUT", "PATCH", "DELETE"):

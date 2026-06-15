@@ -205,7 +205,7 @@ async def import_users_csv(
     file: UploadFile = File(...),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(PermissionChecker(["user:write"])),
-):
+) -> Any:
     """Import users from a CSV file (requires user:write)."""
     content = await file.read()
     reader = csv.DictReader(io.StringIO(content.decode()))

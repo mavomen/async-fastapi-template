@@ -1,6 +1,7 @@
 """User profile page with HTMX-driven updates and avatar upload."""
 
 from pathlib import Path
+from typing import Any
 
 from fastapi import APIRouter, Depends, File, Form, Request, UploadFile
 from fastapi.responses import HTMLResponse, Response
@@ -22,7 +23,7 @@ env = Environment(loader=FileSystemLoader(str(TEMPLATES_DIR)))
 async def profile_page(
     request: Request,
     current_user: User = Depends(get_current_user),
-):
+) -> Any:
     """Render the user profile page."""
     template = env.get_template("profile.html")
     return template.render(user=current_user, request=request)
@@ -35,7 +36,7 @@ async def profile_edit(
     email: str = Form(None),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
-):
+) -> Response:
     """Inline edit for profile fields (HTMX)."""
     update_data = {}
     if full_name is not None:
@@ -53,7 +54,7 @@ async def profile_avatar(
     avatar: UploadFile = File(...),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
-):
+) -> HTMLResponse:
     """Upload a profile avatar (placeholder)."""
     return HTMLResponse(
         content='<img src="/static/default-avatar.png" class="w-24 h-24 rounded-full" />',

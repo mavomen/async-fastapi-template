@@ -1,8 +1,9 @@
 """Global exception handlers for FastAPI."""
 
 import logging
+from typing import Any
 
-from fastapi import Request
+from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import ORJSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
@@ -12,29 +13,32 @@ from app.core.exceptions import AppException
 logger = logging.getLogger(__name__)
 
 
-def configure_exception_handlers(app):
+def configure_exception_handlers(app: FastAPI) -> None:
     """Register all custom exception handlers on the FastAPI app."""
 
     @app.exception_handler(AppException)
-    async def app_exception_handler(request: Request, exc: AppException):
+    async def app_exception_handler(request: Request, exc: AppException) -> ORJSONResponse:
         return ORJSONResponse(
             status_code=exc.status_code,
             content={"detail": exc.detail},
         )
 
     @app.exception_handler(StarletteHTTPException)
-    async def http_exception_handler(request: Request, exc: StarletteHTTPException):
+    async def http_exception_handler(
+        request: Request, exc: StarletteHTTPException
+    ) -> ORJSONResponse:
         return ORJSONResponse(
             status_code=exc.status_code,
             content={"detail": exc.detail},
         )
 
     @app.exception_handler(RequestValidationError)
-    async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    async def validation_exception_handler(
+        request: Request, exc: RequestValidationError
+    ) -> ORJSONResponse:
         """Reformat validation errors to a user-friendly structure."""
         errors = exc.errors()
-        # Simplify the error list
-        simplified = []
+        simplified: list[dict[str, Any]] = []
         for err in errors:
             simplified.append(
                 {
@@ -52,7 +56,7 @@ def configure_exception_handlers(app):
         )
 
     @app.exception_handler(Exception)
-    async def unhandled_exception_handler(request: Request, exc: Exception):
+    async def unhandled_exception_handler(request: Request, exc: Exception) -> ORJSONResponse:
         """Catch-all for unhandled exceptions, logs and returns 500."""
         logger.exception("Unhandled exception: %s", exc)
         return ORJSONResponse(

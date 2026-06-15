@@ -1,3 +1,5 @@
+from typing import Any
+
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse
 
@@ -5,7 +7,7 @@ router = APIRouter()
 
 
 @router.get("/playground", response_class=HTMLResponse)
-async def htmx_graphql_playground(request: Request):
+async def htmx_graphql_playground(request: Request) -> Any:
     """HTMX-powered GraphQL playground."""
     return HTMLResponse(
         content="""

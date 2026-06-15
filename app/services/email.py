@@ -44,9 +44,9 @@ class EmailService:
 email_service = EmailService()
 
 
-@celery_app.task(bind=True, max_retries=5, default_retry_delay=60)
+@celery_app.task(bind=True, max_retries=5, default_retry_delay=60)  # type: ignore[untyped-decorator]
 def send_email_with_retry(
-    self,
+    self: Any,
     to_email: str,
     subject: str,
     template_name: str,

@@ -1,5 +1,7 @@
 """Task trigger and status endpoints."""
 
+from typing import Any
+
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy import select
@@ -19,7 +21,7 @@ class EmailTaskRequest(BaseModel):
     body: str
 
 
-async def _stream_task_status(task_id: str, db: AsyncSession):
+async def _stream_task_status(task_id: str, db: AsyncSession) -> Any:
     """Emit SSE events for a task's status (extracted for testing)."""
     import asyncio
 
@@ -42,7 +44,7 @@ async def _stream_task_status(task_id: str, db: AsyncSession):
         200: {"description": "Task triggered"},
     },
 )
-async def trigger_email_task(task_data: EmailTaskRequest):
+async def trigger_email_task(task_data: EmailTaskRequest) -> dict[str, Any]:
     task = send_email_notification.delay(
         task_data.recipient,
         task_data.subject,
@@ -63,7 +65,7 @@ async def trigger_email_task(task_data: EmailTaskRequest):
 async def get_task_status(
     task_id: str,
     db: AsyncSession = Depends(get_db),
-):
+) -> dict[str, Any] | None:
     result = await db.execute(select(TaskStatus).where(TaskStatus.task_id == task_id))
     task = result.scalar_one_or_none()
     if not task:
@@ -80,7 +82,7 @@ async def get_task_status(
 async def stream_task_status(
     task_id: str,
     db: AsyncSession = Depends(get_db),
-):
+) -> Any:
     """Stream task status updates via Server-Sent Events."""
     return StreamingResponse(
         _stream_task_status(task_id, db),

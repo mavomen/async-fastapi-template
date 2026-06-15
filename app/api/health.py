@@ -13,7 +13,7 @@ from app.core.database import get_db
 router = APIRouter(tags=["health"])
 
 
-async def _check_database(db: AsyncSession) -> dict:
+async def _check_database(db: AsyncSession) -> dict[str, str]:
     try:
         await db.execute(text("SELECT 1"))
         return {"database": "connected"}
@@ -21,7 +21,7 @@ async def _check_database(db: AsyncSession) -> dict:
         return {"database": "disconnected"}
 
 
-async def _check_redis() -> dict:
+async def _check_redis() -> dict[str, str]:
     try:
         from app.core.cache import cache
 

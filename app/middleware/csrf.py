@@ -3,10 +3,13 @@
 import hashlib
 import hmac
 import secrets
+from collections.abc import Awaitable, Callable
+from typing import Any
 
 from fastapi import Request
 from fastapi.responses import PlainTextResponse
 from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import Response
 
 from app.core.config import settings
 
@@ -29,7 +32,7 @@ def _make_token(secret: str) -> str:
 class CSRFTokenMiddleware(BaseHTTPMiddleware):
     """Protect admin POST/PUT/DELETE routes with a double-submit cookie pattern."""
 
-    def __init__(self, app, secret: str | None = None, cookie_name: str = "csrf_token"):
+    def __init__(self, app: Any, secret: str | None = None, cookie_name: str = "csrf_token"):
         super().__init__(app)
         self._secret = secret or settings.SECRET_KEY
         self._cookie_name = cookie_name
@@ -56,7 +59,9 @@ class CSRFTokenMiddleware(BaseHTTPMiddleware):
             return PlainTextResponse("CSRF token mismatch", status_code=403)
         return None
 
-    async def dispatch(self, request: Request, call_next):
+    async def dispatch(
+        self, request: Request, call_next: Callable[[Request], Awaitable[Response]]
+    ) -> Response:
         path = request.url.path
         if path.startswith("/admin") and request.method in ("POST", "PUT", "PATCH", "DELETE"):
             error = await self._validate_request(request)

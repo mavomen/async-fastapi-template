@@ -13,7 +13,7 @@ async def update_task_status(
     task_id: str,
     status: str,
     error: str | None = None,
-):
+) -> None:
     existing = await db.execute(select(TaskStatus).where(TaskStatus.task_id == task_id))
     task = existing.scalar_one_or_none()
 
