@@ -3,13 +3,11 @@
 from datetime import UTC, datetime
 from typing import Any
 
-import redis.asyncio as aioredis
 from fastapi import APIRouter, Depends, status
 from fastapi.responses import ORJSONResponse
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.config import settings
 from app.core.database import get_db
 
 router = APIRouter(tags=["health"])
@@ -27,13 +25,8 @@ async def _check_redis() -> dict:
     try:
         from app.core.cache import cache
 
-        if cache._redis is not None:
-            await cache._redis.ping()  # type: ignore[misc]  # type: ignore[misc]
-        else:
-            r = aioredis.from_url(settings.REDIS_URL, encoding="utf-8", decode_responses=True)
-            await r.ping()  # type: ignore[misc]
-            await r.close()
-        return {"redis": "connected"}
+        ok = await cache.ping()
+        return {"redis": "connected" if ok else "disconnected"}
     except Exception:
         return {"redis": "disconnected"}
 

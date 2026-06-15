@@ -27,6 +27,7 @@ from app.core.security import (
     get_jwks,
 )
 from app.crud.user import user as crud_user
+from app.decorators.rate_limit import rate_limit
 from app.models.user import User
 from app.schemas import Token, UserCreate, UserResponse
 from app.services.email import EmailService
@@ -53,6 +54,7 @@ async def jwks():
         422: {"description": "Validation error"},
     },
 )
+@rate_limit(times=5, seconds=60)
 async def register(
     *,
     db: AsyncSession = Depends(get_db),
@@ -85,6 +87,7 @@ async def register(
         422: {"description": "Validation error"},
     },
 )
+@rate_limit(times=10, seconds=60)
 async def login_for_access_token(
     db: AsyncSession = Depends(get_db),
     form_data: OAuth2PasswordRequestForm = Depends(),

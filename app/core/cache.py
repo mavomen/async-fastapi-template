@@ -68,6 +68,16 @@ class RedisCache:
         n = await self._redis.exists(key)
         return bool(n > 0)
 
+    async def ping(self) -> bool:
+        """Check if the Redis connection is alive."""
+        if self._redis is None:
+            return False
+        try:
+            await self._redis.ping()  # type: ignore[misc]
+            return True
+        except Exception:
+            return False
+
     async def flush(self) -> None:
         """Clear all keys in the current database."""
         if self._redis is None:

@@ -21,12 +21,18 @@ class SQLInjectionMonitorMiddleware(BaseHTTPMiddleware):
 
     async def dispatch(self, request: Request, call_next):
         query_str = str(request.url)
+        body_str = ""
+        if request.method in ("POST", "PUT", "PATCH", "DELETE"):
+            body_bytes = await request.body()
+            body_str = body_bytes.decode("utf-8", errors="replace") if body_bytes else ""
+        search_str = f"{query_str} {body_str}"
         for pattern in SQL_PATTERNS:
-            if re.search(pattern, query_str, re.IGNORECASE):
+            if re.search(pattern, search_str, re.IGNORECASE):
                 logger.warning(
                     "Potential SQL injection detected",
                     pattern=pattern,
                     url=str(request.url),
+                    body=body_str[:500],
                     client=request.client.host if request.client else "unknown",
                 )
                 break
