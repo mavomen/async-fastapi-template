@@ -1,9 +1,12 @@
 """Base Celery task with error handling and status tracking."""
 
 from celery import Task
+from celery.utils.log import get_task_logger
 
 from app.core.config import settings
 from app.tasks.status import update_task_status
+
+logger = get_task_logger(__name__)
 
 
 class BaseTask(Task):
@@ -12,6 +15,7 @@ class BaseTask(Task):
     abstract = True
 
     def on_failure(self, exc, task_id, _args, _kwargs, _einfo):
+        logger.warning(f"Task {task_id} failed after retries: {exc}")
         self._update_status(task_id, "FAILURE", str(exc))
 
     def on_success(self, _retval, task_id, _args, _kwargs):

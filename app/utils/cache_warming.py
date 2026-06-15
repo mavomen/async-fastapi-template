@@ -1,5 +1,6 @@
 """Cache warming and cache-aside pattern utilities."""
 
+import asyncio
 from collections.abc import Awaitable, Callable
 from typing import Any
 
@@ -27,6 +28,7 @@ async def warm_cache(
     keys_and_fetchers: dict[str, Callable[[], Awaitable[Any]]],
     ttl: int = 300,
 ) -> None:
-    """Warm multiple cache keys by fetching and storing their values."""
-    for key, fetch_func in keys_and_fetchers.items():
-        await cache_aside(key, fetch_func, ttl=ttl)
+    """Warm multiple cache keys concurrently."""
+    await asyncio.gather(
+        *[cache_aside(key, fetch_func, ttl=ttl) for key, fetch_func in keys_and_fetchers.items()]
+    )

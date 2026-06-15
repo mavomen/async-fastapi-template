@@ -48,9 +48,30 @@ services:
     networks:
       - dev-network
 
+  loki:
+    image: grafana/loki:3.0.0
+    container_name: fastapi_loki
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./monitoring/loki:/etc/loki
+      - loki_data:/loki
+    networks:
+      - dev-network
+
+  promtail:
+    image: grafana/promtail:3.0.0
+    container_name: fastapi_promtail
+    volumes:
+      - ./monitoring/promtail:/etc/promtail
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - dev-network
+
 volumes:
   postgres_dev_data:
   redis_dev_data:
+  loki_data:
 
 networks:
   dev-network:
