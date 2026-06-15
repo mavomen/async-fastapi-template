@@ -1,7 +1,7 @@
 """add RBAC tables
 
 Revision ID: 9d1a1b0c1d2e
-Revises: 001_add_users_table
+Revises: 001
 Create Date: 2025-05-02 10:00:00.000000
 
 """

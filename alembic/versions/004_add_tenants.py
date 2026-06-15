@@ -1,7 +1,7 @@
 """add tenants
 
 Revision ID: 004_add_tenants
-Revises: 123abc456def  # ← replace with your actual previous revision head!
+Revises: 003_task_status
 Create Date: 2026-05-08 10:00:00.000000
 
 """

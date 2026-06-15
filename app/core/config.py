@@ -95,7 +95,6 @@ class Settings(BaseSettings):
     WEBAUTHN_RP_ID: str = "localhost"
     WEBAUTHN_RP_NAME: str = "FastAPI Async Template"
     WEBAUTHN_ORIGIN: str = "http://localhost:8000"
-    WEBAUTHN_RELYING_PARTY_ID: str = "localhost"  # alias for RP ID
 
 
 settings = Settings()

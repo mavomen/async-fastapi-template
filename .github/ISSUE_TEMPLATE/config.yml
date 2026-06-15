@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Ask a question
+    url: https://github.com/mavomen/async-fastapi-template/discussions
+    about: Please ask questions in GitHub Discussions.
