@@ -119,7 +119,8 @@ def create_app() -> FastAPI:
     )
 
     configure_exception_handlers(app)
-    configure_rate_limit(app)
+    if settings.ENVIRONMENT != "test" and settings.RATE_LIMIT_ENABLED:
+        configure_rate_limit(app)
 
     # Request timeout (must be outermost — wraps the full request lifecycle)
     app.add_middleware(RequestTimeoutMiddleware, timeout=30)

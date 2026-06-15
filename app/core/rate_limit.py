@@ -15,5 +15,6 @@ default_limits = [
 limiter = Limiter(
     key_func=get_remote_address,
     default_limits=default_limits,  # type: ignore[arg-type]
-    headers_enabled=True,
+    headers_enabled=False,
+    enabled=settings.ENVIRONMENT != "test" and settings.RATE_LIMIT_ENABLED,
 )

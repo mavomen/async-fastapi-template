@@ -28,6 +28,8 @@ class PerUserRateLimitMiddleware(BaseHTTPMiddleware):
     async def dispatch(
         self, request: Request, call_next: Callable[[Request], Awaitable[Response]]
     ) -> Response:
+        if settings.ENVIRONMENT == "test":
+            return await call_next(request)
         if not per_user_limiter.enabled:
             return await call_next(request)
 
