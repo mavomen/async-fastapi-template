@@ -42,7 +42,10 @@ from app.websocket.chat import router as websocket_router
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     """Manage application lifespan events."""
     # Startup
-    sessionmanager.init(settings.DATABASE_URL)
+    sessionmanager.init(
+        writer_url=settings.DATABASE_URL,
+        reader_url=settings.DATABASE_URL_READER,
+    )
     await cache.connect()
     if settings.ENVIRONMENT != "test":
         from app.middleware.tenant import TenantMiddleware

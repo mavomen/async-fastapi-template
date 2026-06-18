@@ -11,7 +11,7 @@ from sqlalchemy import Boolean, Integer, inspect, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.admin.deps import require_admin
-from app.api.deps import get_db
+from app.api.deps import get_db, get_read_db
 from app.auth.permissions import has_permission
 from app.crud.user import user as crud_user
 from app.decorators.rate_limit import rate_limit
@@ -137,7 +137,7 @@ async def dashboard(request: Request, user: User = Depends(require_admin)) -> An
 async def admin_list(
     request: Request,
     table_name: str,
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_read_db),
     user: User = Depends(require_admin),
     search: str = "",
     page: int = 1,
@@ -189,7 +189,7 @@ async def admin_detail(
     request: Request,
     table_name: str,
     id: int,
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_read_db),
     user: User = Depends(require_admin),
 ) -> Any:
     """View a single record."""
@@ -216,7 +216,7 @@ async def admin_edit_form(
     request: Request,
     table_name: str,
     id: int,
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_read_db),
     user: User = Depends(require_admin),
 ) -> Any:
     """Edit form for a record."""

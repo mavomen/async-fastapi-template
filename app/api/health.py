@@ -8,7 +8,7 @@ from fastapi.responses import ORJSONResponse
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.database import get_db
+from app.core.database import get_read_db
 
 router = APIRouter(tags=["health"])
 
@@ -49,7 +49,7 @@ async def health_check() -> dict[str, Any]:
     response_class=ORJSONResponse,
     status_code=status.HTTP_200_OK,
 )
-async def readiness_check(db: AsyncSession = Depends(get_db)) -> dict[str, Any]:
+async def readiness_check(db: AsyncSession = Depends(get_read_db)) -> dict[str, Any]:
     """Readiness check including database and Redis status."""
     db_status = await _check_database(db)
     redis_status = await _check_redis()
@@ -81,7 +81,7 @@ async def liveness_check() -> dict[str, Any]:
     response_class=ORJSONResponse,
     status_code=status.HTTP_200_OK,
 )
-async def dependencies_check(db: AsyncSession = Depends(get_db)) -> dict[str, Any]:
+async def dependencies_check(db: AsyncSession = Depends(get_read_db)) -> dict[str, Any]:
     """Detailed dependency health check."""
     db_status = await _check_database(db)
     redis_status = await _check_redis()

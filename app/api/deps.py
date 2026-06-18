@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.cache import RedisCache
 from app.core.cache import cache as redis_cache
 from app.core.config import settings
-from app.core.database import get_db
+from app.core.database import get_db, get_read_db
 from app.core.security import decode_access_token
 from app.crud.user import user as crud_user
 from app.events.base import EventBus
@@ -27,6 +27,7 @@ __all__ = [
     "get_email_service",
     "get_event_bus",
     "get_gql_context",
+    "get_read_db",
     "get_storage",
 ]
 

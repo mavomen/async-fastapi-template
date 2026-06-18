@@ -36,7 +36,20 @@ class Settings(BaseSettings):
     # Database
     DATABASE_URL: str = Field(
         default="postgresql+asyncpg://postgres:postgres@localhost:5432/fastapi_db",
-        description="PostgreSQL connection string with asyncpg driver",
+        description="PostgreSQL primary connection string with asyncpg driver",
+    )
+    DATABASE_URL_READER: str | None = Field(
+        default=None,
+        description="PostgreSQL read-replica connection string. Falls back to DATABASE_URL when unset.",
+    )
+    DB_POOL_SIZE: int = 20
+    DB_MAX_OVERFLOW: int = 10
+    DB_POOL_RECYCLE: int = 3600
+    DB_POOL_SATURATION_THRESHOLD: float = Field(
+        default=0.8,
+        ge=0.0,
+        le=1.0,
+        description="Pool saturation ratio that triggers a warning alert",
     )
 
     # Redis (application cache)

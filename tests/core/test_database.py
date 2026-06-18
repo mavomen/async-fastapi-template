@@ -16,8 +16,8 @@ class TestDatabaseSessionManager:
         manager = DatabaseSessionManager()
         manager.init("postgresql+asyncpg://user:pass@localhost/test")
 
-        assert manager._engine is not None
-        assert manager._sessionmaker is not None
+        assert manager._writer_engine is not None
+        assert manager._writer_sessionmaker is not None
 
         await manager.close()
 
@@ -29,8 +29,8 @@ class TestDatabaseSessionManager:
 
         await manager.close()
 
-        assert manager._engine is None
-        assert manager._sessionmaker is None
+        assert manager._writer_engine is None
+        assert manager._writer_sessionmaker is None
 
     @pytest.mark.asyncio
     async def test_session_raises_if_not_initialized(self) -> None:
@@ -73,7 +73,7 @@ class TestGetDbDependency:
         """Test that get_db yields AsyncSession."""
         from app.core.database import sessionmanager
 
-        sessionmanager.init(test_db_url)
+        sessionmanager.init(writer_url=test_db_url)
 
         async for session in get_db():
             assert isinstance(session, AsyncSession)
