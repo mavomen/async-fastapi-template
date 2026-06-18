@@ -8,7 +8,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.responses import StreamingResponse
 
-from app.api.deps import get_db
+from app.api.deps import get_read_db
 from app.models.task_status import TaskStatus
 from app.tasks.email import send_email_notification
 
@@ -64,7 +64,7 @@ async def trigger_email_task(task_data: EmailTaskRequest) -> dict[str, Any]:
 )
 async def get_task_status(
     task_id: str,
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_read_db),
 ) -> dict[str, Any] | None:
     result = await db.execute(select(TaskStatus).where(TaskStatus.task_id == task_id))
     task = result.scalar_one_or_none()
@@ -81,7 +81,7 @@ async def get_task_status(
 @router.get("/{task_id}/stream")
 async def stream_task_status(
     task_id: str,
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_read_db),
 ) -> Any:
     """Stream task status updates via Server-Sent Events."""
     return StreamingResponse(

@@ -23,7 +23,18 @@ active_requests = Gauge(
 
 db_connections_total = Gauge(
     "db_connections_total",
-    "Number of database connections in the pool",
+    "Number of database connections in the writer pool",
+)
+
+db_reader_connections_total = Gauge(
+    "db_reader_connections_total",
+    "Number of database connections in the reader pool",
+)
+
+db_pool_saturation_ratio = Gauge(
+    "db_pool_saturation_ratio",
+    "Current pool saturation ratio (active/total) for each pool",
+    ["pool"],
 )
 
 cache_hits_total = Counter(

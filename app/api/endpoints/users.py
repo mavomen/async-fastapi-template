@@ -17,7 +17,7 @@ from fastapi import (
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import get_db
+from app.api.deps import get_db, get_read_db
 from app.auth.permissions import PermissionChecker
 from app.crud.user import user as crud_user
 from app.models.user import User
@@ -40,7 +40,7 @@ router = APIRouter()
     },
 )
 async def list_users(
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_read_db),
     current_user: User = Depends(PermissionChecker(["user:read"])),
 ) -> Any:
     """List all users (requires 'user:read' permission)."""
@@ -60,7 +60,7 @@ async def list_users(
 )
 async def export_users(
     format: str = Query("csv", enum=["csv", "excel"]),
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_read_db),
     current_user: User = Depends(PermissionChecker(["user:read"])),
 ) -> Any:
     """Export all users as CSV or Excel (requires user:read)."""
@@ -117,7 +117,7 @@ async def export_users(
 )
 async def get_user(
     user_id: int,
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_read_db),
     current_user: User = Depends(PermissionChecker(["user:read"])),
 ) -> Any:
     """Get a user by ID (requires 'user:read' permission)."""

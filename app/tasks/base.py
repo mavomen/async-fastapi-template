@@ -39,7 +39,7 @@ class BaseTask(Task):  # type: ignore[misc]
             asyncio.set_event_loop(loop)
 
         async def _update() -> None:
-            if sessionmanager._engine is None:
+            if sessionmanager._writer_engine is None:
                 sessionmanager.init(settings.DATABASE_URL)
             async with sessionmanager.session() as db:
                 await update_task_status(db, task_id, status, error)

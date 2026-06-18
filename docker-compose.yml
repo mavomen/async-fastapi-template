@@ -20,6 +20,23 @@ services:
     networks:
       - app-network
 
+  db_replica:
+    image: postgres:18-alpine
+    container_name: fastapi_postgres_replica
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-fastapi_db}
+    volumes:
+      - postgres_replica_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app-network
+
   redis:
     image: redis:7-alpine
     container_name: fastapi_redis
@@ -42,6 +59,7 @@ services:
     container_name: fastapi_app
     environment:
       DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-fastapi_db}
+      DATABASE_URL_READER: postgresql+asyncpg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db_replica:5432/${POSTGRES_DB:-fastapi_db}
       REDIS_URL: redis://redis:6379/0
       ENVIRONMENT: ${ENVIRONMENT:-production}
     ports:
@@ -63,6 +81,7 @@ services:
     command: celery -A app.core.celery_app worker --loglevel=info
     environment:
       DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-fastapi_db}
+      DATABASE_URL_READER: postgresql+asyncpg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db_replica:5432/${POSTGRES_DB:-fastapi_db}
       REDIS_URL: redis://redis:6379/0
       CELERY_BROKER_URL: redis://redis:6379/2
       CELERY_RESULT_BACKEND: redis://redis:6379/1
@@ -83,6 +102,7 @@ services:
     command: celery -A app.core.celery_app beat --loglevel=info
     environment:
       DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-fastapi_db}
+      DATABASE_URL_READER: postgresql+asyncpg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db_replica:5432/${POSTGRES_DB:-fastapi_db}
       REDIS_URL: redis://redis:6379/0
       CELERY_BROKER_URL: redis://redis:6379/2
       CELERY_RESULT_BACKEND: redis://redis:6379/1
@@ -127,6 +147,7 @@ services:
 
 volumes:
   postgres_data:
+  postgres_replica_data:
   redis_data:
   prometheus_data:
   grafana_data:
