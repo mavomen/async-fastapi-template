@@ -99,6 +99,12 @@ class Settings(BaseSettings):
 
     # Performance
     SLOW_QUERY_THRESHOLD_MS: int = 500  # Log queries slower than this
+    DB_SLOW_QUERY_CAPTURE_EXPLAIN: bool = Field(
+        default=False,
+        description="Run EXPLAIN (FORMAT JSON) on slow SELECT queries and log the plan",
+    )
+    DEFAULT_PAGE_SIZE: int = 50
+    MAX_PAGE_SIZE: int = 100
 
     # Event Bus
     EVENT_BUS_BACKEND: Literal["redis", "kafka"] = "redis"
