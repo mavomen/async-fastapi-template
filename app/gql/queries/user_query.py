@@ -58,7 +58,7 @@ class UserQuery:
         if not current_user or not has_permission(current_user, ["user:read"]):
             raise PermissionError("Not enough permissions")
 
-        async with sessionmanager.session() as db:
+        async with sessionmanager.reader_session() as db:
             user = await crud_user.get_with_roles(db, id=user_id)
             if not user:
                 return None

@@ -17,22 +17,23 @@ from fastapi import (
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import get_db
+from app.api.deps import get_db, get_read_db
 from app.auth.permissions import PermissionChecker
 from app.crud.user import user as crud_user
 from app.models.user import User
 from app.schemas.user import UserCreate, UserDetailResponse, UserUpdate
 from app.utils.export_csv import export_to_csv
 from app.utils.export_excel import export_to_excel
+from app.utils.pagination import CursorPage, CursorParams, decode_cursor
 
 router = APIRouter()
 
 
 @router.get(
     "/",
-    response_model=list[UserDetailResponse],
     summary="List all users",
-    description="Retrieve a paginated list of all users. Requires `user:read` permission.",
+    description="Retrieve a paginated list of all users. Supports cursor-based pagination. "
+    "Requires `user:read` permission.",
     responses={
         200: {"description": "List of users with roles"},
         401: {"description": "Not authenticated"},
@@ -40,11 +41,15 @@ router = APIRouter()
     },
 )
 async def list_users(
-    db: AsyncSession = Depends(get_db),
+    cursor: str | None = Query(None, description="Cursor from previous page response"),
+    size: int = Query(50, ge=1, le=100, description="Page size"),
+    db: AsyncSession = Depends(get_read_db),
     current_user: User = Depends(PermissionChecker(["user:read"])),
 ) -> Any:
-    """List all users (requires 'user:read' permission)."""
-    return await crud_user.get_multi_with_roles(db, skip=0, limit=100)
+    """List all users with cursor-based pagination (requires 'user:read' permission)."""
+    cursor_id = decode_cursor(cursor) if cursor else None
+    users, next_cursor = await crud_user.get_multi_cursor(db, cursor=cursor_id, limit=size)
+    return CursorPage.create(users, CursorParams(cursor=cursor, size=size))
 
 
 @router.get(
@@ -60,7 +65,7 @@ async def list_users(
 )
 async def export_users(
     format: str = Query("csv", enum=["csv", "excel"]),
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_read_db),
     current_user: User = Depends(PermissionChecker(["user:read"])),
 ) -> Any:
     """Export all users as CSV or Excel (requires user:read)."""
@@ -117,7 +122,7 @@ async def export_users(
 )
 async def get_user(
     user_id: int,
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_read_db),
     current_user: User = Depends(PermissionChecker(["user:read"])),
 ) -> Any:
     """Get a user by ID (requires 'user:read' permission)."""
@@ -188,12 +193,8 @@ async def bulk_create_users(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(PermissionChecker(["user:write"])),
 ) -> Any:
-    """Create multiple users in one request (requires user:write)."""
-    created = []
-    for user_in in users:
-        user = await crud_user.create(db, obj_in=user_in)
-        created.append(user)
-    return created
+    """Create multiple users in a single transaction (requires user:write)."""
+    return await crud_user.bulk_create(db, objs_in=users)
 
 
 @router.post(
@@ -206,7 +207,10 @@ async def import_users_csv(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(PermissionChecker(["user:write"])),
 ) -> Any:
-    """Import users from a CSV file (requires user:write)."""
+    """Import users from a CSV file using per-row savepoints (requires user:write).
+
+    Skips duplicate rows (IntegrityError) without aborting the entire import.
+    """
     content = await file.read()
     reader = csv.DictReader(io.StringIO(content.decode()))
     created = []
@@ -218,9 +222,9 @@ async def import_users_csv(
             full_name=row.get("full_name"),
         )
         try:
-            user = await crud_user.create(db, obj_in=user_in)
-            created.append(user)
+            async with db.begin_nested():
+                user = await crud_user.create(db, obj_in=user_in)
+                created.append(user)
         except IntegrityError:
-            await db.rollback()
-            continue  # skip duplicate rows
+            continue  # skip duplicate rows, savepoint rollback is scoped
     return created

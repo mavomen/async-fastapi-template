@@ -15,6 +15,9 @@ from sqlalchemy.pool import NullPool
 os.environ["ENVIRONMENT"] = "test"
 os.environ["SECRET_KEY"] = "test-secret-key-min-32-characters-long"
 os.environ["DATABASE_URL"] = "postgresql+asyncpg://postgres:postgres@localhost:5432/fastapi_test"
+os.environ["DATABASE_URL_READER"] = (
+    "postgresql+asyncpg://postgres:postgres@localhost:5432/fastapi_test"
+)
 
 from app.core.database import sessionmanager
 from app.main import app
@@ -63,7 +66,10 @@ async def db_engine(test_db_url: str) -> AsyncGenerator[Any, None]:
 async def db_session(db_engine: Any) -> AsyncGenerator[AsyncSession, None]:
     """Provide test database session."""
     # Ensure the session manager points to the test database
-    sessionmanager.init(os.environ["DATABASE_URL"])
+    sessionmanager.init(
+        writer_url=os.environ["DATABASE_URL"],
+        reader_url=os.environ["DATABASE_URL_READER"],
+    )
 
     async with sessionmanager.session() as session:
         yield session
@@ -81,7 +87,10 @@ def client() -> Generator[TestClient, None, None]:
 @pytest.fixture(scope="module")
 async def async_client() -> AsyncGenerator[AsyncClient, None]:
     """Provide asynchronous test client with sessionmanager initialized."""
-    sessionmanager.init(os.environ["DATABASE_URL"])
+    sessionmanager.init(
+        writer_url=os.environ["DATABASE_URL"],
+        reader_url=os.environ["DATABASE_URL_READER"],
+    )
     async with AsyncClient(
         transport=ASGITransport(app=app),
         base_url="http://test",

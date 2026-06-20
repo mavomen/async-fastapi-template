@@ -36,7 +36,20 @@ class Settings(BaseSettings):
     # Database
     DATABASE_URL: str = Field(
         default="postgresql+asyncpg://postgres:postgres@localhost:5432/fastapi_db",
-        description="PostgreSQL connection string with asyncpg driver",
+        description="PostgreSQL primary connection string with asyncpg driver",
+    )
+    DATABASE_URL_READER: str | None = Field(
+        default=None,
+        description="PostgreSQL read-replica connection string. Falls back to DATABASE_URL when unset.",
+    )
+    DB_POOL_SIZE: int = 20
+    DB_MAX_OVERFLOW: int = 10
+    DB_POOL_RECYCLE: int = 3600
+    DB_POOL_SATURATION_THRESHOLD: float = Field(
+        default=0.8,
+        ge=0.0,
+        le=1.0,
+        description="Pool saturation ratio that triggers a warning alert",
     )
 
     # Redis (application cache)
@@ -86,6 +99,12 @@ class Settings(BaseSettings):
 
     # Performance
     SLOW_QUERY_THRESHOLD_MS: int = 500  # Log queries slower than this
+    DB_SLOW_QUERY_CAPTURE_EXPLAIN: bool = Field(
+        default=False,
+        description="Run EXPLAIN (FORMAT JSON) on slow SELECT queries and log the plan",
+    )
+    DEFAULT_PAGE_SIZE: int = 50
+    MAX_PAGE_SIZE: int = 100
 
     # Event Bus
     EVENT_BUS_BACKEND: Literal["redis", "kafka"] = "redis"

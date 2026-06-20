@@ -11,8 +11,9 @@ from sqlalchemy import Boolean, Integer, inspect, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.admin.deps import require_admin
-from app.api.deps import get_db
+from app.api.deps import get_db, get_read_db
 from app.auth.permissions import has_permission
+from app.core.cache import cache as redis_cache
 from app.crud.user import user as crud_user
 from app.decorators.rate_limit import rate_limit
 from app.models import Permission, Role, User
@@ -137,7 +138,7 @@ async def dashboard(request: Request, user: User = Depends(require_admin)) -> An
 async def admin_list(
     request: Request,
     table_name: str,
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_read_db),
     user: User = Depends(require_admin),
     search: str = "",
     page: int = 1,
@@ -162,10 +163,20 @@ async def admin_list(
         if filters:
             query = query.where(or_(*filters)) if len(filters) > 1 else query.where(filters[0])
 
-    # Pagination
-    count_query = select(func.count()).select_from(query.subquery())
-    total = (await db.scalar(count_query)) or 0
+    # Pagination — use cached count when no search filter is active
     per_page = 20
+    if not search:
+        cache_key = f"admin_count:{table_name}"
+        cached_total = await redis_cache.get(cache_key)
+        if cached_total is not None:
+            total = int(cached_total)
+        else:
+            count_query = select(func.count()).select_from(query.subquery())
+            total = (await db.scalar(count_query)) or 0
+            await redis_cache.set(cache_key, total, ttl=60)
+    else:
+        count_query = select(func.count()).select_from(query.subquery())
+        total = (await db.scalar(count_query)) or 0
     query = query.offset((page - 1) * per_page).limit(per_page)
     result = await db.execute(query)
     rows = result.scalars().all()
@@ -189,7 +200,7 @@ async def admin_detail(
     request: Request,
     table_name: str,
     id: int,
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_read_db),
     user: User = Depends(require_admin),
 ) -> Any:
     """View a single record."""
@@ -216,7 +227,7 @@ async def admin_edit_form(
     request: Request,
     table_name: str,
     id: int,
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_read_db),
     user: User = Depends(require_admin),
 ) -> Any:
     """Edit form for a record."""
@@ -272,6 +283,7 @@ async def admin_edit(
             setattr(obj, field, value)
     _set_default_password_for_user(obj)
     await db.commit()
+    await redis_cache.delete(f"admin_count:{table_name}")
     return RedirectResponse(url=f"/admin/{table_name}", status_code=303)
 
 
@@ -327,6 +339,7 @@ async def admin_create(
     _set_default_password_for_user(obj)
     db.add(obj)
     await db.commit()
+    await redis_cache.delete(f"admin_count:{table_name}")
     return RedirectResponse(url=f"/admin/{table_name}", status_code=303)
 
 
@@ -350,4 +363,5 @@ async def admin_delete(
     if obj:
         await db.delete(obj)
         await db.commit()
+    await redis_cache.delete(f"admin_count:{table_name}")
     return RedirectResponse(url=f"/admin/{table_name}", status_code=303)

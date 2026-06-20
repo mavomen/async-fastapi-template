@@ -78,6 +78,46 @@ class RedisCache:
         except Exception:
             return False
 
+    async def zadd(self, key: str, mapping: dict[str | bytes, float]) -> int:
+        """Add members with scores to a sorted set. Returns number of new elements added."""
+        if self._redis is None:
+            raise RuntimeError("RedisCache is not connected")
+        return await self._redis.zadd(key, mapping)  # type: ignore[no-any-return, type-var]
+
+    async def zrange(
+        self, key: str, start: int = 0, end: int = -1, desc: bool = False, withscores: bool = False
+    ) -> list[Any]:
+        """Return a range of members from a sorted set by index."""
+        if self._redis is None:
+            raise RuntimeError("RedisCache is not connected")
+        return await self._redis.zrange(key, start, end, desc=desc, withscores=withscores)  # type: ignore[no-any-return]
+
+    async def zrevrange(
+        self, key: str, start: int = 0, end: int = -1, withscores: bool = False
+    ) -> list[Any]:
+        """Return members of a sorted set in reverse order by score."""
+        if self._redis is None:
+            raise RuntimeError("RedisCache is not connected")
+        return await self._redis.zrevrange(key, start, end, withscores=withscores)  # type: ignore[no-any-return]
+
+    async def zincrby(self, key: str, amount: float = 1, member: str = "") -> float:
+        """Increment the score of a member in a sorted set."""
+        if self._redis is None:
+            raise RuntimeError("RedisCache is not connected")
+        return await self._redis.zincrby(key, amount, member)  # type: ignore[no-any-return]
+
+    async def zcard(self, key: str) -> int:
+        """Return the cardinality (number of members) of a sorted set."""
+        if self._redis is None:
+            raise RuntimeError("RedisCache is not connected")
+        return await self._redis.zcard(key)  # type: ignore[no-any-return]
+
+    async def zrem(self, key: str, *members: str) -> int:
+        """Remove members from a sorted set. Returns number of removed members."""
+        if self._redis is None:
+            raise RuntimeError("RedisCache is not connected")
+        return await self._redis.zrem(key, *members)  # type: ignore[no-any-return]
+
     async def flush(self) -> None:
         """Clear all keys in the current database."""
         if self._redis is None:

@@ -16,6 +16,20 @@ services:
     networks:
       - dev-network
 
+  db_replica:
+    image: postgres:18.3-alpine
+    container_name: fastapi_postgres_replica_dev
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: fastapi_dev
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_replica_dev_data:/var/lib/postgresql/data
+    networks:
+      - dev-network
+
   redis:
     image: redis:7.4-alpine
     container_name: fastapi_redis_dev
@@ -70,6 +84,7 @@ services:
 
 volumes:
   postgres_dev_data:
+  postgres_replica_dev_data:
   redis_dev_data:
   loki_data:
 
