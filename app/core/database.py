@@ -63,14 +63,23 @@ def _install_engine_listeners(engine: AsyncEngine, pool_label: str) -> None:
         if start is not None:
             duration_ms = (time.monotonic() - start) * 1000
             if duration_ms > getattr(settings, "SLOW_QUERY_THRESHOLD_MS", 500):
-                logger.warning(
-                    "Slow query detected",
-                    extra={
-                        "duration_ms": round(duration_ms, 2),
-                        "statement": statement,
-                        "pool": pool_label,
-                    },
-                )
+                extra: dict[str, Any] = {
+                    "duration_ms": round(duration_ms, 2),
+                    "statement": statement,
+                    "pool": pool_label,
+                }
+                if settings.DB_SLOW_QUERY_CAPTURE_EXPLAIN and statement.strip().upper().startswith(
+                    "SELECT"
+                ):
+                    try:
+                        plan_cursor = conn.connection.cursor()
+                        plan_cursor.execute(f"EXPLAIN (FORMAT JSON) {statement}")
+                        plan = plan_cursor.fetchone()
+                        plan_cursor.close()
+                        extra["plan"] = plan[0] if plan else None
+                    except Exception:
+                        pass
+                logger.warning("Slow query detected", extra=extra)
 
     @event.listens_for(engine.sync_engine, "before_execute", retval=True)
     def _add_tenant_filter(  # type: ignore[no-untyped-def]

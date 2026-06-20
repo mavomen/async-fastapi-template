@@ -35,6 +35,25 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
         await db.refresh(db_obj)
         return db_obj
 
+    async def bulk_create(
+        self,
+        db: AsyncSession,
+        *,
+        objs_in: list[UserCreate],
+    ) -> list[User]:
+        """Create multiple users in a single transaction with password hashing."""
+        db_objs = []
+        for obj_in in objs_in:
+            create_data = obj_in.model_dump()
+            create_data["hashed_password"] = get_password_hash(create_data.pop("password"))
+            db_objs.append(self.model(**create_data))
+
+        db.add_all(db_objs)
+        await db.commit()
+        for obj in db_objs:
+            await db.refresh(obj)
+        return db_objs
+
     async def update(  # type: ignore[override]
         self,
         db: AsyncSession,
