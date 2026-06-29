@@ -34,6 +34,11 @@ class ConflictException(AppException):
         super().__init__(409, detail)
 
 
+class LockedOutException(AppException):
+    def __init__(self, detail: str = "Account is locked due to too many failed login attempts"):
+        super().__init__(423, detail)
+
+
 class InternalServerException(AppException):
     def __init__(self, detail: str = "Internal server error"):
         super().__init__(500, detail)

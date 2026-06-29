@@ -17,6 +17,7 @@ from app.auth.webauthn import (
     complete_authentication,
     complete_registration,
 )
+from app.core.exceptions import LockedOutException
 from app.core.jwt_blacklist import blacklist_token, revoke_all_user_tokens
 from app.core.security import (
     authenticate_user,
@@ -97,7 +98,13 @@ async def login_for_access_token(
     form_data: OAuth2PasswordRequestForm = Depends(),
 ) -> Any:
     """OAuth2 compatible token login."""
-    user = await authenticate_user(db, email=form_data.username, password=form_data.password)
+    try:
+        user = await authenticate_user(db, email=form_data.username, password=form_data.password)
+    except LockedOutException as e:
+        raise HTTPException(
+            status_code=status.HTTP_423_LOCKED,
+            detail=e.detail,
+        )
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

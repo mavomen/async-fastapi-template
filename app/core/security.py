@@ -121,13 +121,38 @@ def decode_access_token(token: str) -> dict[str, Any]:
 
 
 async def authenticate_user(db: AsyncSession, email: str, password: str) -> User | None:
+    from datetime import UTC, datetime
+
+    from app.core.config import settings
     from app.crud.user import user as crud_user
 
     user = await crud_user.get_by_email(db, email=email)
     if not user:
         return None
+
+    now = datetime.now(UTC).replace(tzinfo=None)
+
+    # Check if account is locked
+    if user.locked_until and user.locked_until > now:
+        from app.core.exceptions import LockedOutException
+
+        raise LockedOutException(
+            detail=f"Account locked until {user.locked_until.isoformat()}. Try again later."
+        )
+
     if not verify_password(password, user.hashed_password):
+        user.failed_login_attempts += 1
+        if user.failed_login_attempts >= settings.MAX_LOGIN_ATTEMPTS:
+            user.locked_until = now + timedelta(minutes=settings.LOGIN_LOCKOUT_MINUTES)
+        db.add(user)
+        await db.commit()
         return None
+
+    user.failed_login_attempts = 0
+    user.locked_until = None
+    user.last_login_at = now
+    db.add(user)
+    await db.commit()
     return user
 
 
