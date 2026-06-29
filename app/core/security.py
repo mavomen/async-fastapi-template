@@ -1,5 +1,6 @@
 from datetime import UTC, datetime, timedelta
 from typing import Any
+from uuid import uuid4
 
 import bcrypt
 from cryptography.hazmat.backends import default_backend
@@ -78,12 +79,25 @@ def get_password_hash(password: str) -> str:
 
 
 # -------- JWT token creation / validation --------
-def create_access_token(subject: str | Any, expires_delta: timedelta | None = None) -> str:
+def _make_jwt_payload(subject: str | Any, expires_delta: timedelta | None, purpose: str | None = None) -> dict[str, Any]:
+    now = datetime.now(UTC)
     if expires_delta:
-        expire = datetime.now(UTC) + expires_delta
+        expire = now + expires_delta
     else:
-        expire = datetime.now(UTC) + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-    to_encode = {"exp": expire, "sub": str(subject)}
+        expire = now + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    payload: dict[str, Any] = {
+        "jti": str(uuid4()),
+        "sub": str(subject),
+        "iat": int(now.timestamp()),
+        "exp": expire,
+    }
+    if purpose:
+        payload["purpose"] = purpose
+    return payload
+
+
+def create_access_token(subject: str | Any, expires_delta: timedelta | None = None) -> str:
+    to_encode = _make_jwt_payload(subject, expires_delta)
 
     if settings.ALGORITHM == "RS256":
         return sign_with_rs256(to_encode)
@@ -120,8 +134,7 @@ async def authenticate_user(db: AsyncSession, email: str, password: str) -> User
 # -------- refresh token --------
 def create_refresh_token(subject: str | Any) -> str:
     """Create a long-lived refresh token."""
-    expire = datetime.now(UTC) + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
-    to_encode = {"exp": expire, "sub": str(subject), "purpose": "refresh"}
+    to_encode = _make_jwt_payload(subject, timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS), purpose="refresh")
     if settings.ALGORITHM == "RS256":
         return sign_with_rs256(to_encode)
     return jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)  # type: ignore[no-any-return]

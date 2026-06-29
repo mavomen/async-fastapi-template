@@ -10,18 +10,20 @@ from fastapi import APIRouter, Depends, Form, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import get_current_user, get_db, get_email_service
+from app.api.deps import get_current_user, get_db, get_email_service, oauth2_scheme
 from app.auth.webauthn import (
     begin_authentication,
     begin_registration,
     complete_authentication,
     complete_registration,
 )
+from app.core.jwt_blacklist import blacklist_token, revoke_all_user_tokens
 from app.core.security import (
     authenticate_user,
     create_access_token,
     create_refresh_token,
     create_verification_token,
+    decode_access_token,
     decode_refresh_token,
     decode_verification_token,
     get_jwks,
@@ -210,6 +212,40 @@ async def webauthn_login_complete(
         access_token = create_access_token(subject=user.id)
         return {"access_token": access_token, "token_type": "bearer"}
     raise HTTPException(status_code=401, detail="Authentication failed")
+
+
+# ---------- JWT revocation ----------
+
+
+@router.post(
+    "/jwt/revoke",
+    status_code=status.HTTP_200_OK,
+    summary="Revoke current token",
+    description="Blacklist the current access token so it can no longer be used.",
+)
+async def revoke_token(
+    token: str = Depends(oauth2_scheme),
+    current_user: User = Depends(get_current_user),
+) -> Any:
+    payload = decode_access_token(token)
+    jti = payload.get("jti")
+    exp = payload.get("exp", 0)
+    if jti:
+        await blacklist_token(current_user.id, jti, exp)
+    return {"detail": "Token revoked"}
+
+
+@router.post(
+    "/jwt/revoke-all",
+    status_code=status.HTTP_200_OK,
+    summary="Revoke all tokens",
+    description="Revoke every access and refresh token issued to the current user.",
+)
+async def revoke_all_tokens(
+    current_user: User = Depends(get_current_user),
+) -> Any:
+    count = await revoke_all_user_tokens(current_user.id)
+    return {"detail": f"All {count} tokens revoked"}
 
 
 # ---------- Email verification ----------

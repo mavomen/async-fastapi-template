@@ -8,6 +8,7 @@ from app.core.cache import RedisCache
 from app.core.cache import cache as redis_cache
 from app.core.config import settings
 from app.core.database import get_db, get_read_db
+from app.core.jwt_blacklist import is_token_blacklisted
 from app.core.security import decode_access_token
 from app.crud.user import user as crud_user
 from app.events.base import EventBus
@@ -46,6 +47,12 @@ async def get_current_user(
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid token payload: subject missing",
+        )
+    jti: str | None = payload.get("jti")
+    if jti and await is_token_blacklisted(int(user_id), jti):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token has been revoked",
         )
     # Fetch user with roles and permissions loaded
     user = await crud_user.get_with_roles(db, id=int(user_id))

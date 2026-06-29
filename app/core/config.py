@@ -116,6 +116,10 @@ class Settings(BaseSettings):
     WEBAUTHN_RP_NAME: str = "FastAPI Async Template"
     WEBAUTHN_ORIGIN: str = "http://localhost:8000"
 
+    # JWT Blacklist / Revocation
+    JWT_BLACKLIST_ENABLED: bool = True
+    JWT_BLACKLIST_TTL: int = 86400  # 24h — max age to keep revoked tokens
+
     # Content Security Policy
     CSP_REPORT_URI: str = "/api/v1/csp-report"
     CSP_REPORT_ONLY: bool = False
