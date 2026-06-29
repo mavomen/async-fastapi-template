@@ -116,6 +116,17 @@ class Settings(BaseSettings):
     WEBAUTHN_RP_NAME: str = "FastAPI Async Template"
     WEBAUTHN_ORIGIN: str = "http://localhost:8000"
 
+    # Content Security Policy
+    CSP_REPORT_URI: str = "/api/v1/csp-report"
+    CSP_REPORT_ONLY: bool = False
+    CSP_DEFAULT_SRC: str = "'self'"
+    CSP_SCRIPT_SRC: str = "'self' 'unsafe-inline'"
+    CSP_STYLE_SRC: str = "'self' 'unsafe-inline'"
+    CSP_IMG_SRC: str = "'self' data:"
+    CSP_CONNECT_SRC: str = "'self'"
+    CSP_FRAME_ANCESTORS: str = "'none'"
+    CSP_FORM_ACTION: str = "'self'"
+
 
 settings = Settings()
 
