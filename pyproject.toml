@@ -39,6 +39,7 @@ kafka-python = "^2.3.1"
 webauthn = "^2.7.1"
 typer = {extras = ["all"], version = "^0.25.1"}
 scalar-fastapi = "^1.8.2"
+pyotp = "^2.10.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.4"

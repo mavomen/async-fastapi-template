@@ -11,6 +11,13 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_user, get_db, get_email_service, oauth2_scheme
+from app.auth.totp import (
+    create_totp_challenge_token,
+    decode_totp_challenge_token,
+    remove_used_backup_code,
+    verify_backup_code,
+    verify_totp_code,
+)
 from app.auth.webauthn import (
     begin_authentication,
     begin_registration,
@@ -42,6 +49,7 @@ from app.crud.user import user as crud_user
 from app.decorators.rate_limit import rate_limit
 from app.models.user import User
 from app.schemas import Token, UserCreate, UserResponse
+from app.schemas.totp import TOTPLoginVerifyRequest
 from app.services.auth_audit import log_auth_event
 from app.services.email import EmailService
 
@@ -92,12 +100,14 @@ async def register(
 
 @router.post(
     "/login",
-    response_model=Token,
     summary="Login for access token",
-    description="OAuth2 compatible token login. Returns access and refresh tokens.",
+    description="OAuth2 compatible token login. Returns access and refresh tokens, "
+    "or a challenge token if TOTP 2FA is enabled.",
     responses={
         200: {"description": "Access and refresh tokens returned"},
+        202: {"description": "TOTP challenge required — provide challenge_token to /login/totp-verify"},
         401: {"description": "Incorrect email or password"},
+        423: {"description": "Account locked"},
         422: {"description": "Validation error"},
     },
 )
@@ -130,6 +140,26 @@ async def login_for_access_token(
             detail="Incorrect email or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
+
+    # If TOTP is enabled, issue a challenge token instead of access tokens
+    if user.totp_enabled:
+        challenge_token = create_totp_challenge_token(user.id)
+        return {
+            "totp_required": True,
+            "challenge_token": challenge_token,
+            "token_type": "totp_challenge",
+        }
+
+    return await _issue_tokens(user, db, ip_address, user_agent)
+
+
+async def _issue_tokens(
+    user: User,
+    db: AsyncSession,
+    ip_address: str | None,
+    user_agent: str | None = None,
+) -> dict[str, Any]:
+    """Create and store access + refresh tokens for a user."""
     access_token = create_access_token(subject=user.id)
     refresh_token = create_refresh_token(subject=user.id)
 
@@ -163,6 +193,60 @@ async def login_for_access_token(
         "refresh_token": refresh_token,
         "token_type": "bearer",
     }
+
+
+@router.post(
+    "/login/totp-verify",
+    response_model=Token,
+    summary="Complete login with TOTP code",
+    description="Exchange a challenge token and a TOTP code (or backup code) "
+    "for access and refresh tokens.",
+    responses={
+        200: {"description": "Access and refresh tokens returned"},
+        400: {"description": "Invalid or expired challenge token or TOTP code"},
+    },
+)
+@rate_limit(times=10, seconds=60)  # type: ignore[untyped-decorator]
+async def login_with_totp(
+    request: Request,
+    body: TOTPLoginVerifyRequest,
+    db: AsyncSession = Depends(get_db),
+) -> Any:
+    """Complete 2FA login by verifying a TOTP code."""
+    payload = decode_totp_challenge_token(body.challenge_token)
+    user_id = int(payload["sub"])
+    user = await crud_user.get(db, id=user_id)
+    if not user or not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="User not found or inactive",
+        )
+    if not user.totp_enabled or not user.totp_secret:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="TOTP is not enabled for this user",
+        )
+
+    valid = verify_totp_code(user.totp_secret, body.code)
+    if not valid:
+        used_hash = verify_backup_code(body.code, user.backup_codes)
+        if used_hash:
+            remaining = remove_used_backup_code(used_hash, user.backup_codes)
+            user.backup_codes = remaining
+            db.add(user)
+            await db.commit()
+            valid = True
+
+    if not valid:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid TOTP or backup code",
+        )
+
+    ip_address = request.client.host if request.client else None
+    user_agent = request.headers.get("user-agent")
+
+    return await _issue_tokens(user, db, ip_address, user_agent)
 
 
 @router.post(
