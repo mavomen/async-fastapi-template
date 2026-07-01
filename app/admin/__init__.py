@@ -14,6 +14,11 @@ from app.admin.deps import require_admin
 from app.api.deps import get_db, get_read_db
 from app.auth.permissions import has_permission
 from app.core.cache import cache as redis_cache
+from app.core.jwt_blacklist import (
+    get_session,
+    list_active_sessions,
+    revoke_session,
+)
 from app.crud.user import user as crud_user
 from app.decorators.rate_limit import rate_limit
 from app.models import Permission, Role, User
@@ -131,6 +136,13 @@ async def dashboard(request: Request, user: User = Depends(require_admin)) -> An
                     "permission": config["permission"],
                 }
             )
+    models_info.append(
+        {
+            "name": "sessions",
+            "label": "Sessions",
+            "permission": "user:admin",
+        }
+    )
     return render("dashboard.html", user=user, models=models_info, request=request)
 
 
@@ -365,3 +377,48 @@ async def admin_delete(
         await db.commit()
     await redis_cache.delete(f"admin_count:{table_name}")
     return RedirectResponse(url=f"/admin/{table_name}", status_code=303)
+
+
+# ---------- Session management (Redis-based) ----------
+
+
+@router.get("/sessions", response_class=HTMLResponse)
+async def admin_list_sessions(
+    request: Request,
+    db: AsyncSession = Depends(get_read_db),
+    user: User = Depends(require_admin),
+    user_id: int | None = None,
+) -> Any:
+    """List active sessions for a user (or prompt to select)."""
+    sessions: list[dict[str, str]] = []
+    selected_user = None
+    if user_id:
+        selected_user = await crud_user.get(db, id=user_id)
+        if selected_user:
+            sessions = await list_active_sessions(user_id)
+    return render(
+        "sessions.html",
+        user=user,
+        selected_user=selected_user,
+        sessions=sessions,
+        request=request,
+    )
+
+
+@router.post("/sessions/revoke", response_class=HTMLResponse)
+async def admin_revoke_session(
+    request: Request,
+    admin_user: User = Depends(require_admin),
+) -> Any:
+    """Revoke a specific session by JTI."""
+    form = await request.form()
+    jti = str(form.get("jti", ""))
+    user_id = int(str(form.get("user_id", 0)))
+    if not jti or not user_id:
+        raise HTTPException(status_code=400, detail="jti and user_id required")
+    session_data = await get_session(user_id, jti)
+    if not session_data:
+        raise HTTPException(status_code=404, detail="Session not found")
+    exp = int(session_data.get("expires_at", 0))
+    await revoke_session(user_id, jti, exp)
+    return RedirectResponse(url=f"/admin/sessions?user_id={user_id}", status_code=303)

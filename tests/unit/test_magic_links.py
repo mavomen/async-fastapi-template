@@ -60,6 +60,10 @@ class TestMagicLinkTokens:
 
 
 class TestMagicLinkVerify:
+    @pytest.fixture(autouse=True)
+    def _mock_redis(self, mocker):
+        mocker.patch("app.core.jwt_blacklist.cache.get_redis", return_value=AsyncMock())
+
     @pytest.mark.asyncio
     async def test_verify_with_existing_user_returns_tokens(self, mocker):
         mock_user = AsyncMock()

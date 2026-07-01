@@ -18,7 +18,14 @@ from app.auth.webauthn import (
     complete_registration,
 )
 from app.core.exceptions import LockedOutException
-from app.core.jwt_blacklist import blacklist_token, revoke_all_user_tokens
+from app.core.jwt_blacklist import (
+    SessionCreatePayload,
+    get_session,
+    list_active_sessions,
+    revoke_all_user_sessions,
+    revoke_session,
+    store_session,
+)
 from app.core.security import (
     authenticate_user,
     create_access_token,
@@ -125,6 +132,32 @@ async def login_for_access_token(
         )
     access_token = create_access_token(subject=user.id)
     refresh_token = create_refresh_token(subject=user.id)
+
+    access_payload = decode_access_token(access_token)
+    refresh_payload = decode_refresh_token(refresh_token)
+    await store_session(
+        user.id,
+        SessionCreatePayload(
+            jti=access_payload["jti"],
+            token_type="access",
+            ip=ip_address,
+            user_agent=user_agent,
+            iat=access_payload["iat"],
+            exp=access_payload["exp"],
+        ),
+    )
+    await store_session(
+        user.id,
+        SessionCreatePayload(
+            jti=refresh_payload["jti"],
+            token_type="refresh",
+            ip=ip_address,
+            user_agent=user_agent,
+            iat=refresh_payload["iat"],
+            exp=refresh_payload["exp"],
+        ),
+    )
+
     return {
         "access_token": access_token,
         "refresh_token": refresh_token,
@@ -161,6 +194,37 @@ async def refresh_access_token(
 
     ip_address = request.client.host if request.client else None
     user_agent = request.headers.get("user-agent")
+
+    old_jti = payload.get("jti")
+    old_exp = payload.get("exp", 0)
+    if old_jti:
+        await revoke_session(user.id, old_jti, old_exp)
+
+    access_payload = decode_access_token(new_access)
+    refresh_payload = decode_refresh_token(new_refresh)
+    await store_session(
+        user.id,
+        SessionCreatePayload(
+            jti=access_payload["jti"],
+            token_type="access",
+            ip=ip_address,
+            user_agent=user_agent,
+            iat=access_payload["iat"],
+            exp=access_payload["exp"],
+        ),
+    )
+    await store_session(
+        user.id,
+        SessionCreatePayload(
+            jti=refresh_payload["jti"],
+            token_type="refresh",
+            ip=ip_address,
+            user_agent=user_agent,
+            iat=refresh_payload["iat"],
+            exp=refresh_payload["exp"],
+        ),
+    )
+
     await log_auth_event(
         db,
         event_type="token_refresh",
@@ -274,6 +338,32 @@ async def verify_magic_link(
 
     ip_address = request.client.host if request.client else None
     user_agent = request.headers.get("user-agent")
+
+    access_payload = decode_access_token(access_token)
+    refresh_payload = decode_refresh_token(refresh_token)
+    await store_session(
+        user.id,
+        SessionCreatePayload(
+            jti=access_payload["jti"],
+            token_type="access",
+            ip=ip_address,
+            user_agent=user_agent,
+            iat=access_payload["iat"],
+            exp=access_payload["exp"],
+        ),
+    )
+    await store_session(
+        user.id,
+        SessionCreatePayload(
+            jti=refresh_payload["jti"],
+            token_type="refresh",
+            ip=ip_address,
+            user_agent=user_agent,
+            iat=refresh_payload["iat"],
+            exp=refresh_payload["exp"],
+        ),
+    )
+
     await log_auth_event(
         db,
         event_type="magic_link_login",
@@ -380,7 +470,7 @@ async def revoke_token(
     jti = payload.get("jti")
     exp = payload.get("exp", 0)
     if jti:
-        await blacklist_token(current_user.id, jti, exp)
+        await revoke_session(current_user.id, jti, exp)
 
     client_host = getattr(request.client, "host", None) if request.client else None
     await log_auth_event(
@@ -406,7 +496,7 @@ async def revoke_all_tokens(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> Any:
-    count = await revoke_all_user_tokens(current_user.id)
+    count = await revoke_all_user_sessions(current_user.id)
 
     client_host = getattr(request.client, "host", None) if request.client else None
     await log_auth_event(
@@ -419,6 +509,53 @@ async def revoke_all_tokens(
         details={"count": count, "all_tokens": True},
     )
     return {"detail": f"All {count} tokens revoked"}
+
+
+# ---------- Session management ----------
+
+
+@router.get(
+    "/sessions",
+    summary="List active sessions",
+    description="Return all active sessions for the current user.",
+)
+async def list_sessions_endpoint(
+    current_user: User = Depends(get_current_user),
+) -> Any:
+    sessions = await list_active_sessions(current_user.id)
+    return {"sessions": sessions}
+
+
+@router.post(
+    "/sessions/revoke",
+    status_code=status.HTTP_200_OK,
+    summary="Revoke a session",
+    description="Revoke a specific session by its JTI.",
+)
+async def revoke_session_endpoint(
+    request: Request,
+    jti: str = Body(..., embed=True),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> Any:
+    if not jti:
+        raise HTTPException(status_code=400, detail="jti is required")
+    session_data = await get_session(current_user.id, jti)
+    if not session_data:
+        raise HTTPException(status_code=404, detail="Session not found")
+    exp = int(session_data.get("expires_at", 0))
+    await revoke_session(current_user.id, jti, exp)
+    client_host = getattr(request.client, "host", None) if request.client else None
+    await log_auth_event(
+        db,
+        event_type="token_revoke",
+        user_id=current_user.id,
+        tenant_id=getattr(current_user, "tenant_id", None),
+        ip_address=client_host,
+        user_agent=request.headers.get("user-agent"),
+        details={"jti": jti, "via": "sessions/revoke"},
+    )
+    return {"detail": "Session revoked"}
 
 
 # ---------- Email verification ----------
