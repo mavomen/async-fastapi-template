@@ -120,20 +120,43 @@ def decode_access_token(token: str) -> dict[str, Any]:
         )
 
 
-async def authenticate_user(db: AsyncSession, email: str, password: str) -> User | None:
+async def authenticate_user(
+    db: AsyncSession,
+    email: str,
+    password: str,
+    ip_address: str | None = None,
+    user_agent: str | None = None,
+) -> User | None:
     from datetime import UTC, datetime
 
     from app.core.config import settings
     from app.crud.user import user as crud_user
+    from app.services.auth_audit import log_auth_event
 
     user = await crud_user.get_by_email(db, email=email)
     if not user:
+        await log_auth_event(
+            db,
+            event_type="login_failure",
+            ip_address=ip_address,
+            user_agent=user_agent,
+            details={"email": email, "reason": "user_not_found"},
+        )
         return None
 
     now = datetime.now(UTC).replace(tzinfo=None)
 
     # Check if account is locked
     if user.locked_until and user.locked_until > now:
+        await log_auth_event(
+            db,
+            event_type="account_locked",
+            user_id=user.id,
+            tenant_id=user.tenant_id,
+            ip_address=ip_address,
+            user_agent=user_agent,
+            details={"locked_until": user.locked_until.isoformat()},
+        )
         from app.core.exceptions import LockedOutException
 
         raise LockedOutException(
@@ -142,10 +165,29 @@ async def authenticate_user(db: AsyncSession, email: str, password: str) -> User
 
     if not verify_password(password, user.hashed_password):
         user.failed_login_attempts += 1
+        was_locked = False
         if user.failed_login_attempts >= settings.MAX_LOGIN_ATTEMPTS:
             user.locked_until = now + timedelta(minutes=settings.LOGIN_LOCKOUT_MINUTES)
+            was_locked = True
         db.add(user)
         await db.commit()
+
+        details: dict[str, object] = {
+            "failed_attempts": user.failed_login_attempts,
+            "max_attempts": settings.MAX_LOGIN_ATTEMPTS,
+        }
+        event_type = "account_locked" if was_locked else "login_failure"
+        if was_locked and user.locked_until:
+            details["locked_until"] = user.locked_until.isoformat()
+        await log_auth_event(
+            db,
+            event_type=event_type,
+            user_id=user.id,
+            tenant_id=user.tenant_id,
+            ip_address=ip_address,
+            user_agent=user_agent,
+            details=details,
+        )
         return None
 
     user.failed_login_attempts = 0
@@ -153,6 +195,15 @@ async def authenticate_user(db: AsyncSession, email: str, password: str) -> User
     user.last_login_at = now
     db.add(user)
     await db.commit()
+
+    await log_auth_event(
+        db,
+        event_type="login_success",
+        user_id=user.id,
+        tenant_id=user.tenant_id,
+        ip_address=ip_address,
+        user_agent=user_agent,
+    )
     return user
 
 

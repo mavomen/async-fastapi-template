@@ -33,6 +33,7 @@ from app.crud.user import user as crud_user
 from app.decorators.rate_limit import rate_limit
 from app.models.user import User
 from app.schemas import Token, UserCreate, UserResponse
+from app.services.auth_audit import log_auth_event
 from app.services.email import EmailService
 
 router = APIRouter()
@@ -98,8 +99,17 @@ async def login_for_access_token(
     form_data: OAuth2PasswordRequestForm = Depends(),
 ) -> Any:
     """OAuth2 compatible token login."""
+    ip_address = request.client.host if request.client else None
+    user_agent = request.headers.get("user-agent")
+
     try:
-        user = await authenticate_user(db, email=form_data.username, password=form_data.password)
+        user = await authenticate_user(
+            db,
+            email=form_data.username,
+            password=form_data.password,
+            ip_address=ip_address,
+            user_agent=user_agent,
+        )
     except LockedOutException as e:
         raise HTTPException(
             status_code=status.HTTP_423_LOCKED,
@@ -132,10 +142,13 @@ async def login_for_access_token(
     },
 )
 async def refresh_access_token(
+    request: Request,
     refresh_token: str = Form(...),
     db: AsyncSession = Depends(get_db),
 ) -> Any:
     """Issue a new access token using a valid refresh token."""
+    from app.services.auth_audit import log_auth_event
+
     payload = decode_refresh_token(refresh_token)
     user_id = int(payload["sub"])
     user = await crud_user.get(db, id=user_id)
@@ -143,6 +156,18 @@ async def refresh_access_token(
         raise HTTPException(status_code=401, detail="Invalid refresh token")
     new_access = create_access_token(subject=user.id)
     new_refresh = create_refresh_token(subject=user.id)  # rotation
+
+    ip_address = request.client.host if request.client else None
+    user_agent = request.headers.get("user-agent")
+    await log_auth_event(
+        db,
+        event_type="token_refresh",
+        user_id=user.id,
+        tenant_id=user.tenant_id,
+        ip_address=ip_address,
+        user_agent=user_agent,
+    )
+
     return {
         "access_token": new_access,
         "refresh_token": new_refresh,
@@ -231,14 +256,27 @@ async def webauthn_login_complete(
     description="Blacklist the current access token so it can no longer be used.",
 )
 async def revoke_token(
+    request: Request,
     token: str = Depends(oauth2_scheme),
     current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
 ) -> Any:
     payload = decode_access_token(token)
     jti = payload.get("jti")
     exp = payload.get("exp", 0)
     if jti:
         await blacklist_token(current_user.id, jti, exp)
+
+    client_host = getattr(request.client, "host", None) if request.client else None
+    await log_auth_event(
+        db,
+        event_type="token_revoke",
+        user_id=current_user.id,
+        tenant_id=getattr(current_user, "tenant_id", None),
+        ip_address=client_host,
+        user_agent=request.headers.get("user-agent"),
+        details={"jti": jti, "purpose": payload.get("purpose")} if jti else {},
+    )
     return {"detail": "Token revoked"}
 
 
@@ -249,9 +287,22 @@ async def revoke_token(
     description="Revoke every access and refresh token issued to the current user.",
 )
 async def revoke_all_tokens(
+    request: Request,
     current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
 ) -> Any:
     count = await revoke_all_user_tokens(current_user.id)
+
+    client_host = getattr(request.client, "host", None) if request.client else None
+    await log_auth_event(
+        db,
+        event_type="token_revoke",
+        user_id=current_user.id,
+        tenant_id=getattr(current_user, "tenant_id", None),
+        ip_address=client_host,
+        user_agent=request.headers.get("user-agent"),
+        details={"count": count, "all_tokens": True},
+    )
     return {"detail": f"All {count} tokens revoked"}
 
 

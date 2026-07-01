@@ -52,30 +52,6 @@ make dev
 
 Visit **http://localhost:8000/docs** for the interactive API docs, **http://localhost:8000/admin** for the admin dashboard, or **http://localhost:8000/graphql** for the GraphQL playground.
 
-## 📋 How does it compare?
-
-| Feature                    | This Template | Typical Templates |
-| -------------------------- | ------------- | ----------------- |
-| Async DB (SQLAlchemy 2)    | ✅            | Varies            |
-| RBAC (roles/permissions)   | ✅            | Rare              |
-| WebAuthn / Passkeys        | ✅            | Very rare         |
-| Multi‑tenancy with RLS     | ✅            | Rare              |
-| GraphQL                    | ✅            | Varies            |
-| Celery + Retry/Backoff     | ✅            | Rare              |
-| File uploads (S3/local)    | ✅            | Varies            |
-| WebSocket                  | ✅            | Varies            |
-| Rate limiting              | ✅            | Varies            |
-| Prometheus + Grafana       | ✅            | Rare              |
-| OpenTelemetry tracing      | ✅            | Rare              |
-| Full‑text search + Audit   | ✅            | Very rare         |
-| HTMX Admin Dashboard       | ✅            | Rare              |
-| Scaffolding CLI            | ✅            | Rare              |
-| K8s manifests + Helm       | ✅            | Rare              |
-| Refresh tokens + rotation  | ✅            | Common            |
-| Docker dev + prod          | ✅            | Common            |
-| CI/CD + Release automation | ✅            | Common            |
-| 85%+ test coverage         | ✅            | Rare              |
-
 ## Documentation
 
 - [Quickstart Guide](docs/quickstart.md)
@@ -105,7 +81,7 @@ Visit **http://localhost:8000/docs** for the interactive API docs, **http://loca
 - [Contributing](CONTRIBUTING.md)
 - [Changelog](CHANGELOG.md)
 
-## ❓ FAQ
+## FAQ
 
 **Q: Can I use this for a production project?**
 A: Yes! The template follows best practices and includes production‑ready configurations. Just replace the default secrets and configure your own infrastructure.
@@ -119,6 +95,6 @@ A: Run `make scaffold` to generate a model, endpoint, and tests. See the [Develo
 **Q: How do I contribute?**
 A: Read [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on submitting pull requests.
 
-## 📄 License
+## License
 
 MIT License — see the [LICENSE](LICENSE) file for details.
