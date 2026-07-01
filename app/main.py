@@ -23,6 +23,7 @@ from app.core.logging import setup_logging
 from app.core.tracing import setup_tracing
 from app.gql import router as gql_playground_router
 from app.gql.schema import schema
+from app.middleware.compression import CompressionMiddleware
 from app.middleware.correlation import CorrelationIDMiddleware
 from app.middleware.csrf import CSRFTokenMiddleware
 from app.middleware.error_logging import error_logging_middleware
@@ -124,6 +125,9 @@ def create_app() -> FastAPI:
 
     # Request timeout (must be outermost — wraps the full request lifecycle)
     app.add_middleware(RequestTimeoutMiddleware, timeout=30)
+
+    # Compression middleware (early — compresses final response body)
+    app.add_middleware(CompressionMiddleware)
 
     # Correlation ID middleware (must be added early)
     app.add_middleware(CorrelationIDMiddleware)
