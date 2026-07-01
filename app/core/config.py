@@ -124,6 +124,10 @@ class Settings(BaseSettings):
     MAGIC_LINK_EXPIRE_MINUTES: int = 15
     MAGIC_LINK_ALLOW_REGISTRATION: bool = True
 
+    # API Keys (service-to-service)
+    API_KEY_LENGTH_BYTES: int = 32
+    API_KEY_EXPIRE_DAYS: int = 365
+
     # JWT Blacklist / Revocation
     JWT_BLACKLIST_ENABLED: bool = True
     JWT_BLACKLIST_TTL: int = 86400  # 24h — max age to keep revoked tokens

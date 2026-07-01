@@ -1,3 +1,6 @@
+import hashlib
+import hmac
+import secrets
 from datetime import UTC, datetime, timedelta
 from typing import Any
 from uuid import uuid4
@@ -237,6 +240,23 @@ def decode_refresh_token(token: str) -> dict[str, Any]:
             detail="Could not validate refresh token",
             headers={"WWW-Authenticate": "Bearer"},
         )
+
+
+# -------- API Key management --------
+
+
+def generate_api_key() -> tuple[str, str, str]:
+    raw_key = f"ak_{secrets.token_hex(settings.API_KEY_LENGTH_BYTES)}"
+    hashed_key = hashlib.sha256(raw_key.encode()).hexdigest()
+    prefix = raw_key[:10]
+    return raw_key, hashed_key, prefix
+
+
+def verify_api_key(raw_key: str, hashed_key: str) -> bool:
+    return hmac.compare_digest(
+        hashlib.sha256(raw_key.encode()).hexdigest(),
+        hashed_key,
+    )
 
 
 # -------- magic link tokens --------
