@@ -120,6 +120,10 @@ class Settings(BaseSettings):
     MAX_LOGIN_ATTEMPTS: int = 5
     LOGIN_LOCKOUT_MINUTES: int = 15
 
+    # Passwordless magic links
+    MAGIC_LINK_EXPIRE_MINUTES: int = 15
+    MAGIC_LINK_ALLOW_REGISTRATION: bool = True
+
     # JWT Blacklist / Revocation
     JWT_BLACKLIST_ENABLED: bool = True
     JWT_BLACKLIST_TTL: int = 86400  # 24h — max age to keep revoked tokens

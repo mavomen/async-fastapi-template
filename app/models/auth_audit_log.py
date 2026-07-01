@@ -16,6 +16,8 @@ AUTH_EVENT_TYPES = frozenset({
     "password_change",
     "mfa_enroll",
     "mfa_disable",
+    "magic_link_request",
+    "magic_link_login",
 })
 
 
