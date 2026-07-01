@@ -239,6 +239,38 @@ def decode_refresh_token(token: str) -> dict[str, Any]:
         )
 
 
+# -------- magic link tokens --------
+def create_magic_link_token(email: str) -> str:
+    """Create a short-lived signed token for passwordless login."""
+    to_encode = _make_jwt_payload(email, timedelta(minutes=settings.MAGIC_LINK_EXPIRE_MINUTES), purpose="magic_link")
+    if settings.ALGORITHM == "RS256":
+        return sign_with_rs256(to_encode)
+    return jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)  # type: ignore[no-any-return]
+
+
+def decode_magic_link_token(token: str) -> dict[str, Any]:
+    """Validate a magic link token and return its payload."""
+    try:
+        if settings.ALGORITHM == "RS256":
+            return decode_with_rs256(token)
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+    except JWTError:
+        from fastapi import HTTPException, status
+
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid or expired magic link",
+        )
+    if payload.get("purpose") != "magic_link":
+        from fastapi import HTTPException, status
+
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid token purpose",
+        )
+    return payload  # type: ignore[no-any-return]
+
+
 # -------- email verification tokens --------
 def create_verification_token(user_id: int) -> str:
     expire = datetime.now(UTC) + timedelta(hours=24)

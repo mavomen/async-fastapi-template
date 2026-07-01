@@ -6,7 +6,7 @@ WebAuthn passkeys, and refresh tokens.
 from datetime import UTC, datetime
 from typing import Any
 
-from fastapi import APIRouter, Depends, Form, HTTPException, Request, status
+from fastapi import APIRouter, Body, Depends, Form, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -22,9 +22,11 @@ from app.core.jwt_blacklist import blacklist_token, revoke_all_user_tokens
 from app.core.security import (
     authenticate_user,
     create_access_token,
+    create_magic_link_token,
     create_refresh_token,
     create_verification_token,
     decode_access_token,
+    decode_magic_link_token,
     decode_refresh_token,
     decode_verification_token,
     get_jwks,
@@ -171,6 +173,119 @@ async def refresh_access_token(
     return {
         "access_token": new_access,
         "refresh_token": new_refresh,
+        "token_type": "bearer",
+    }
+
+
+# ---------- Passwordless magic link ----------
+
+
+@router.post(
+    "/magic-link/request",
+    status_code=status.HTTP_200_OK,
+    summary="Request a magic sign-in link",
+    description="Send a short-lived magic link to the given email address. "
+    "If the email does not exist and MAGIC_LINK_ALLOW_REGISTRATION is enabled, "
+    "an account will be created on first use.",
+    responses={
+        200: {"description": "Magic link sent"},
+        429: {"description": "Too many requests"},
+    },
+)
+@rate_limit(times=3, seconds=300)  # type: ignore[untyped-decorator]
+async def request_magic_link(
+    request: Request,
+    email: str = Body(..., embed=True),
+    db: AsyncSession = Depends(get_db),
+    email_svc: EmailService = Depends(get_email_service),
+) -> Any:
+    """Request a magic sign-in link."""
+    token = create_magic_link_token(email)
+
+    ip_address = request.client.host if request.client else None
+    user_agent = request.headers.get("user-agent")
+    await log_auth_event(
+        db,
+        event_type="magic_link_request",
+        ip_address=ip_address,
+        user_agent=user_agent,
+        details={"email": email},
+    )
+
+    await email_svc.send_magic_link_email(to_email=email, token=token)
+    return {"detail": "Magic link sent"}
+
+
+@router.post(
+    "/magic-link/verify",
+    response_model=Token,
+    status_code=status.HTTP_200_OK,
+    summary="Verify a magic link and receive JWT tokens",
+    description="Exchange a magic link token for access and refresh tokens. "
+    "If the email is not yet verified, it will be verified automatically.",
+    responses={
+        200: {"description": "Access and refresh tokens returned"},
+        400: {"description": "Invalid or expired token"},
+    },
+)
+async def verify_magic_link(
+    request: Request,
+    token: str = Body(..., embed=True),
+    db: AsyncSession = Depends(get_db),
+) -> Any:
+    """Verify a magic link token and return JWT tokens."""
+    import secrets
+
+    from app.core.config import settings
+    from app.crud.user import user as crud_user
+    from app.models.user import User
+
+    payload = decode_magic_link_token(token)
+    email = payload["sub"]
+
+    user = await crud_user.get_by_email(db, email=email)
+    if not user:
+        if not settings.MAGIC_LINK_ALLOW_REGISTRATION:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="User not found. Registration via magic link is disabled.",
+            )
+        email_prefix = email.split("@")[0]
+        safe_prefix = "".join(c for c in email_prefix if c.isalnum() or c in "._-")
+        username = f"{safe_prefix}_{secrets.token_hex(4)}"
+
+        user = User(
+            email=email,
+            username=username,
+            hashed_password=secrets.token_urlsafe(32),
+            is_verified=True,
+        )
+        db.add(user)
+        await db.commit()
+        await db.refresh(user)
+    elif not user.is_verified:
+        user.is_verified = True
+        user.email_verified_at = datetime.now(UTC)
+        db.add(user)
+        await db.commit()
+
+    access_token = create_access_token(subject=user.id)
+    refresh_token = create_refresh_token(subject=user.id)
+
+    ip_address = request.client.host if request.client else None
+    user_agent = request.headers.get("user-agent")
+    await log_auth_event(
+        db,
+        event_type="magic_link_login",
+        user_id=user.id,
+        tenant_id=getattr(user, "tenant_id", None),
+        ip_address=ip_address,
+        user_agent=user_agent,
+    )
+
+    return {
+        "access_token": access_token,
+        "refresh_token": refresh_token,
         "token_type": "bearer",
     }
 
