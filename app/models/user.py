@@ -13,6 +13,7 @@ from app.models.search import SearchMixin
 from app.models.tenant_base import TenantBaseModel  # association table import
 
 if TYPE_CHECKING:
+    from app.models.api_key import ApiKey
     from app.models.role import Role
 
 
@@ -55,6 +56,12 @@ class User(SearchMixin, TenantBaseModel):
         secondary=user_roles,
         back_populates="users",
         lazy="selectin",  # eager load roles when accessing user
+    )
+
+    # API keys
+    api_keys: Mapped[list[ApiKey]] = relationship(
+        back_populates="user",
+        cascade="all, delete-orphan",
     )
 
     def __repr__(self) -> str:

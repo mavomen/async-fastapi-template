@@ -22,6 +22,7 @@ from app.core.jwt_blacklist import (
 from app.crud.user import user as crud_user
 from app.decorators.rate_limit import rate_limit
 from app.models import Permission, Role, User
+from app.models.api_key import ApiKey
 from app.models.audit_log import AuditLog
 from app.models.base import BaseModel
 from app.models.tenant import Tenant
@@ -87,6 +88,13 @@ register_admin(
     search_columns=["table_name", "action"],
     form_fields=[],
     permission="audit:admin",
+)
+register_admin(
+    ApiKey,
+    list_display=["name", "key_prefix", "user_id", "is_active", "created_at"],
+    search_columns=["name", "key_prefix"],
+    form_fields=["name", "user_id", "is_active", "scopes", "expires_at"],
+    permission="api_key:admin",
 )
 
 # ---------- Templates ----------
