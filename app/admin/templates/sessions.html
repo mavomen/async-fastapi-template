@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 class="text-3xl mb-6">Session Management</h1>
+
+<!-- User selector -->
+<form method="get" class="mb-6 flex space-x-2">
+    <input type="number" name="user_id" value="{{ selected_user.id if selected_user else '' }}"
+           placeholder="Enter user ID..." class="border p-2 rounded w-64">
+    <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">View Sessions</button>
+</form>
+
+{% if selected_user %}
+<p class="mb-4 text-gray-600">Active sessions for <strong>{{ selected_user.email }}</strong> (ID: {{ selected_user.id }})</p>
+{% endif %}
+
+{% if sessions %}
+<div class="overflow-x-auto">
+    <table class="min-w-full bg-white shadow rounded">
+        <thead>
+            <tr class="bg-gray-100">
+                <th class="px-4 py-2 text-left">JTI</th>
+                <th class="px-4 py-2 text-left">Type</th>
+                <th class="px-4 py-2 text-left">IP</th>
+                <th class="px-4 py-2 text-left">User Agent</th>
+                <th class="px-4 py-2 text-left">Created</th>
+                <th class="px-4 py-2 text-left">Expires</th>
+                <th class="px-4 py-2">Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for session in sessions %}
+            <tr class="border-t hover:bg-gray-50">
+                <td class="px-4 py-2 font-mono text-xs">{{ session.jti[:16] }}...</td>
+                <td class="px-4 py-2">{{ session.token_type }}</td>
+                <td class="px-4 py-2">{{ session.ip or '-' }}</td>
+                <td class="px-4 py-2 max-w-xs truncate" title="{{ session.user_agent }}">{{ session.user_agent[:40] if session.user_agent else '-' }}</td>
+                <td class="px-4 py-2">{{ session.created_at }}</td>
+                <td class="px-4 py-2">{{ session.expires_at }}</td>
+                <td class="px-4 py-2 text-center">
+                    <form action="/admin/sessions/revoke" method="post" style="display:inline;">
+                        <input type="hidden" name="jti" value="{{ session.jti }}">
+                        <input type="hidden" name="user_id" value="{{ selected_user.id }}">
+                        <button type="submit" class="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600"
+                                onclick="return confirm('Revoke this session?')">Revoke</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% elif selected_user and selected_user.id %}
+<p class="text-gray-500">No active sessions found for this user.</p>
+{% else %}
+<p class="text-gray-500">Enter a user ID above to view their active sessions.</p>
+{% endif %}
+{% endblock %}

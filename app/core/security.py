@@ -1,5 +1,9 @@
+import hashlib
+import hmac
+import secrets
 from datetime import UTC, datetime, timedelta
 from typing import Any
+from uuid import uuid4
 
 import bcrypt
 from cryptography.hazmat.backends import default_backend
@@ -78,12 +82,27 @@ def get_password_hash(password: str) -> str:
 
 
 # -------- JWT token creation / validation --------
-def create_access_token(subject: str | Any, expires_delta: timedelta | None = None) -> str:
+def _make_jwt_payload(
+    subject: str | Any, expires_delta: timedelta | None, purpose: str | None = None
+) -> dict[str, Any]:
+    now = datetime.now(UTC)
     if expires_delta:
-        expire = datetime.now(UTC) + expires_delta
+        expire = now + expires_delta
     else:
-        expire = datetime.now(UTC) + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-    to_encode = {"exp": expire, "sub": str(subject)}
+        expire = now + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    payload: dict[str, Any] = {
+        "jti": str(uuid4()),
+        "sub": str(subject),
+        "iat": int(now.timestamp()),
+        "exp": expire,
+    }
+    if purpose:
+        payload["purpose"] = purpose
+    return payload
+
+
+def create_access_token(subject: str | Any, expires_delta: timedelta | None = None) -> str:
+    to_encode = _make_jwt_payload(subject, expires_delta)
 
     if settings.ALGORITHM == "RS256":
         return sign_with_rs256(to_encode)
@@ -106,22 +125,99 @@ def decode_access_token(token: str) -> dict[str, Any]:
         )
 
 
-async def authenticate_user(db: AsyncSession, email: str, password: str) -> User | None:
+async def authenticate_user(
+    db: AsyncSession,
+    email: str,
+    password: str,
+    ip_address: str | None = None,
+    user_agent: str | None = None,
+) -> User | None:
+    from datetime import UTC, datetime
+
+    from app.core.config import settings
     from app.crud.user import user as crud_user
+    from app.services.auth_audit import log_auth_event
 
     user = await crud_user.get_by_email(db, email=email)
     if not user:
+        await log_auth_event(
+            db,
+            event_type="login_failure",
+            ip_address=ip_address,
+            user_agent=user_agent,
+            details={"email": email, "reason": "user_not_found"},
+        )
         return None
+
+    now = datetime.now(UTC).replace(tzinfo=None)
+
+    # Check if account is locked
+    if user.locked_until and user.locked_until > now:
+        await log_auth_event(
+            db,
+            event_type="account_locked",
+            user_id=user.id,
+            tenant_id=user.tenant_id,
+            ip_address=ip_address,
+            user_agent=user_agent,
+            details={"locked_until": user.locked_until.isoformat()},
+        )
+        from app.core.exceptions import LockedOutException
+
+        raise LockedOutException(
+            detail=f"Account locked until {user.locked_until.isoformat()}. Try again later."
+        )
+
     if not verify_password(password, user.hashed_password):
+        user.failed_login_attempts += 1
+        was_locked = False
+        if user.failed_login_attempts >= settings.MAX_LOGIN_ATTEMPTS:
+            user.locked_until = now + timedelta(minutes=settings.LOGIN_LOCKOUT_MINUTES)
+            was_locked = True
+        db.add(user)
+        await db.commit()
+
+        details: dict[str, object] = {
+            "failed_attempts": user.failed_login_attempts,
+            "max_attempts": settings.MAX_LOGIN_ATTEMPTS,
+        }
+        event_type = "account_locked" if was_locked else "login_failure"
+        if was_locked and user.locked_until:
+            details["locked_until"] = user.locked_until.isoformat()
+        await log_auth_event(
+            db,
+            event_type=event_type,
+            user_id=user.id,
+            tenant_id=user.tenant_id,
+            ip_address=ip_address,
+            user_agent=user_agent,
+            details=details,
+        )
         return None
+
+    user.failed_login_attempts = 0
+    user.locked_until = None
+    user.last_login_at = now
+    db.add(user)
+    await db.commit()
+
+    await log_auth_event(
+        db,
+        event_type="login_success",
+        user_id=user.id,
+        tenant_id=user.tenant_id,
+        ip_address=ip_address,
+        user_agent=user_agent,
+    )
     return user
 
 
 # -------- refresh token --------
 def create_refresh_token(subject: str | Any) -> str:
     """Create a long-lived refresh token."""
-    expire = datetime.now(UTC) + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
-    to_encode = {"exp": expire, "sub": str(subject), "purpose": "refresh"}
+    to_encode = _make_jwt_payload(
+        subject, timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS), purpose="refresh"
+    )
     if settings.ALGORITHM == "RS256":
         return sign_with_rs256(to_encode)
     return jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)  # type: ignore[no-any-return]
@@ -148,6 +244,57 @@ def decode_refresh_token(token: str) -> dict[str, Any]:
             detail="Could not validate refresh token",
             headers={"WWW-Authenticate": "Bearer"},
         )
+
+
+# -------- API Key management --------
+
+
+def generate_api_key() -> tuple[str, str, str]:
+    raw_key = f"ak_{secrets.token_hex(settings.API_KEY_LENGTH_BYTES)}"
+    hashed_key = hashlib.sha256(raw_key.encode()).hexdigest()
+    prefix = raw_key[:10]
+    return raw_key, hashed_key, prefix
+
+
+def verify_api_key(raw_key: str, hashed_key: str) -> bool:
+    return hmac.compare_digest(
+        hashlib.sha256(raw_key.encode()).hexdigest(),
+        hashed_key,
+    )
+
+
+# -------- magic link tokens --------
+def create_magic_link_token(email: str) -> str:
+    """Create a short-lived signed token for passwordless login."""
+    to_encode = _make_jwt_payload(
+        email, timedelta(minutes=settings.MAGIC_LINK_EXPIRE_MINUTES), purpose="magic_link"
+    )
+    if settings.ALGORITHM == "RS256":
+        return sign_with_rs256(to_encode)
+    return jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)  # type: ignore[no-any-return]
+
+
+def decode_magic_link_token(token: str) -> dict[str, Any]:
+    """Validate a magic link token and return its payload."""
+    try:
+        if settings.ALGORITHM == "RS256":
+            return decode_with_rs256(token)
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+    except JWTError:
+        from fastapi import HTTPException, status
+
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid or expired magic link",
+        )
+    if payload.get("purpose") != "magic_link":
+        from fastapi import HTTPException, status
+
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid token purpose",
+        )
+    return payload  # type: ignore[no-any-return]
 
 
 # -------- email verification tokens --------

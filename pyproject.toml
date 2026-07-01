@@ -39,12 +39,13 @@ kafka-python = "^2.3.1"
 webauthn = "^2.7.1"
 typer = {extras = ["all"], version = "^0.25.1"}
 scalar-fastapi = "^1.8.2"
+pyotp = "^2.10.0"
+httpx = "^0.28.1"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.4"
 pytest-asyncio = "^0.24.0"
 pytest-cov = "^6.0.0"
-httpx = "^0.28.1"
 ruff = "^0.9.1"
 mypy = "^1.14.1"
 pre-commit = "^4.0.1"
@@ -94,6 +95,8 @@ ignore = [
 "alembic/env.py" = ["E402"]
 "scripts/*.py" = ["T201", "PLR0912", "PLR0915"]
 "app/admin/__init__.py" = ["PLR0913"]
+"app/api/endpoints/auth.py" = ["PLR0913"]
+"app/crud/user.py" = ["PLR0913"]
 "app/events/kafka_bus.py" = ["SIM105", "B007"]
 "app/events/redis_streams.py" = ["SIM105", "B007"]
 

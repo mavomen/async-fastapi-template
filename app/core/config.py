@@ -111,10 +111,55 @@ class Settings(BaseSettings):
     EVENT_BUS_REDIS_URL: str | None = None
     EVENT_BUS_KAFKA_SERVERS: str = "localhost:9092"
 
+    # TOTP / 2FA
+    TOTP_ISSUER_NAME: str = "FastAPI Async Template"
+    TOTP_CODE_EXPIRE_SECONDS: int = 30
+    TOTP_CODE_LENGTH: int = 6
+    TOTP_BACKUP_CODE_COUNT: int = 8
+    TOTP_CHALLENGE_EXPIRE_SECONDS: int = 120
+
     # WebAuthn
     WEBAUTHN_RP_ID: str = "localhost"
     WEBAUTHN_RP_NAME: str = "FastAPI Async Template"
     WEBAUTHN_ORIGIN: str = "http://localhost:8000"
+
+    # Brute-force lockout
+    MAX_LOGIN_ATTEMPTS: int = 5
+    LOGIN_LOCKOUT_MINUTES: int = 15
+
+    # Passwordless magic links
+    MAGIC_LINK_EXPIRE_MINUTES: int = 15
+    MAGIC_LINK_ALLOW_REGISTRATION: bool = True
+
+    # API Keys (service-to-service)
+    API_KEY_LENGTH_BYTES: int = 32
+    API_KEY_EXPIRE_DAYS: int = 365
+
+    # JWT Blacklist / Revocation
+    JWT_BLACKLIST_ENABLED: bool = True
+    JWT_BLACKLIST_TTL: int = 86400  # 24h — max age to keep revoked tokens
+
+    # OAuth2 / Social Login
+    GOOGLE_CLIENT_ID: str = ""
+    GOOGLE_CLIENT_SECRET: str = ""
+    GITHUB_CLIENT_ID: str = ""
+    GITHUB_CLIENT_SECRET: str = ""
+    GITLAB_CLIENT_ID: str = ""
+    GITLAB_CLIENT_SECRET: str = ""
+    OAUTH_REDIRECT_URL: str = "http://localhost:8000/api/v1/auth/oauth/callback"
+    OAUTH_STATE_EXPIRE_SECONDS: int = 300
+    OAUTH_AUTO_LINK: bool = True
+
+    # Content Security Policy
+    CSP_REPORT_URI: str = "/api/v1/csp-report"
+    CSP_REPORT_ONLY: bool = False
+    CSP_DEFAULT_SRC: str = "'self'"
+    CSP_SCRIPT_SRC: str = "'self' 'unsafe-inline'"
+    CSP_STYLE_SRC: str = "'self' 'unsafe-inline'"
+    CSP_IMG_SRC: str = "'self' data:"
+    CSP_CONNECT_SRC: str = "'self'"
+    CSP_FRAME_ANCESTORS: str = "'none'"
+    CSP_FORM_ACTION: str = "'self'"
 
 
 settings = Settings()

@@ -1,14 +1,16 @@
 from typing import Any
 
 from fastapi import Depends, HTTPException, Request, status
-from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import APIKeyHeader, OAuth2PasswordBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.cache import RedisCache
 from app.core.cache import cache as redis_cache
 from app.core.config import settings
 from app.core.database import get_db, get_read_db
+from app.core.jwt_blacklist import is_token_blacklisted
 from app.core.security import decode_access_token
+from app.crud.api_key import api_key as crud_api_key
 from app.crud.user import user as crud_user
 from app.events.base import EventBus
 from app.models.user import User
@@ -18,17 +20,22 @@ from app.storage.local import LocalStorage
 from app.storage.s3 import S3Storage
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
+oauth2_scheme_optional = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login", auto_error=False)
+api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
 
 __all__ = [
+    "get_api_key_user",
     "get_cache",
     "get_current_tenant_id",
     "get_current_user",
+    "get_current_user_or_api_key",
     "get_db",
     "get_email_service",
     "get_event_bus",
     "get_gql_context",
     "get_read_db",
     "get_storage",
+    "require_2fa",
 ]
 
 
@@ -47,6 +54,12 @@ async def get_current_user(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid token payload: subject missing",
         )
+    jti: str | None = payload.get("jti")
+    if jti and await is_token_blacklisted(int(user_id), jti):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token has been revoked",
+        )
     # Fetch user with roles and permissions loaded
     user = await crud_user.get_with_roles(db, id=int(user_id))
     if user is None:
@@ -60,6 +73,51 @@ async def get_current_user(
             detail="Inactive user",
         )
     return user
+
+
+async def get_api_key_user(
+    db: AsyncSession = Depends(get_db),
+    api_key: str | None = Depends(api_key_header),
+) -> User:
+    if not api_key:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="API key required. Provide it via the X-API-Key header.",
+        )
+    key_record = await crud_api_key.verify(db, raw_key=api_key)
+    if key_record is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired API key.",
+        )
+    user = await crud_user.get_with_roles(db, id=key_record.user_id)
+    if user is None or not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User account is inactive or not found.",
+        )
+    return user
+
+
+async def get_current_user_or_api_key(
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+    token: str | None = Depends(oauth2_scheme_optional),
+    api_key: str | None = Depends(api_key_header),
+) -> User:
+    if api_key:
+        key_record = await crud_api_key.verify(db, raw_key=api_key)
+        if key_record is not None:
+            user = await crud_user.get_with_roles(db, id=key_record.user_id)
+            if user is not None and user.is_active:
+                request.state.api_key_scopes = set(key_record.scopes or [])
+                return user
+    if token:
+        return await get_current_user(token=token, db=db)
+    raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Not authenticated. Provide a Bearer token or X-API-Key header.",
+    )
 
 
 async def get_cache() -> RedisCache:
@@ -110,3 +168,18 @@ async def get_event_bus() -> EventBus:
     from app.events import get_event_bus as _get_bus
 
     return await _get_bus()
+
+
+async def require_2fa(
+    current_user: User = Depends(get_current_user),
+) -> User:
+    """FastAPI dependency that requires TOTP 2FA to be enabled for the user.
+
+    Use this on sensitive endpoints to enforce 2FA.
+    """
+    if not current_user.totp_enabled:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="2FA is required for this endpoint. Enable TOTP first.",
+        )
+    return current_user

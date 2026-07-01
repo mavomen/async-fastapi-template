@@ -118,6 +118,12 @@ class RedisCache:
             raise RuntimeError("RedisCache is not connected")
         return await self._redis.zrem(key, *members)  # type: ignore[no-any-return]
 
+    def get_redis(self) -> aioredis.Redis:
+        """Return the underlying Redis client for advanced operations."""
+        if self._redis is None:
+            raise RuntimeError("RedisCache is not connected")
+        return self._redis
+
     async def flush(self) -> None:
         """Clear all keys in the current database."""
         if self._redis is None:

@@ -40,6 +40,18 @@ class EmailService:
             {"verification_url": verification_url},
         )
 
+    async def send_magic_link_email(self, to_email: str, token: str) -> None:
+        magic_link_url = f"{settings.FRONTEND_URL}/auth/magic-link?token={token}"
+        await self.send_email(
+            to_email,
+            "Your sign-in link",
+            "magic_link.html",
+            {
+                "magic_link_url": magic_link_url,
+                "expire_minutes": settings.MAGIC_LINK_EXPIRE_MINUTES,
+            },
+        )
+
 
 email_service = EmailService()
 

@@ -1,6 +1,5 @@
 """Tests for refresh token edge cases."""
 
-
 import pytest
 
 from app.core.config import settings

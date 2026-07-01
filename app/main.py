@@ -35,6 +35,7 @@ from app.middleware.request_timeout import RequestTimeoutMiddleware
 from app.middleware.security_headers import SecurityHeadersMiddleware
 from app.middleware.sql_injection import SQLInjectionMonitorMiddleware
 from app.middleware.tenant import TenantMiddleware
+from app.middleware.tenant_ip_access import TenantIPAccessMiddleware
 from app.websocket.chat import router as websocket_router
 
 
@@ -48,7 +49,6 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     )
     await cache.connect()
     if settings.ENVIRONMENT != "test":
-        from app.middleware.tenant import TenantMiddleware
         from app.models.audit_log import install_audit_log_listener
         from app.models.user import User
 
@@ -152,6 +152,9 @@ def create_app() -> FastAPI:
 
     # Tenant resolution middleware (after security, before CORS)
     app.add_middleware(TenantMiddleware)
+
+    # IP access control per tenant (after tenant resolution)
+    app.add_middleware(TenantIPAccessMiddleware)
 
     # CORS
     app.add_middleware(
