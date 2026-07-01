@@ -191,8 +191,14 @@ class TestApiKeyEndpoints:
 
         app.dependency_overrides[get_current_user_or_api_key] = _fake_user
         app.dependency_overrides[get_db] = lambda: AsyncMock()
-        mocker.patch("app.crud.api_key.generate_api_key", return_value=("ak_rawkey1234567890", "hash", "ak_abc123"))
-        mocker.patch("app.crud.api_key.CRUDApiKey.create_with_raw_key", return_value=(mock_key_obj, "ak_rawkey1234567890"))
+        mocker.patch(
+            "app.crud.api_key.generate_api_key",
+            return_value=("ak_rawkey1234567890", "hash", "ak_abc123"),
+        )
+        mocker.patch(
+            "app.crud.api_key.CRUDApiKey.create_with_raw_key",
+            return_value=(mock_key_obj, "ak_rawkey1234567890"),
+        )
 
         try:
             resp = client.post("/api/v1/auth/api-keys", json={"name": "my-key"})

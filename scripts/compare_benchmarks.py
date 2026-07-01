@@ -42,9 +42,7 @@ for name, new_mean in new_tests.items():
         )
         failed = True
     else:
-        print(
-            f"OK: {name} {new_mean:.6f}s vs baseline {old_mean:.6f}s ({pct_change:+.1f}%)"
-        )
+        print(f"OK: {name} {new_mean:.6f}s vs baseline {old_mean:.6f}s ({pct_change:+.1f}%)")
 
 if failed:
     print("Performance regression detected, but not failing the build.")

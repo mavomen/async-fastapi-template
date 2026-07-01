@@ -52,7 +52,14 @@ class TestStoreSession:
 
         await store_session(
             _USER_ID,
-            SessionCreatePayload(jti=_JTI, token_type="access", ip="1.2.3.4", user_agent="test-agent", iat=1000, exp=9999999999),
+            SessionCreatePayload(
+                jti=_JTI,
+                token_type="access",
+                ip="1.2.3.4",
+                user_agent="test-agent",
+                iat=1000,
+                exp=9999999999,
+            ),
         )
         redis_mock.zadd.assert_not_called()
 
@@ -72,7 +79,14 @@ class TestStoreSession:
 
         await store_session(
             _USER_ID,
-            SessionCreatePayload(jti=_JTI, token_type="access", ip="1.2.3.4", user_agent="test-agent", iat=1000, exp=9999999999),
+            SessionCreatePayload(
+                jti=_JTI,
+                token_type="access",
+                ip="1.2.3.4",
+                user_agent="test-agent",
+                iat=1000,
+                exp=9999999999,
+            ),
         )
         mock_redis.zadd.assert_called_once()
         mock_redis.expire.assert_called()

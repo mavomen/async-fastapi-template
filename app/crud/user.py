@@ -1,5 +1,7 @@
 """CRUD operations for User model."""
 
+from datetime import UTC, datetime
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -96,6 +98,76 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
             .limit(limit)
         )
         return list(result.scalars().all())
+
+    async def get_by_oauth(
+        self,
+        db: AsyncSession,
+        *,
+        provider: str,
+        provider_id: str,
+    ) -> User | None:
+        """Get user by OAuth provider and provider ID."""
+        result = await db.execute(
+            select(User).where(
+                User.oauth_provider == provider,
+                User.oauth_provider_id == provider_id,
+            )
+        )
+        return result.scalar_one_or_none()
+
+    async def create_oauth_user(
+        self,
+        db: AsyncSession,
+        *,
+        email: str,
+        username: str,
+        provider: str,
+        provider_id: str,
+        access_token: str | None = None,
+        refresh_token: str | None = None,
+    ) -> User:
+        """Create a new user from OAuth login."""
+        import secrets
+
+        from app.core.security import get_password_hash
+
+        db_obj = User(
+            email=email,
+            username=username,
+            hashed_password=get_password_hash(secrets.token_urlsafe(32)),
+            is_verified=True,
+            email_verified_at=datetime.now(UTC),
+            oauth_provider=provider,
+            oauth_provider_id=provider_id,
+            oauth_access_token=access_token,
+            oauth_refresh_token=refresh_token,
+        )
+        db.add(db_obj)
+        await db.commit()
+        await db.refresh(db_obj)
+        return db_obj
+
+    async def link_oauth_account(
+        self,
+        db: AsyncSession,
+        *,
+        user: User,
+        provider: str,
+        provider_id: str,
+        access_token: str | None = None,
+        refresh_token: str | None = None,
+    ) -> User:
+        """Link an OAuth account to an existing user."""
+        user.oauth_provider = provider
+        user.oauth_provider_id = provider_id
+        if access_token:
+            user.oauth_access_token = access_token
+        if refresh_token:
+            user.oauth_refresh_token = refresh_token
+        db.add(user)
+        await db.commit()
+        await db.refresh(user)
+        return user
 
     async def is_active(self, user: User) -> bool:
         """Check if user is active."""

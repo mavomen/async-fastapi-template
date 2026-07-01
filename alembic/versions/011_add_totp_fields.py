@@ -22,7 +22,13 @@ def upgrade() -> None:
     op.add_column("users", sa.Column("totp_secret", sa.String(32), nullable=True))
     op.add_column(
         "users",
-        sa.Column("totp_enabled", sa.Boolean(), default=False, nullable=False, server_default=sa.text("false")),
+        sa.Column(
+            "totp_enabled",
+            sa.Boolean(),
+            default=False,
+            nullable=False,
+            server_default=sa.text("false"),
+        ),
     )
     op.add_column("users", sa.Column("totp_verified_at", sa.DateTime(timezone=True), nullable=True))
     op.add_column("users", sa.Column("backup_codes", sa.Text(), nullable=True))

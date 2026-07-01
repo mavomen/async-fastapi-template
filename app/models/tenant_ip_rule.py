@@ -13,7 +13,9 @@ class TenantIPRule(TenantBaseModel):
     __tablename__ = "tenant_ip_rules"
 
     ip_or_cidr: Mapped[str] = mapped_column(String(45), nullable=False)
-    action: Mapped[str] = mapped_column(SAEnum("allow", "deny", name="ip_rule_action"), nullable=False)
+    action: Mapped[str] = mapped_column(
+        SAEnum("allow", "deny", name="ip_rule_action"), nullable=False
+    )
     priority: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     description: Mapped[str | None] = mapped_column(String(255), nullable=True)
 

@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import Boolean, Integer, String, Text
+from sqlalchemy import Boolean, Index, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.role import user_roles
@@ -21,6 +21,8 @@ class User(SearchMixin, TenantBaseModel):
     """User model with authentication fields."""
 
     __tablename__ = "users"
+
+    __table_args__ = (Index("ix_users_oauth_provider_id", "oauth_provider", "oauth_provider_id"),)
 
     # Basic Information
     email: Mapped[str] = mapped_column(
@@ -50,6 +52,12 @@ class User(SearchMixin, TenantBaseModel):
     # Timestamps for email verification and password reset
     email_verified_at: Mapped[datetime | None] = mapped_column(nullable=True)
     last_login_at: Mapped[datetime | None] = mapped_column(nullable=True)
+
+    # OAuth2 / Social Login
+    oauth_provider: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    oauth_provider_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    oauth_access_token: Mapped[str | None] = mapped_column(String(512), nullable=True)
+    oauth_refresh_token: Mapped[str | None] = mapped_column(String(512), nullable=True)
 
     # TOTP / 2FA
     totp_secret: Mapped[str | None] = mapped_column(String(32), nullable=True)

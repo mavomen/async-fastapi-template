@@ -7,18 +7,20 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import Base
 
-AUTH_EVENT_TYPES = frozenset({
-    "login_success",
-    "login_failure",
-    "account_locked",
-    "token_refresh",
-    "token_revoke",
-    "password_change",
-    "mfa_enroll",
-    "mfa_disable",
-    "magic_link_request",
-    "magic_link_login",
-})
+AUTH_EVENT_TYPES = frozenset(
+    {
+        "login_success",
+        "login_failure",
+        "account_locked",
+        "token_refresh",
+        "token_revoke",
+        "password_change",
+        "mfa_enroll",
+        "mfa_disable",
+        "magic_link_request",
+        "magic_link_login",
+    }
+)
 
 
 class AuthAuditLog(Base):

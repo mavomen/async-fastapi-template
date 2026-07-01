@@ -70,7 +70,6 @@ def test_production_compose_app_port_exposed():
 
 
 def test_search_migration_uses_create_index():
-
     migrations_dir = PROJECT_ROOT / "alembic" / "versions"
     target = None
     for f in migrations_dir.iterdir():

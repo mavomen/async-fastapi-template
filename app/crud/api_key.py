@@ -38,9 +38,7 @@ class CRUDApiKey(CRUDBase[ApiKey, ApiKeyCreate, ApiKeyUpdate]):
 
     async def get_active_for_user(self, db: AsyncSession, *, user_id: int) -> list[ApiKey]:
         result = await db.execute(
-            select(ApiKey)
-            .where(ApiKey.user_id == user_id)
-            .order_by(ApiKey.created_at.desc())
+            select(ApiKey).where(ApiKey.user_id == user_id).order_by(ApiKey.created_at.desc())
         )
         return list(result.scalars().all())
 
@@ -56,11 +54,7 @@ class CRUDApiKey(CRUDBase[ApiKey, ApiKeyCreate, ApiKeyUpdate]):
             return None
         if api_key.expires_at and api_key.expires_at < now:
             return None
-        await db.execute(
-            update(ApiKey)
-            .where(ApiKey.id == api_key.id)
-            .values(last_used_at=now)
-        )
+        await db.execute(update(ApiKey).where(ApiKey.id == api_key.id).values(last_used_at=now))
         await db.commit()
         return api_key
 

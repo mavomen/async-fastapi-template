@@ -22,9 +22,19 @@ def upgrade() -> None:
     op.create_table(
         "api_keys",
         sa.Column("id", sa.Integer(), autoincrement=True, nullable=False),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
-        sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
-        sa.Column("user_id", sa.Integer(), sa.ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True),
+        sa.Column(
+            "created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
+        ),
+        sa.Column(
+            "updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
+        ),
+        sa.Column(
+            "user_id",
+            sa.Integer(),
+            sa.ForeignKey("users.id", ondelete="CASCADE"),
+            nullable=False,
+            index=True,
+        ),
         sa.Column("name", sa.String(100), nullable=False),
         sa.Column("key_prefix", sa.String(8), nullable=False, index=True),
         sa.Column("hashed_key", sa.String(64), nullable=False),

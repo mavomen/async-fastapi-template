@@ -94,7 +94,9 @@ class TestTenantIPAccessMiddleware:
         mock_settings.ENVIRONMENT = "development"
         mocker.patch("app.middleware.tenant_ip_access.settings", mock_settings)
         mocker.patch("app.middleware.tenant_ip_access.get_current_tenant", return_value=1)
-        mocker.patch("app.middleware.tenant_ip_access._parse_forwarded_for", return_value="203.0.113.5")
+        mocker.patch(
+            "app.middleware.tenant_ip_access._parse_forwarded_for", return_value="203.0.113.5"
+        )
 
         mock_session = AsyncMock()
         mock_result = mocker.Mock()
@@ -124,7 +126,9 @@ class TestTenantIPAccessMiddleware:
         mock_settings.ENVIRONMENT = "development"
         mocker.patch("app.middleware.tenant_ip_access.settings", mock_settings)
         mocker.patch("app.middleware.tenant_ip_access.get_current_tenant", return_value=1)
-        mocker.patch("app.middleware.tenant_ip_access._parse_forwarded_for", return_value="203.0.113.5")
+        mocker.patch(
+            "app.middleware.tenant_ip_access._parse_forwarded_for", return_value="203.0.113.5"
+        )
 
         deny_rule = mocker.Mock()
         deny_rule.ip_or_cidr = "203.0.113.5"
@@ -158,7 +162,9 @@ class TestTenantIPAccessMiddleware:
         mock_settings.ENVIRONMENT = "development"
         mocker.patch("app.middleware.tenant_ip_access.settings", mock_settings)
         mocker.patch("app.middleware.tenant_ip_access.get_current_tenant", return_value=1)
-        mocker.patch("app.middleware.tenant_ip_access._parse_forwarded_for", return_value="203.0.113.5")
+        mocker.patch(
+            "app.middleware.tenant_ip_access._parse_forwarded_for", return_value="203.0.113.5"
+        )
 
         allow_rule = mocker.Mock()
         allow_rule.ip_or_cidr = "203.0.113.5"
@@ -192,7 +198,9 @@ class TestTenantIPAccessMiddleware:
         mock_settings.ENVIRONMENT = "development"
         mocker.patch("app.middleware.tenant_ip_access.settings", mock_settings)
         mocker.patch("app.middleware.tenant_ip_access.get_current_tenant", return_value=1)
-        mocker.patch("app.middleware.tenant_ip_access._parse_forwarded_for", return_value="198.51.100.1")
+        mocker.patch(
+            "app.middleware.tenant_ip_access._parse_forwarded_for", return_value="198.51.100.1"
+        )
 
         allow_rule = mocker.Mock()
         allow_rule.ip_or_cidr = "203.0.113.0/24"
