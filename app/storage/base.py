@@ -27,3 +27,7 @@ class StorageBackend(ABC):
     async def delete(self, path: str) -> None:
         """Remove a stored file."""
         ...
+
+    def get_url(self, _key: str) -> str | None:
+        """Return a public CDN URL for the given storage key, or None if unavailable."""
+        return None

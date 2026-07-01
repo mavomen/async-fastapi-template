@@ -30,7 +30,11 @@ async def _stream_file_upload(file: UploadFile, filename: str, storage: StorageB
         await asyncio.sleep(0.05)
     content = b"".join(chunks)
     path = await storage.upload_bytes(content, filename)
-    yield f"event: complete\ndata: {path}\n\n"
+    url = storage.get_url(path)
+    data = {"path": path}
+    if url:
+        data["url"] = url
+    yield f"event: complete\ndata: {data}\n\n"
 
 
 @router.post(
@@ -54,7 +58,11 @@ async def upload_file(
         raise HTTPException(status_code=400, detail="No file provided")
 
     path = await storage.upload(file.file, file.filename)
-    return {"filename": file.filename, "path": path}
+    url = storage.get_url(path)
+    result: dict[str, Any] = {"filename": file.filename, "path": path}
+    if url:
+        result["url"] = url
+    return result
 
 
 @router.post("/upload/stream", status_code=status.HTTP_201_CREATED)
