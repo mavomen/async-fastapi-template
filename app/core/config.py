@@ -111,6 +111,13 @@ class Settings(BaseSettings):
     EVENT_BUS_REDIS_URL: str | None = None
     EVENT_BUS_KAFKA_SERVERS: str = "localhost:9092"
 
+    # TOTP / 2FA
+    TOTP_ISSUER_NAME: str = "FastAPI Async Template"
+    TOTP_CODE_EXPIRE_SECONDS: int = 30
+    TOTP_CODE_LENGTH: int = 6
+    TOTP_BACKUP_CODE_COUNT: int = 8
+    TOTP_CHALLENGE_EXPIRE_SECONDS: int = 120
+
     # WebAuthn
     WEBAUTHN_RP_ID: str = "localhost"
     WEBAUTHN_RP_NAME: str = "FastAPI Async Template"

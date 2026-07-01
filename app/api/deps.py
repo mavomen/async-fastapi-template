@@ -35,6 +35,7 @@ __all__ = [
     "get_gql_context",
     "get_read_db",
     "get_storage",
+    "require_2fa",
 ]
 
 
@@ -167,3 +168,18 @@ async def get_event_bus() -> EventBus:
     from app.events import get_event_bus as _get_bus
 
     return await _get_bus()
+
+
+async def require_2fa(
+    current_user: User = Depends(get_current_user),
+) -> User:
+    """FastAPI dependency that requires TOTP 2FA to be enabled for the user.
+
+    Use this on sensitive endpoints to enforce 2FA.
+    """
+    if not current_user.totp_enabled:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="2FA is required for this endpoint. Enable TOTP first.",
+        )
+    return current_user

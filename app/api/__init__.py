@@ -11,6 +11,7 @@ from app.api.endpoints import (
     tasks,
     tenant_ip_rules,
     tenants,
+    totp,
     users,
 )
 
@@ -19,6 +20,7 @@ api_router = APIRouter()
 api_router.include_router(tenants.router, prefix="/tenants", tags=["tenants"])
 api_router.include_router(auth.router, prefix="/auth", tags=["auth"])
 api_router.include_router(api_keys.router, prefix="/auth", tags=["auth"])
+api_router.include_router(totp.router, prefix="/auth", tags=["auth"])
 api_router.include_router(csp.router, prefix="", tags=["security"])
 api_router.include_router(users.router, prefix="/users", tags=["users"])
 api_router.include_router(tasks.router, prefix="/tasks", tags=["tasks"])

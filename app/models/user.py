@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import Boolean, Integer, String
+from sqlalchemy import Boolean, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.role import user_roles
@@ -50,6 +50,12 @@ class User(SearchMixin, TenantBaseModel):
     # Timestamps for email verification and password reset
     email_verified_at: Mapped[datetime | None] = mapped_column(nullable=True)
     last_login_at: Mapped[datetime | None] = mapped_column(nullable=True)
+
+    # TOTP / 2FA
+    totp_secret: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    totp_enabled: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    totp_verified_at: Mapped[datetime | None] = mapped_column(nullable=True)
+    backup_codes: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     # RBAC - roles relationship
     roles: Mapped[list[Role]] = relationship(
