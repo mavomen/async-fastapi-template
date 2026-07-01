@@ -152,6 +152,11 @@ class Settings(BaseSettings):
     OAUTH_STATE_EXPIRE_SECONDS: int = 300
     OAUTH_AUTO_LINK: bool = True
 
+    # Compression
+    COMPRESSION_ENABLED: bool = True
+    COMPRESSION_MIN_SIZE: int = 1024
+    COMPRESSION_LEVEL: int = 6
+
     # Content Security Policy
     CSP_REPORT_URI: str = "/api/v1/csp-report"
     CSP_REPORT_ONLY: bool = False
