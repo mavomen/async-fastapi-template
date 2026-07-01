@@ -68,11 +68,13 @@ class Settings(BaseSettings):
         description="Redis result backend for Celery",
     )
 
-    # Rate Limiting
-    RATE_LIMIT_PER_MINUTE: int = 60
-    RATE_LIMIT_PER_HOUR: int = 1000
-    RATE_LIMIT_PER_DAY: int = 10000
+    # Rate Limiting (Redis sliding-window tiers)
     RATE_LIMIT_ENABLED: bool = True
+    RATE_LIMIT_WINDOW_SECONDS: int = 60
+    RATE_LIMIT_SENSITIVE: int = 5
+    RATE_LIMIT_PUBLIC: int = 20
+    RATE_LIMIT_AUTHENTICATED: int = 100
+    RATE_LIMIT_ADMIN: int = 300
 
     @field_validator("ENVIRONMENT")
     @classmethod
