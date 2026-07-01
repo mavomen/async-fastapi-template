@@ -3,9 +3,8 @@
 import secrets
 from typing import Any
 
-import httpx
-
 from app.core.config import settings
+from app.core.http_client import http_client
 
 OAUTH_PROVIDER_META: dict[str, dict[str, Any]] = {
     "google": {
@@ -97,32 +96,32 @@ async def exchange_code(provider: str, code: str, redirect_uri: str) -> dict[str
     """Exchange authorization code for access/refresh tokens."""
     meta = get_provider_meta(provider)
     client_id, client_secret = _get_client_credentials(provider)
-    async with httpx.AsyncClient() as client:
-        resp = await client.post(
-            meta["token_url"],
-            data={
-                "client_id": client_id,
-                "client_secret": client_secret,
-                "code": code,
-                "redirect_uri": redirect_uri,
-                "grant_type": "authorization_code",
-            },
-            headers={"Accept": "application/json"},
-        )
-        resp.raise_for_status()
-        return resp.json()  # type: ignore[no-any-return]
+    client = http_client.get_client()
+    resp = await client.post(
+        meta["token_url"],
+        data={
+            "client_id": client_id,
+            "client_secret": client_secret,
+            "code": code,
+            "redirect_uri": redirect_uri,
+            "grant_type": "authorization_code",
+        },
+        headers={"Accept": "application/json"},
+    )
+    resp.raise_for_status()
+    return resp.json()  # type: ignore[no-any-return]
 
 
 async def get_user_info(provider: str, access_token: str) -> dict[str, Any]:
     """Fetch user info from the provider's userinfo endpoint."""
     meta = get_provider_meta(provider)
-    async with httpx.AsyncClient() as client:
-        resp = await client.get(
-            meta["userinfo_url"],
-            headers={"Authorization": f"Bearer {access_token}"},
-        )
-        resp.raise_for_status()
-        return resp.json()  # type: ignore[no-any-return]
+    client = http_client.get_client()
+    resp = await client.get(
+        meta["userinfo_url"],
+        headers={"Authorization": f"Bearer {access_token}"},
+    )
+    resp.raise_for_status()
+    return resp.json()  # type: ignore[no-any-return]
 
 
 def parse_user_info(provider: str, raw: dict[str, Any]) -> dict[str, Any]:

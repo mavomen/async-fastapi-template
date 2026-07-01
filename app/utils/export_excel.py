@@ -3,13 +3,13 @@
 import io
 from typing import Any
 
-from openpyxl import Workbook
-
 
 def export_to_excel(
     data: list[dict[str, Any]], columns: list[str], sheet_name: str = "Sheet1"
 ) -> bytes:
     """Convert list of dicts to Excel workbook bytes."""
+    from openpyxl import Workbook
+
     workbook = Workbook()
     sheet = workbook.active
     sheet.title = sheet_name
