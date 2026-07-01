@@ -157,6 +157,11 @@ class Settings(BaseSettings):
     COMPRESSION_MIN_SIZE: int = 1024
     COMPRESSION_LEVEL: int = 6
 
+    # HTTP Client (shared connection pool)
+    HTTP_CLIENT_TIMEOUT: int = 30
+    HTTP_CLIENT_MAX_KEEPALIVE_CONNECTIONS: int = 10
+    HTTP_CLIENT_KEEPALIVE_EXPIRY: int = 300
+
     # Content Security Policy
     CSP_REPORT_URI: str = "/api/v1/csp-report"
     CSP_REPORT_ONLY: bool = False

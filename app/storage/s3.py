@@ -2,8 +2,6 @@
 
 from typing import BinaryIO
 
-import aioboto3
-
 from app.core.config import settings
 from app.storage.base import StorageBackend
 
@@ -12,6 +10,8 @@ class S3Storage(StorageBackend):
     """Store files in an S3 bucket asynchronously."""
 
     def __init__(self) -> None:
+        import aioboto3
+
         self.bucket = settings.S3_BUCKET
         self.session = aioboto3.Session()
         self.client_kwargs = {

@@ -5,29 +5,13 @@ from typing import Any
 from fastapi import HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from webauthn import (
-    generate_authentication_options,
-    generate_registration_options,
-    verify_authentication_response,
-    verify_registration_response,
-)
-from webauthn.helpers.base64url_to_bytes import base64url_to_bytes
-from webauthn.helpers.cose import COSEAlgorithmIdentifier
-from webauthn.helpers.structs import (
-    AuthenticatorSelectionCriteria,
-    PublicKeyCredentialCreationOptions,
-    PublicKeyCredentialDescriptor,
-    PublicKeyCredentialRequestOptions,
-    PublicKeyCredentialType,
-    UserVerificationRequirement,
-)
 
 from app.core.config import settings
 from app.models.webauthn_credential import WebAuthnCredential
 
 # In-memory challenge store - challenges are short-lived and don’t need persistence
-_pending_registrations: dict[str, PublicKeyCredentialCreationOptions] = {}
-_pending_authentications: dict[str, PublicKeyCredentialRequestOptions] = {}
+_pending_registrations: dict[str, Any] = {}
+_pending_authentications: dict[str, Any] = {}
 
 
 def _options_to_dict(options: Any) -> dict[str, Any]:
@@ -45,6 +29,13 @@ async def begin_registration(
     user_name: str,
     user_display_name: str,
 ) -> dict[str, Any]:
+    from webauthn import generate_registration_options
+    from webauthn.helpers.cose import COSEAlgorithmIdentifier
+    from webauthn.helpers.structs import (
+        AuthenticatorSelectionCriteria,
+        UserVerificationRequirement,
+    )
+
     options = generate_registration_options(
         rp_id=settings.WEBAUTHN_RP_ID,
         rp_name=settings.WEBAUTHN_RP_NAME,
@@ -65,6 +56,8 @@ async def complete_registration(
     credential: dict[str, Any],
     db: AsyncSession,
 ) -> dict[str, Any]:
+    from webauthn import verify_registration_response
+
     expected_options = _pending_registrations.pop(user_id, None)
     if not expected_options:
         raise HTTPException(status_code=400, detail="Registration session not found")
@@ -92,6 +85,13 @@ async def complete_registration(
 
 
 async def begin_authentication(user_id: str, db: AsyncSession) -> dict[str, Any]:
+    from webauthn import generate_authentication_options
+    from webauthn.helpers.structs import (
+        PublicKeyCredentialDescriptor,
+        PublicKeyCredentialType,
+        UserVerificationRequirement,
+    )
+
     result = await db.execute(
         select(WebAuthnCredential).where(WebAuthnCredential.user_id == int(user_id))
     )
@@ -119,6 +119,9 @@ async def complete_authentication(
     credential: dict[str, Any],
     db: AsyncSession,
 ) -> bool:
+    from webauthn import verify_authentication_response
+    from webauthn.helpers.base64url_to_bytes import base64url_to_bytes
+
     expected_options = _pending_authentications.pop(user_id, None)
     if not expected_options:
         raise HTTPException(status_code=400, detail="Authentication session not found")
