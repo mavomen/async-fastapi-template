@@ -64,7 +64,9 @@ class PermissionChecker:
                 detail="Not enough permissions",
             )
         api_key_scopes: set[str] | None = getattr(request.state, "api_key_scopes", None)
-        if api_key_scopes is not None and not check_api_key_scope(api_key_scopes, self.required_permissions):
+        if api_key_scopes is not None and not check_api_key_scope(
+            api_key_scopes, self.required_permissions
+        ):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="API key does not have the required scopes",

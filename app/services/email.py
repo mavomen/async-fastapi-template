@@ -46,7 +46,10 @@ class EmailService:
             to_email,
             "Your sign-in link",
             "magic_link.html",
-            {"magic_link_url": magic_link_url, "expire_minutes": settings.MAGIC_LINK_EXPIRE_MINUTES},
+            {
+                "magic_link_url": magic_link_url,
+                "expire_minutes": settings.MAGIC_LINK_EXPIRE_MINUTES,
+            },
         )
 
 

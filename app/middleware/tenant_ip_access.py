@@ -70,12 +70,8 @@ class TenantIPAccessMiddleware(BaseHTTPMiddleware):
         if not rules:
             return await call_next(request)
 
-        matched_deny = any(
-            _ip_matches_rule(client_ip, r) for r in rules if r.action == "deny"
-        )
-        matched_allow = any(
-            _ip_matches_rule(client_ip, r) for r in rules if r.action == "allow"
-        )
+        matched_deny = any(_ip_matches_rule(client_ip, r) for r in rules if r.action == "deny")
+        matched_allow = any(_ip_matches_rule(client_ip, r) for r in rules if r.action == "allow")
 
         if matched_deny:
             return Response("Access denied by IP rule", status_code=403)

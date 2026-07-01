@@ -26,7 +26,14 @@ class CRUDTenantIPRule:
         return result.scalar_one_or_none()
 
     async def create(  # noqa: PLR0913
-        self, db: AsyncSession, *, tenant_id: int, ip_or_cidr: str, action: str, priority: int = 0, description: str | None = None
+        self,
+        db: AsyncSession,
+        *,
+        tenant_id: int,
+        ip_or_cidr: str,
+        action: str,
+        priority: int = 0,
+        description: str | None = None,
     ) -> TenantIPRule:
         rule = TenantIPRule(
             tenant_id=tenant_id,

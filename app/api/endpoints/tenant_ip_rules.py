@@ -79,7 +79,9 @@ async def list_ip_rules(
         raise HTTPException(status_code=403, detail="Superuser required")
 
     if tenant_id is not None:
-        rules = await crud_ip_rule.get_multi_by_tenant(db, tenant_id=tenant_id, skip=skip, limit=limit)
+        rules = await crud_ip_rule.get_multi_by_tenant(
+            db, tenant_id=tenant_id, skip=skip, limit=limit
+        )
     else:
         rules = []
 

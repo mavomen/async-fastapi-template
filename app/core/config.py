@@ -139,6 +139,17 @@ class Settings(BaseSettings):
     JWT_BLACKLIST_ENABLED: bool = True
     JWT_BLACKLIST_TTL: int = 86400  # 24h — max age to keep revoked tokens
 
+    # OAuth2 / Social Login
+    GOOGLE_CLIENT_ID: str = ""
+    GOOGLE_CLIENT_SECRET: str = ""
+    GITHUB_CLIENT_ID: str = ""
+    GITHUB_CLIENT_SECRET: str = ""
+    GITLAB_CLIENT_ID: str = ""
+    GITLAB_CLIENT_SECRET: str = ""
+    OAUTH_REDIRECT_URL: str = "http://localhost:8000/api/v1/auth/oauth/callback"
+    OAUTH_STATE_EXPIRE_SECONDS: int = 300
+    OAUTH_AUTO_LINK: bool = True
+
     # Content Security Policy
     CSP_REPORT_URI: str = "/api/v1/csp-report"
     CSP_REPORT_ONLY: bool = False

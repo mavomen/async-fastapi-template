@@ -273,9 +273,13 @@ class TestTOTPLoginFlow:
         mock_user.totp_secret = "secret"
 
         mocker.patch("app.api.endpoints.auth.authenticate_user", return_value=mock_user)
-        mocker.patch("app.api.endpoints.auth.create_totp_challenge_token", return_value="challenge-token")
+        mocker.patch(
+            "app.api.endpoints.auth.create_totp_challenge_token", return_value="challenge-token"
+        )
 
-        resp = client.post("/api/v1/auth/login", data={"username": "test@example.com", "password": "password"})
+        resp = client.post(
+            "/api/v1/auth/login", data={"username": "test@example.com", "password": "password"}
+        )
         assert resp.status_code == 200
         data = resp.json()
         assert data["totp_required"] is True
@@ -289,9 +293,14 @@ class TestTOTPLoginFlow:
         mock_user.email = "test@example.com"
 
         mocker.patch("app.api.endpoints.auth.authenticate_user", return_value=mock_user)
-        mocker.patch("app.api.endpoints.auth._issue_tokens", return_value={"access_token": "at", "refresh_token": "rt", "token_type": "bearer"})
+        mocker.patch(
+            "app.api.endpoints.auth._issue_tokens",
+            return_value={"access_token": "at", "refresh_token": "rt", "token_type": "bearer"},
+        )
 
-        resp = client.post("/api/v1/auth/login", data={"username": "test@example.com", "password": "password"})
+        resp = client.post(
+            "/api/v1/auth/login", data={"username": "test@example.com", "password": "password"}
+        )
         assert resp.status_code == 200
         data = resp.json()
         assert data["access_token"] == "at"
@@ -328,10 +337,15 @@ class TestTOTPLoginFlow:
         mock_user.totp_secret = "secret"
         mock_user.backup_codes = None
 
-        mocker.patch("app.api.endpoints.auth.decode_totp_challenge_token", return_value={"sub": "1"})
+        mocker.patch(
+            "app.api.endpoints.auth.decode_totp_challenge_token", return_value={"sub": "1"}
+        )
         mocker.patch("app.api.endpoints.auth.crud_user.get", return_value=mock_user)
         mocker.patch("app.api.endpoints.auth.verify_totp_code", return_value=True)
-        mocker.patch("app.api.endpoints.auth._issue_tokens", return_value={"access_token": "at", "refresh_token": "rt", "token_type": "bearer"})
+        mocker.patch(
+            "app.api.endpoints.auth._issue_tokens",
+            return_value={"access_token": "at", "refresh_token": "rt", "token_type": "bearer"},
+        )
 
         resp = client.post(
             "/api/v1/auth/login/totp-verify",
@@ -354,12 +368,17 @@ class TestTOTPLoginFlow:
 
         from app.api.deps import get_db
 
-        mocker.patch("app.api.endpoints.auth.decode_totp_challenge_token", return_value={"sub": "1"})
+        mocker.patch(
+            "app.api.endpoints.auth.decode_totp_challenge_token", return_value={"sub": "1"}
+        )
         mocker.patch("app.api.endpoints.auth.crud_user.get", return_value=mock_user)
         mocker.patch("app.api.endpoints.auth.verify_totp_code", return_value=False)
         mocker.patch("app.api.endpoints.auth.verify_backup_code", return_value="hash2")
         mocker.patch("app.api.endpoints.auth.remove_used_backup_code", return_value="hash1,hash3")
-        mocker.patch("app.api.endpoints.auth._issue_tokens", return_value={"access_token": "at", "refresh_token": "rt", "token_type": "bearer"})
+        mocker.patch(
+            "app.api.endpoints.auth._issue_tokens",
+            return_value={"access_token": "at", "refresh_token": "rt", "token_type": "bearer"},
+        )
 
         from app.main import app
 
@@ -382,7 +401,9 @@ class TestTOTPLoginFlow:
         mock_user.totp_secret = "secret"
         mock_user.backup_codes = None
 
-        mocker.patch("app.api.endpoints.auth.decode_totp_challenge_token", return_value={"sub": "1"})
+        mocker.patch(
+            "app.api.endpoints.auth.decode_totp_challenge_token", return_value={"sub": "1"}
+        )
         mocker.patch("app.api.endpoints.auth.crud_user.get", return_value=mock_user)
         mocker.patch("app.api.endpoints.auth.verify_totp_code", return_value=False)
         mocker.patch("app.api.endpoints.auth.verify_backup_code", return_value=None)
@@ -394,7 +415,9 @@ class TestTOTPLoginFlow:
         assert resp.status_code == 400
 
     def test_totp_verify_user_not_found(self, client, mocker):
-        mocker.patch("app.api.endpoints.auth.decode_totp_challenge_token", return_value={"sub": "999"})
+        mocker.patch(
+            "app.api.endpoints.auth.decode_totp_challenge_token", return_value={"sub": "999"}
+        )
         mocker.patch("app.api.endpoints.auth.crud_user.get", return_value=None)
 
         resp = client.post(
@@ -410,7 +433,9 @@ class TestTOTPLoginFlow:
         mock_user.totp_enabled = False
         mock_user.totp_secret = None
 
-        mocker.patch("app.api.endpoints.auth.decode_totp_challenge_token", return_value={"sub": "1"})
+        mocker.patch(
+            "app.api.endpoints.auth.decode_totp_challenge_token", return_value={"sub": "1"}
+        )
         mocker.patch("app.api.endpoints.auth.crud_user.get", return_value=mock_user)
 
         resp = client.post(

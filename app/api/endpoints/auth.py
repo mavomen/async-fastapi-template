@@ -11,6 +11,13 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_user, get_db, get_email_service, oauth2_scheme
+from app.auth.oauth2 import (
+    exchange_code,
+    generate_oauth_state,
+    get_authorize_url,
+    get_user_info,
+    parse_user_info,
+)
 from app.auth.totp import (
     create_totp_challenge_token,
     decode_totp_challenge_token,
@@ -24,6 +31,7 @@ from app.auth.webauthn import (
     complete_authentication,
     complete_registration,
 )
+from app.core.config import settings
 from app.core.exceptions import LockedOutException
 from app.core.jwt_blacklist import (
     SessionCreatePayload,
@@ -48,10 +56,11 @@ from app.core.security import (
 from app.crud.user import user as crud_user
 from app.decorators.rate_limit import rate_limit
 from app.models.user import User
-from app.schemas import Token, UserCreate, UserResponse
+from app.schemas import OAuthLoginResponse, Token, UserCreate, UserResponse
 from app.schemas.totp import TOTPLoginVerifyRequest
 from app.services.auth_audit import log_auth_event
 from app.services.email import EmailService
+from app.services.oauth2 import consume_oauth_state
 
 router = APIRouter()
 
@@ -105,7 +114,9 @@ async def register(
     "or a challenge token if TOTP 2FA is enabled.",
     responses={
         200: {"description": "Access and refresh tokens returned"},
-        202: {"description": "TOTP challenge required — provide challenge_token to /login/totp-verify"},
+        202: {
+            "description": "TOTP challenge required — provide challenge_token to /login/totp-verify"
+        },
         401: {"description": "Incorrect email or password"},
         423: {"description": "Account locked"},
         422: {"description": "Validation error"},
@@ -462,6 +473,144 @@ async def verify_magic_link(
         "refresh_token": refresh_token,
         "token_type": "bearer",
     }
+
+
+# ---------- OAuth2 / Social Login ----------
+
+
+@router.get(
+    "/oauth/login",
+    response_model=OAuthLoginResponse,
+    summary="Initiate OAuth2 social login",
+    description="Returns the authorize URL for the given OAuth provider. "
+    "The frontend should redirect the user to this URL.",
+    responses={
+        200: {"description": "Authorize URL and state token returned"},
+        400: {"description": "Invalid or unconfigured provider"},
+    },
+)
+async def oauth_login(
+    provider: str,
+    redirect_uri: str | None = None,
+) -> Any:
+    """Initiate OAuth2 social login by returning the provider's authorize URL."""
+    state = generate_oauth_state()
+    actual_redirect = redirect_uri or settings.OAUTH_REDIRECT_URL
+    try:
+        url = get_authorize_url(provider, state, actual_redirect)
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    return OAuthLoginResponse(authorize_url=url, state=state)
+
+
+@router.get(
+    "/oauth/callback",
+    response_model=Token,
+    summary="Complete OAuth2 social login",
+    description="Exchange an authorization code for tokens and return JWT credentials. "
+    "Auto-links accounts when the email matches an existing user.",
+    responses={
+        200: {"description": "Access and refresh tokens returned"},
+        400: {"description": "Invalid or expired state, code exchange failure, or user not found"},
+    },
+)
+async def oauth_callback(
+    request: Request,
+    provider: str,
+    code: str,
+    state: str,
+    redirect_uri: str | None = None,
+    db: AsyncSession = Depends(get_db),
+) -> Any:
+    """Complete OAuth2 login by exchanging the code and issuing JWT tokens."""
+    # Verify state
+    state_data = await consume_oauth_state(state)
+    if state_data is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid or expired OAuth state. Please try again.",
+        )
+
+    # Exchange code for tokens
+    actual_redirect = redirect_uri or settings.OAUTH_REDIRECT_URL
+    try:
+        token_data = await exchange_code(provider, code, actual_redirect)
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Failed to exchange authorization code: {e}",
+        )
+
+    access_token_resp = token_data.get("access_token", "")
+    refresh_token_resp = token_data.get("refresh_token", "")
+
+    # Fetch user info from provider
+    try:
+        raw_user_info = await get_user_info(provider, access_token_resp)
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Failed to fetch user info: {e}",
+        )
+
+    user_info = parse_user_info(provider, raw_user_info)
+    email = user_info["email"]
+    provider_id = user_info["provider_id"]
+
+    if not email:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="OAuth provider did not return an email address.",
+        )
+
+    # Look up existing user by OAuth provider ID
+    user = await crud_user.get_by_oauth(db, provider=provider, provider_id=provider_id)
+
+    if not user:
+        # Try to find existing user by email
+        user = await crud_user.get_by_email(db, email=email)
+
+    if user:
+        # Existing user — link OAuth account if not already linked
+        if not user.oauth_provider_id:
+            user = await crud_user.link_oauth_account(
+                db,
+                user=user,
+                provider=provider,
+                provider_id=provider_id,
+                access_token=access_token_resp,
+                refresh_token=refresh_token_resp,
+            )
+        elif user.oauth_provider != provider or user.oauth_provider_id != provider_id:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="This email is already linked to a different OAuth account.",
+            )
+    else:
+        # New user — create account
+        email_prefix = email.split("@")[0]
+        safe_prefix = "".join(c for c in email_prefix if c.isalnum() or c in "._-")
+        username = f"{safe_prefix}_oauth"
+        user = await crud_user.create_oauth_user(
+            db,
+            email=email,
+            username=username,
+            provider=provider,
+            provider_id=provider_id,
+            access_token=access_token_resp,
+            refresh_token=refresh_token_resp,
+        )
+
+    if not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="User account is inactive.",
+        )
+
+    # Issue JWT tokens
+    ip_address = request.client.host if request.client else None
+    user_agent = request.headers.get("user-agent")
+    return await _issue_tokens(user, db, ip_address, user_agent)
 
 
 # ---------- WebAuthn / Passkey endpoints ----------

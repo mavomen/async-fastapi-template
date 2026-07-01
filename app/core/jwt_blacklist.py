@@ -35,6 +35,7 @@ class SessionCreatePayload(TypedDict):
     iat: int
     exp: int
 
+
 _BLACKLIST_PREFIX = "jwt:blacklist"
 _REVOKED_ALL_PREFIX = "jwt:revoked-all"
 _SESSION_PREFIX = "user:sessions"
@@ -137,7 +138,9 @@ async def store_session(
         },
     )  # type: ignore[misc]
     await r.expire(mkey, ttl)
-    logger.debug("session_stored", user_id=user_id, jti=payload["jti"], token_type=payload["token_type"])
+    logger.debug(
+        "session_stored", user_id=user_id, jti=payload["jti"], token_type=payload["token_type"]
+    )
 
 
 async def list_active_sessions(user_id: int) -> list[dict[str, str]]:

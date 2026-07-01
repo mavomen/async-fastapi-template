@@ -47,7 +47,11 @@ class TestMagicLinkTokens:
 
     def test_decode_wrong_purpose_raises(self):
         token = jwt.encode(
-            {"exp": datetime.now(UTC) + timedelta(hours=1), "sub": "test@test.com", "purpose": "login"},
+            {
+                "exp": datetime.now(UTC) + timedelta(hours=1),
+                "sub": "test@test.com",
+                "purpose": "login",
+            },
             settings.SECRET_KEY,
             algorithm=settings.ALGORITHM,
         )

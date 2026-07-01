@@ -3,6 +3,258 @@
   dict({
     'components': dict({
       'schemas': dict({
+        'ApiKeyCreate': dict({
+          'properties': dict({
+            'expires_at': dict({
+              'anyOf': list([
+                dict({
+                  'format': 'date-time',
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Expires At',
+            }),
+            'name': dict({
+              'maxLength': 100,
+              'minLength': 1,
+              'title': 'Name',
+              'type': 'string',
+            }),
+            'scopes': dict({
+              'anyOf': list([
+                dict({
+                  'items': dict({
+                    'type': 'string',
+                  }),
+                  'type': 'array',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Scopes',
+            }),
+          }),
+          'required': list([
+            'name',
+          ]),
+          'title': 'ApiKeyCreate',
+          'type': 'object',
+        }),
+        'ApiKeyCreated': dict({
+          'properties': dict({
+            'created_at': dict({
+              'format': 'date-time',
+              'title': 'Created At',
+              'type': 'string',
+            }),
+            'expires_at': dict({
+              'anyOf': list([
+                dict({
+                  'format': 'date-time',
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Expires At',
+            }),
+            'id': dict({
+              'title': 'Id',
+              'type': 'integer',
+            }),
+            'is_active': dict({
+              'title': 'Is Active',
+              'type': 'boolean',
+            }),
+            'key_prefix': dict({
+              'title': 'Key Prefix',
+              'type': 'string',
+            }),
+            'last_used_at': dict({
+              'anyOf': list([
+                dict({
+                  'format': 'date-time',
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Last Used At',
+            }),
+            'name': dict({
+              'title': 'Name',
+              'type': 'string',
+            }),
+            'raw_key': dict({
+              'title': 'Raw Key',
+              'type': 'string',
+            }),
+            'scopes': dict({
+              'anyOf': list([
+                dict({
+                  'items': dict({
+                    'type': 'string',
+                  }),
+                  'type': 'array',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Scopes',
+            }),
+            'updated_at': dict({
+              'format': 'date-time',
+              'title': 'Updated At',
+              'type': 'string',
+            }),
+          }),
+          'required': list([
+            'id',
+            'name',
+            'key_prefix',
+            'scopes',
+            'is_active',
+            'last_used_at',
+            'expires_at',
+            'created_at',
+            'updated_at',
+            'raw_key',
+          ]),
+          'title': 'ApiKeyCreated',
+          'type': 'object',
+        }),
+        'ApiKeyResponse': dict({
+          'properties': dict({
+            'created_at': dict({
+              'format': 'date-time',
+              'title': 'Created At',
+              'type': 'string',
+            }),
+            'expires_at': dict({
+              'anyOf': list([
+                dict({
+                  'format': 'date-time',
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Expires At',
+            }),
+            'id': dict({
+              'title': 'Id',
+              'type': 'integer',
+            }),
+            'is_active': dict({
+              'title': 'Is Active',
+              'type': 'boolean',
+            }),
+            'key_prefix': dict({
+              'title': 'Key Prefix',
+              'type': 'string',
+            }),
+            'last_used_at': dict({
+              'anyOf': list([
+                dict({
+                  'format': 'date-time',
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Last Used At',
+            }),
+            'name': dict({
+              'title': 'Name',
+              'type': 'string',
+            }),
+            'scopes': dict({
+              'anyOf': list([
+                dict({
+                  'items': dict({
+                    'type': 'string',
+                  }),
+                  'type': 'array',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Scopes',
+            }),
+            'updated_at': dict({
+              'format': 'date-time',
+              'title': 'Updated At',
+              'type': 'string',
+            }),
+          }),
+          'required': list([
+            'id',
+            'name',
+            'key_prefix',
+            'scopes',
+            'is_active',
+            'last_used_at',
+            'expires_at',
+            'created_at',
+            'updated_at',
+          ]),
+          'title': 'ApiKeyResponse',
+          'type': 'object',
+        }),
+        'ApiKeyUpdate': dict({
+          'properties': dict({
+            'is_active': dict({
+              'anyOf': list([
+                dict({
+                  'type': 'boolean',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Is Active',
+            }),
+            'name': dict({
+              'anyOf': list([
+                dict({
+                  'maxLength': 100,
+                  'minLength': 1,
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Name',
+            }),
+            'scopes': dict({
+              'anyOf': list([
+                dict({
+                  'items': dict({
+                    'type': 'string',
+                  }),
+                  'type': 'array',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Scopes',
+            }),
+          }),
+          'title': 'ApiKeyUpdate',
+          'type': 'object',
+        }),
         'Body_import_users_csv_api_v1_users_import_csv_post': dict({
           'properties': dict({
             'file': dict({
@@ -117,6 +369,32 @@
           'title': 'Body_refresh_access_token_api_v1_auth_refresh_post',
           'type': 'object',
         }),
+        'Body_request_magic_link_api_v1_auth_magic_link_request_post': dict({
+          'properties': dict({
+            'email': dict({
+              'title': 'Email',
+              'type': 'string',
+            }),
+          }),
+          'required': list([
+            'email',
+          ]),
+          'title': 'Body_request_magic_link_api_v1_auth_magic_link_request_post',
+          'type': 'object',
+        }),
+        'Body_revoke_session_endpoint_api_v1_auth_sessions_revoke_post': dict({
+          'properties': dict({
+            'jti': dict({
+              'title': 'Jti',
+              'type': 'string',
+            }),
+          }),
+          'required': list([
+            'jti',
+          ]),
+          'title': 'Body_revoke_session_endpoint_api_v1_auth_sessions_revoke_post',
+          'type': 'object',
+        }),
         'Body_upload_file_api_v1_files_upload_post': dict({
           'properties': dict({
             'file': dict({
@@ -143,6 +421,19 @@
             'file',
           ]),
           'title': 'Body_upload_file_stream_api_v1_files_upload_stream_post',
+          'type': 'object',
+        }),
+        'Body_verify_magic_link_api_v1_auth_magic_link_verify_post': dict({
+          'properties': dict({
+            'token': dict({
+              'title': 'Token',
+              'type': 'string',
+            }),
+          }),
+          'required': list([
+            'token',
+          ]),
+          'title': 'Body_verify_magic_link_api_v1_auth_magic_link_verify_post',
           'type': 'object',
         }),
         'EmailTaskRequest': dict({
@@ -199,6 +490,162 @@
             }),
           }),
           'title': 'HTTPValidationError',
+          'type': 'object',
+        }),
+        'IPRuleCreate': dict({
+          'properties': dict({
+            'action': dict({
+              'pattern': '^(allow|deny)$',
+              'title': 'Action',
+              'type': 'string',
+            }),
+            'description': dict({
+              'anyOf': list([
+                dict({
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Description',
+            }),
+            'ip_or_cidr': dict({
+              'maxLength': 45,
+              'title': 'Ip Or Cidr',
+              'type': 'string',
+            }),
+            'priority': dict({
+              'default': 0,
+              'title': 'Priority',
+              'type': 'integer',
+            }),
+            'tenant_id': dict({
+              'title': 'Tenant Id',
+              'type': 'integer',
+            }),
+          }),
+          'required': list([
+            'tenant_id',
+            'ip_or_cidr',
+            'action',
+          ]),
+          'title': 'IPRuleCreate',
+          'type': 'object',
+        }),
+        'IPRuleResponse': dict({
+          'properties': dict({
+            'action': dict({
+              'title': 'Action',
+              'type': 'string',
+            }),
+            'description': dict({
+              'anyOf': list([
+                dict({
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Description',
+            }),
+            'id': dict({
+              'title': 'Id',
+              'type': 'integer',
+            }),
+            'ip_or_cidr': dict({
+              'title': 'Ip Or Cidr',
+              'type': 'string',
+            }),
+            'priority': dict({
+              'title': 'Priority',
+              'type': 'integer',
+            }),
+            'tenant_id': dict({
+              'title': 'Tenant Id',
+              'type': 'integer',
+            }),
+          }),
+          'required': list([
+            'id',
+            'tenant_id',
+            'ip_or_cidr',
+            'action',
+            'priority',
+            'description',
+          ]),
+          'title': 'IPRuleResponse',
+          'type': 'object',
+        }),
+        'IPRuleUpdate': dict({
+          'properties': dict({
+            'action': dict({
+              'anyOf': list([
+                dict({
+                  'pattern': '^(allow|deny)$',
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Action',
+            }),
+            'description': dict({
+              'anyOf': list([
+                dict({
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Description',
+            }),
+            'ip_or_cidr': dict({
+              'anyOf': list([
+                dict({
+                  'maxLength': 45,
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Ip Or Cidr',
+            }),
+            'priority': dict({
+              'anyOf': list([
+                dict({
+                  'type': 'integer',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Priority',
+            }),
+          }),
+          'title': 'IPRuleUpdate',
+          'type': 'object',
+        }),
+        'OAuthLoginResponse': dict({
+          'properties': dict({
+            'authorize_url': dict({
+              'title': 'Authorize Url',
+              'type': 'string',
+            }),
+            'state': dict({
+              'title': 'State',
+              'type': 'string',
+            }),
+          }),
+          'required': list([
+            'authorize_url',
+            'state',
+          ]),
+          'title': 'OAuthLoginResponse',
           'type': 'object',
         }),
         'PermissionRead': dict({
@@ -266,6 +713,105 @@
             'name',
           ]),
           'title': 'RoleRead',
+          'type': 'object',
+        }),
+        'TOTPDisableRequest': dict({
+          'properties': dict({
+            'password': dict({
+              'title': 'Password',
+              'type': 'string',
+            }),
+          }),
+          'required': list([
+            'password',
+          ]),
+          'title': 'TOTPDisableRequest',
+          'type': 'object',
+        }),
+        'TOTPEnableResponse': dict({
+          'properties': dict({
+            'backup_codes': dict({
+              'items': dict({
+                'type': 'string',
+              }),
+              'title': 'Backup Codes',
+              'type': 'array',
+            }),
+            'secret': dict({
+              'title': 'Secret',
+              'type': 'string',
+            }),
+            'uri': dict({
+              'title': 'Uri',
+              'type': 'string',
+            }),
+          }),
+          'required': list([
+            'secret',
+            'uri',
+            'backup_codes',
+          ]),
+          'title': 'TOTPEnableResponse',
+          'type': 'object',
+        }),
+        'TOTPLoginVerifyRequest': dict({
+          'properties': dict({
+            'challenge_token': dict({
+              'title': 'Challenge Token',
+              'type': 'string',
+            }),
+            'code': dict({
+              'maxLength': 6,
+              'minLength': 6,
+              'title': 'Code',
+              'type': 'string',
+            }),
+          }),
+          'required': list([
+            'challenge_token',
+            'code',
+          ]),
+          'title': 'TOTPLoginVerifyRequest',
+          'type': 'object',
+        }),
+        'TOTPStatusResponse': dict({
+          'properties': dict({
+            'enabled': dict({
+              'title': 'Enabled',
+              'type': 'boolean',
+            }),
+            'totp_verified_at': dict({
+              'anyOf': list([
+                dict({
+                  'format': 'date-time',
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Totp Verified At',
+            }),
+          }),
+          'required': list([
+            'enabled',
+          ]),
+          'title': 'TOTPStatusResponse',
+          'type': 'object',
+        }),
+        'TOTPVerifyEnableRequest': dict({
+          'properties': dict({
+            'code': dict({
+              'maxLength': 6,
+              'minLength': 6,
+              'title': 'Code',
+              'type': 'string',
+            }),
+          }),
+          'required': list([
+            'code',
+          ]),
+          'title': 'TOTPVerifyEnableRequest',
           'type': 'object',
         }),
         'TenantCreate': dict({
@@ -639,6 +1185,11 @@
         }),
       }),
       'securitySchemes': dict({
+        'APIKeyHeader': dict({
+          'in': 'header',
+          'name': 'X-API-Key',
+          'type': 'apiKey',
+        }),
         'OAuth2PasswordBearer': dict({
           'flows': dict({
             'password': dict({
@@ -653,7 +1204,7 @@
     }),
     'info': dict({
       'title': 'FastAPI Async Template',
-      'version': '3.0.0',
+      'version': '3.1.0',
     }),
     'openapi': '3.1.0',
     'paths': dict({
@@ -680,6 +1231,90 @@
             }),
           ]),
           'summary': 'Dashboard',
+          'tags': list([
+            'admin',
+          ]),
+        }),
+      }),
+      '/admin/sessions': dict({
+        'get': dict({
+          'description': 'List active sessions for a user (or prompt to select).',
+          'operationId': 'admin_list_sessions_admin_sessions_get',
+          'parameters': list([
+            dict({
+              'in': 'query',
+              'name': 'user_id',
+              'required': False,
+              'schema': dict({
+                'anyOf': list([
+                  dict({
+                    'type': 'integer',
+                  }),
+                  dict({
+                    'type': 'null',
+                  }),
+                ]),
+                'title': 'User Id',
+              }),
+            }),
+          ]),
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'text/html': dict({
+                  'schema': dict({
+                    'type': 'string',
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+          ]),
+          'summary': 'Admin List Sessions',
+          'tags': list([
+            'admin',
+          ]),
+        }),
+      }),
+      '/admin/sessions/revoke': dict({
+        'post': dict({
+          'description': 'Revoke a specific session by JTI.',
+          'operationId': 'admin_revoke_session_admin_sessions_revoke_post',
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'text/html': dict({
+                  'schema': dict({
+                    'type': 'string',
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+          ]),
+          'summary': 'Admin Revoke Session',
           'tags': list([
             'admin',
           ]),
@@ -821,6 +1456,7 @@
               'content': dict({
                 'application/json': dict({
                   'schema': dict({
+                    'title': 'Response Admin Create Admin  Table Name  Create Post',
                   }),
                 }),
               }),
@@ -936,6 +1572,7 @@
               'content': dict({
                 'application/json': dict({
                   'schema': dict({
+                    'title': 'Response Admin Delete Admin  Table Name   Id  Delete Post',
                   }),
                 }),
               }),
@@ -1049,6 +1686,7 @@
               'content': dict({
                 'application/json': dict({
                   'schema': dict({
+                    'title': 'Response Admin Edit Admin  Table Name   Id  Edit Post',
                   }),
                 }),
               }),
@@ -1086,6 +1724,7 @@
               'content': dict({
                 'application/json': dict({
                   'schema': dict({
+                    'title': 'Response Jwks Api V1 Auth  Well Known Jwks Json Get',
                   }),
                 }),
               }),
@@ -1098,9 +1737,246 @@
           ]),
         }),
       }),
+      '/api/v1/auth/api-keys': dict({
+        'get': dict({
+          'description': 'List all API keys for the current user.',
+          'operationId': 'list_api_keys_api_v1_auth_api_keys_get',
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    'items': dict({
+                      '$ref': '#/components/schemas/ApiKeyResponse',
+                    }),
+                    'title': 'Response List Api Keys Api V1 Auth Api Keys Get',
+                    'type': 'array',
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+          ]),
+          'summary': 'List API keys',
+          'tags': list([
+            'auth',
+          ]),
+        }),
+        'post': dict({
+          'description': 'Create a new API key for the current user. The raw key is returned only once in the response.',
+          'operationId': 'create_api_key_api_v1_auth_api_keys_post',
+          'requestBody': dict({
+            'content': dict({
+              'application/json': dict({
+                'schema': dict({
+                  '$ref': '#/components/schemas/ApiKeyCreate',
+                }),
+              }),
+            }),
+            'required': True,
+          }),
+          'responses': dict({
+            '201': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/ApiKeyCreated',
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+            dict({
+              'APIKeyHeader': list([
+              ]),
+            }),
+          ]),
+          'summary': 'Create API key',
+          'tags': list([
+            'auth',
+          ]),
+        }),
+      }),
+      '/api/v1/auth/api-keys/{api_key_id}': dict({
+        'delete': dict({
+          'description': 'Delete (revoke) an API key.',
+          'operationId': 'delete_api_key_api_v1_auth_api_keys__api_key_id__delete',
+          'parameters': list([
+            dict({
+              'in': 'path',
+              'name': 'api_key_id',
+              'required': True,
+              'schema': dict({
+                'title': 'Api Key Id',
+                'type': 'integer',
+              }),
+            }),
+          ]),
+          'responses': dict({
+            '204': dict({
+              'description': 'Successful Response',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+          ]),
+          'summary': 'Delete API key',
+          'tags': list([
+            'auth',
+          ]),
+        }),
+        'patch': dict({
+          'description': 'Update name, scopes, or active status of an API key.',
+          'operationId': 'update_api_key_api_v1_auth_api_keys__api_key_id__patch',
+          'parameters': list([
+            dict({
+              'in': 'path',
+              'name': 'api_key_id',
+              'required': True,
+              'schema': dict({
+                'title': 'Api Key Id',
+                'type': 'integer',
+              }),
+            }),
+          ]),
+          'requestBody': dict({
+            'content': dict({
+              'application/json': dict({
+                'schema': dict({
+                  '$ref': '#/components/schemas/ApiKeyUpdate',
+                }),
+              }),
+            }),
+            'required': True,
+          }),
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/ApiKeyResponse',
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+          ]),
+          'summary': 'Update API key',
+          'tags': list([
+            'auth',
+          ]),
+        }),
+      }),
+      '/api/v1/auth/jwt/revoke': dict({
+        'post': dict({
+          'description': 'Blacklist the current access token so it can no longer be used.',
+          'operationId': 'revoke_token_api_v1_auth_jwt_revoke_post',
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    'title': 'Response Revoke Token Api V1 Auth Jwt Revoke Post',
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+          ]),
+          'summary': 'Revoke current token',
+          'tags': list([
+            'auth',
+          ]),
+        }),
+      }),
+      '/api/v1/auth/jwt/revoke-all': dict({
+        'post': dict({
+          'description': 'Revoke every access and refresh token issued to the current user.',
+          'operationId': 'revoke_all_tokens_api_v1_auth_jwt_revoke_all_post',
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    'title': 'Response Revoke All Tokens Api V1 Auth Jwt Revoke All Post',
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+          ]),
+          'summary': 'Revoke all tokens',
+          'tags': list([
+            'auth',
+          ]),
+        }),
+      }),
       '/api/v1/auth/login': dict({
         'post': dict({
-          'description': 'OAuth2 compatible token login. Returns access and refresh tokens.',
+          'description': 'OAuth2 compatible token login. Returns access and refresh tokens, or a challenge token if TOTP 2FA is enabled.',
           'operationId': 'login_for_access_token_api_v1_auth_login_post',
           'requestBody': dict({
             'content': dict({
@@ -1117,11 +1993,14 @@
               'content': dict({
                 'application/json': dict({
                   'schema': dict({
-                    '$ref': '#/components/schemas/Token',
+                    'title': 'Response Login For Access Token Api V1 Auth Login Post',
                   }),
                 }),
               }),
               'description': 'Access and refresh tokens returned',
+            }),
+            '202': dict({
+              'description': 'TOTP challenge required — provide challenge_token to /login/totp-verify',
             }),
             '401': dict({
               'description': 'Incorrect email or password',
@@ -1129,8 +2008,288 @@
             '422': dict({
               'description': 'Validation error',
             }),
+            '423': dict({
+              'description': 'Account locked',
+            }),
           }),
           'summary': 'Login for access token',
+          'tags': list([
+            'auth',
+          ]),
+        }),
+      }),
+      '/api/v1/auth/login/totp-verify': dict({
+        'post': dict({
+          'description': 'Exchange a challenge token and a TOTP code (or backup code) for access and refresh tokens.',
+          'operationId': 'login_with_totp_api_v1_auth_login_totp_verify_post',
+          'requestBody': dict({
+            'content': dict({
+              'application/json': dict({
+                'schema': dict({
+                  '$ref': '#/components/schemas/TOTPLoginVerifyRequest',
+                }),
+              }),
+            }),
+            'required': True,
+          }),
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/Token',
+                  }),
+                }),
+              }),
+              'description': 'Access and refresh tokens returned',
+            }),
+            '400': dict({
+              'description': 'Invalid or expired challenge token or TOTP code',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+          }),
+          'summary': 'Complete login with TOTP code',
+          'tags': list([
+            'auth',
+          ]),
+        }),
+      }),
+      '/api/v1/auth/magic-link/request': dict({
+        'post': dict({
+          'description': 'Send a short-lived magic link to the given email address. If the email does not exist and MAGIC_LINK_ALLOW_REGISTRATION is enabled, an account will be created on first use.',
+          'operationId': 'request_magic_link_api_v1_auth_magic_link_request_post',
+          'requestBody': dict({
+            'content': dict({
+              'application/json': dict({
+                'schema': dict({
+                  '$ref': '#/components/schemas/Body_request_magic_link_api_v1_auth_magic_link_request_post',
+                }),
+              }),
+            }),
+            'required': True,
+          }),
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    'title': 'Response Request Magic Link Api V1 Auth Magic Link Request Post',
+                  }),
+                }),
+              }),
+              'description': 'Magic link sent',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+            '429': dict({
+              'description': 'Too many requests',
+            }),
+          }),
+          'summary': 'Request a magic sign-in link',
+          'tags': list([
+            'auth',
+          ]),
+        }),
+      }),
+      '/api/v1/auth/magic-link/verify': dict({
+        'post': dict({
+          'description': 'Exchange a magic link token for access and refresh tokens. If the email is not yet verified, it will be verified automatically.',
+          'operationId': 'verify_magic_link_api_v1_auth_magic_link_verify_post',
+          'requestBody': dict({
+            'content': dict({
+              'application/json': dict({
+                'schema': dict({
+                  '$ref': '#/components/schemas/Body_verify_magic_link_api_v1_auth_magic_link_verify_post',
+                }),
+              }),
+            }),
+            'required': True,
+          }),
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/Token',
+                  }),
+                }),
+              }),
+              'description': 'Access and refresh tokens returned',
+            }),
+            '400': dict({
+              'description': 'Invalid or expired token',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+          }),
+          'summary': 'Verify a magic link and receive JWT tokens',
+          'tags': list([
+            'auth',
+          ]),
+        }),
+      }),
+      '/api/v1/auth/oauth/callback': dict({
+        'get': dict({
+          'description': 'Exchange an authorization code for tokens and return JWT credentials. Auto-links accounts when the email matches an existing user.',
+          'operationId': 'oauth_callback_api_v1_auth_oauth_callback_get',
+          'parameters': list([
+            dict({
+              'in': 'query',
+              'name': 'provider',
+              'required': True,
+              'schema': dict({
+                'title': 'Provider',
+                'type': 'string',
+              }),
+            }),
+            dict({
+              'in': 'query',
+              'name': 'code',
+              'required': True,
+              'schema': dict({
+                'title': 'Code',
+                'type': 'string',
+              }),
+            }),
+            dict({
+              'in': 'query',
+              'name': 'state',
+              'required': True,
+              'schema': dict({
+                'title': 'State',
+                'type': 'string',
+              }),
+            }),
+            dict({
+              'in': 'query',
+              'name': 'redirect_uri',
+              'required': False,
+              'schema': dict({
+                'anyOf': list([
+                  dict({
+                    'type': 'string',
+                  }),
+                  dict({
+                    'type': 'null',
+                  }),
+                ]),
+                'title': 'Redirect Uri',
+              }),
+            }),
+          ]),
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/Token',
+                  }),
+                }),
+              }),
+              'description': 'Access and refresh tokens returned',
+            }),
+            '400': dict({
+              'description': 'Invalid or expired state, code exchange failure, or user not found',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+          }),
+          'summary': 'Complete OAuth2 social login',
+          'tags': list([
+            'auth',
+          ]),
+        }),
+      }),
+      '/api/v1/auth/oauth/login': dict({
+        'get': dict({
+          'description': 'Returns the authorize URL for the given OAuth provider. The frontend should redirect the user to this URL.',
+          'operationId': 'oauth_login_api_v1_auth_oauth_login_get',
+          'parameters': list([
+            dict({
+              'in': 'query',
+              'name': 'provider',
+              'required': True,
+              'schema': dict({
+                'title': 'Provider',
+                'type': 'string',
+              }),
+            }),
+            dict({
+              'in': 'query',
+              'name': 'redirect_uri',
+              'required': False,
+              'schema': dict({
+                'anyOf': list([
+                  dict({
+                    'type': 'string',
+                  }),
+                  dict({
+                    'type': 'null',
+                  }),
+                ]),
+                'title': 'Redirect Uri',
+              }),
+            }),
+          ]),
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/OAuthLoginResponse',
+                  }),
+                }),
+              }),
+              'description': 'Authorize URL and state token returned',
+            }),
+            '400': dict({
+              'description': 'Invalid or unconfigured provider',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+          }),
+          'summary': 'Initiate OAuth2 social login',
           'tags': list([
             'auth',
           ]),
@@ -1207,6 +2366,234 @@
             }),
           }),
           'summary': 'Register a new user',
+          'tags': list([
+            'auth',
+          ]),
+        }),
+      }),
+      '/api/v1/auth/sessions': dict({
+        'get': dict({
+          'description': 'Return all active sessions for the current user.',
+          'operationId': 'list_sessions_endpoint_api_v1_auth_sessions_get',
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    'title': 'Response List Sessions Endpoint Api V1 Auth Sessions Get',
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+          ]),
+          'summary': 'List active sessions',
+          'tags': list([
+            'auth',
+          ]),
+        }),
+      }),
+      '/api/v1/auth/sessions/revoke': dict({
+        'post': dict({
+          'description': 'Revoke a specific session by its JTI.',
+          'operationId': 'revoke_session_endpoint_api_v1_auth_sessions_revoke_post',
+          'requestBody': dict({
+            'content': dict({
+              'application/json': dict({
+                'schema': dict({
+                  '$ref': '#/components/schemas/Body_revoke_session_endpoint_api_v1_auth_sessions_revoke_post',
+                }),
+              }),
+            }),
+            'required': True,
+          }),
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    'title': 'Response Revoke Session Endpoint Api V1 Auth Sessions Revoke Post',
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+          ]),
+          'summary': 'Revoke a session',
+          'tags': list([
+            'auth',
+          ]),
+        }),
+      }),
+      '/api/v1/auth/totp/disable': dict({
+        'post': dict({
+          'description': 'Disable TOTP 2FA after confirming the current password.',
+          'operationId': 'disable_totp_api_v1_auth_totp_disable_post',
+          'requestBody': dict({
+            'content': dict({
+              'application/json': dict({
+                'schema': dict({
+                  '$ref': '#/components/schemas/TOTPDisableRequest',
+                }),
+              }),
+            }),
+            'required': True,
+          }),
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    'title': 'Response Disable Totp Api V1 Auth Totp Disable Post',
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+          ]),
+          'summary': 'Disable TOTP 2FA',
+          'tags': list([
+            'auth',
+          ]),
+        }),
+      }),
+      '/api/v1/auth/totp/enable': dict({
+        'post': dict({
+          'description': 'Generate a TOTP secret and provisioning URI. The user must then POST /totp/verify-enable with a valid code to activate 2FA.',
+          'operationId': 'enable_totp_api_v1_auth_totp_enable_post',
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/TOTPEnableResponse',
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+          ]),
+          'summary': 'Enable TOTP 2FA',
+          'tags': list([
+            'auth',
+          ]),
+        }),
+      }),
+      '/api/v1/auth/totp/status': dict({
+        'get': dict({
+          'description': 'Return whether TOTP 2FA is enabled for the current user.',
+          'operationId': 'get_totp_status_api_v1_auth_totp_status_get',
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/TOTPStatusResponse',
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+          ]),
+          'summary': 'Get TOTP status',
+          'tags': list([
+            'auth',
+          ]),
+        }),
+      }),
+      '/api/v1/auth/totp/verify-enable': dict({
+        'post': dict({
+          'description': 'Verify a TOTP code to activate 2FA after calling POST /totp/enable.',
+          'operationId': 'verify_enable_totp_api_v1_auth_totp_verify_enable_post',
+          'requestBody': dict({
+            'content': dict({
+              'application/json': dict({
+                'schema': dict({
+                  '$ref': '#/components/schemas/TOTPVerifyEnableRequest',
+                }),
+              }),
+            }),
+            'required': True,
+          }),
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    'title': 'Response Verify Enable Totp Api V1 Auth Totp Verify Enable Post',
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+          ]),
+          'summary': 'Confirm TOTP setup',
           'tags': list([
             'auth',
           ]),
@@ -1316,6 +2703,7 @@
               'content': dict({
                 'application/json': dict({
                   'schema': dict({
+                    'title': 'Response Webauthn Login Begin Api V1 Auth Webauthn Login Begin Post',
                   }),
                 }),
               }),
@@ -1359,6 +2747,7 @@
               'content': dict({
                 'application/json': dict({
                   'schema': dict({
+                    'title': 'Response Webauthn Login Complete Api V1 Auth Webauthn Login Complete Post',
                   }),
                 }),
               }),
@@ -1390,6 +2779,7 @@
               'content': dict({
                 'application/json': dict({
                   'schema': dict({
+                    'title': 'Response Webauthn Register Begin Api V1 Auth Webauthn Register Begin Post',
                   }),
                 }),
               }),
@@ -1429,6 +2819,7 @@
               'content': dict({
                 'application/json': dict({
                   'schema': dict({
+                    'title': 'Response Webauthn Register Complete Api V1 Auth Webauthn Register Complete Post',
                   }),
                 }),
               }),
@@ -1476,6 +2867,9 @@
               'content': dict({
                 'application/json': dict({
                   'schema': dict({
+                    'additionalProperties': True,
+                    'title': 'Response Publish Event Api V1 Events Publish Post',
+                    'type': 'object',
                   }),
                 }),
               }),
@@ -1627,6 +3021,7 @@
               'content': dict({
                 'application/json': dict({
                   'schema': dict({
+                    'title': 'Response Upload File Stream Api V1 Files Upload Stream Post',
                   }),
                 }),
               }),
@@ -1674,6 +3069,9 @@
               'content': dict({
                 'application/json': dict({
                   'schema': dict({
+                    'additionalProperties': True,
+                    'title': 'Response Trigger Email Task Api V1 Tasks Email Send Post',
+                    'type': 'object',
                   }),
                 }),
               }),
@@ -1716,6 +3114,16 @@
               'content': dict({
                 'application/json': dict({
                   'schema': dict({
+                    'anyOf': list([
+                      dict({
+                        'additionalProperties': True,
+                        'type': 'object',
+                      }),
+                      dict({
+                        'type': 'null',
+                      }),
+                    ]),
+                    'title': 'Response Get Task Status Api V1 Tasks  Task Id  Get',
                   }),
                 }),
               }),
@@ -1761,6 +3169,7 @@
               'content': dict({
                 'application/json': dict({
                   'schema': dict({
+                    'title': 'Response Stream Task Status Api V1 Tasks  Task Id  Stream Get',
                   }),
                 }),
               }),
@@ -1783,6 +3192,289 @@
           ]),
         }),
       }),
+      '/api/v1/tenant-ip-rules': dict({
+        'get': dict({
+          'description': 'List IP rules, optionally filtered by tenant (superuser only).',
+          'operationId': 'list_ip_rules_api_v1_tenant_ip_rules_get',
+          'parameters': list([
+            dict({
+              'in': 'query',
+              'name': 'tenant_id',
+              'required': False,
+              'schema': dict({
+                'anyOf': list([
+                  dict({
+                    'type': 'integer',
+                  }),
+                  dict({
+                    'type': 'null',
+                  }),
+                ]),
+                'title': 'Tenant Id',
+              }),
+            }),
+            dict({
+              'in': 'query',
+              'name': 'skip',
+              'required': False,
+              'schema': dict({
+                'default': 0,
+                'title': 'Skip',
+                'type': 'integer',
+              }),
+            }),
+            dict({
+              'in': 'query',
+              'name': 'limit',
+              'required': False,
+              'schema': dict({
+                'default': 100,
+                'title': 'Limit',
+                'type': 'integer',
+              }),
+            }),
+          ]),
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    'items': dict({
+                      '$ref': '#/components/schemas/IPRuleResponse',
+                    }),
+                    'title': 'Response List Ip Rules Api V1 Tenant Ip Rules Get',
+                    'type': 'array',
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+          ]),
+          'summary': 'List Ip Rules',
+          'tags': list([
+            'ip-rules',
+          ]),
+        }),
+        'post': dict({
+          'description': 'Create a new IP allow/deny rule (superuser only).',
+          'operationId': 'create_ip_rule_api_v1_tenant_ip_rules_post',
+          'requestBody': dict({
+            'content': dict({
+              'application/json': dict({
+                'schema': dict({
+                  '$ref': '#/components/schemas/IPRuleCreate',
+                }),
+              }),
+            }),
+            'required': True,
+          }),
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/IPRuleResponse',
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+          ]),
+          'summary': 'Create Ip Rule',
+          'tags': list([
+            'ip-rules',
+          ]),
+        }),
+      }),
+      '/api/v1/tenant-ip-rules/{rule_id}': dict({
+        'delete': dict({
+          'description': 'Delete an IP rule (superuser only).',
+          'operationId': 'delete_ip_rule_api_v1_tenant_ip_rules__rule_id__delete',
+          'parameters': list([
+            dict({
+              'in': 'path',
+              'name': 'rule_id',
+              'required': True,
+              'schema': dict({
+                'title': 'Rule Id',
+                'type': 'integer',
+              }),
+            }),
+          ]),
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    'additionalProperties': dict({
+                      'type': 'string',
+                    }),
+                    'title': 'Response Delete Ip Rule Api V1 Tenant Ip Rules  Rule Id  Delete',
+                    'type': 'object',
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+          ]),
+          'summary': 'Delete Ip Rule',
+          'tags': list([
+            'ip-rules',
+          ]),
+        }),
+        'get': dict({
+          'description': 'Get a single IP rule by ID (superuser only).',
+          'operationId': 'get_ip_rule_api_v1_tenant_ip_rules__rule_id__get',
+          'parameters': list([
+            dict({
+              'in': 'path',
+              'name': 'rule_id',
+              'required': True,
+              'schema': dict({
+                'title': 'Rule Id',
+                'type': 'integer',
+              }),
+            }),
+          ]),
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/IPRuleResponse',
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+          ]),
+          'summary': 'Get Ip Rule',
+          'tags': list([
+            'ip-rules',
+          ]),
+        }),
+        'put': dict({
+          'description': 'Update an IP rule (superuser only).',
+          'operationId': 'update_ip_rule_api_v1_tenant_ip_rules__rule_id__put',
+          'parameters': list([
+            dict({
+              'in': 'path',
+              'name': 'rule_id',
+              'required': True,
+              'schema': dict({
+                'title': 'Rule Id',
+                'type': 'integer',
+              }),
+            }),
+          ]),
+          'requestBody': dict({
+            'content': dict({
+              'application/json': dict({
+                'schema': dict({
+                  '$ref': '#/components/schemas/IPRuleUpdate',
+                }),
+              }),
+            }),
+            'required': True,
+          }),
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/IPRuleResponse',
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+          ]),
+          'summary': 'Update Ip Rule',
+          'tags': list([
+            'ip-rules',
+          ]),
+        }),
+      }),
       '/api/v1/tenants/': dict({
         'get': dict({
           'description': 'List all tenants (superuser only).',
@@ -1792,6 +3484,12 @@
               'content': dict({
                 'application/json': dict({
                   'schema': dict({
+                    'items': dict({
+                      'additionalProperties': True,
+                      'type': 'object',
+                    }),
+                    'title': 'Response List Tenants Api V1 Tenants  Get',
+                    'type': 'array',
                   }),
                 }),
               }),
@@ -1827,6 +3525,9 @@
               'content': dict({
                 'application/json': dict({
                   'schema': dict({
+                    'additionalProperties': True,
+                    'title': 'Response Create Tenant Api V1 Tenants  Post',
+                    'type': 'object',
                   }),
                 }),
               }),
@@ -1857,18 +3558,48 @@
       }),
       '/api/v1/users/': dict({
         'get': dict({
-          'description': 'Retrieve a paginated list of all users. Requires `user:read` permission.',
+          'description': 'Retrieve a paginated list of all users. Supports cursor-based pagination. Requires `user:read` permission.',
           'operationId': 'list_users_api_v1_users__get',
+          'parameters': list([
+            dict({
+              'description': 'Cursor from previous page response',
+              'in': 'query',
+              'name': 'cursor',
+              'required': False,
+              'schema': dict({
+                'anyOf': list([
+                  dict({
+                    'type': 'string',
+                  }),
+                  dict({
+                    'type': 'null',
+                  }),
+                ]),
+                'description': 'Cursor from previous page response',
+                'title': 'Cursor',
+              }),
+            }),
+            dict({
+              'description': 'Page size',
+              'in': 'query',
+              'name': 'size',
+              'required': False,
+              'schema': dict({
+                'default': 50,
+                'description': 'Page size',
+                'maximum': 100,
+                'minimum': 1,
+                'title': 'Size',
+                'type': 'integer',
+              }),
+            }),
+          ]),
           'responses': dict({
             '200': dict({
               'content': dict({
                 'application/json': dict({
                   'schema': dict({
-                    'items': dict({
-                      '$ref': '#/components/schemas/UserDetailResponse',
-                    }),
                     'title': 'Response List Users Api V1 Users  Get',
-                    'type': 'array',
                   }),
                 }),
               }),
@@ -1880,10 +3611,24 @@
             '403': dict({
               'description': 'Not enough permissions',
             }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
           }),
           'security': list([
             dict({
               'OAuth2PasswordBearer': list([
+              ]),
+            }),
+            dict({
+              'APIKeyHeader': list([
               ]),
             }),
           ]),
@@ -1895,7 +3640,7 @@
       }),
       '/api/v1/users/bulk': dict({
         'post': dict({
-          'description': 'Create multiple users in one request (requires user:write).',
+          'description': 'Create multiple users in a single transaction (requires user:write).',
           'operationId': 'bulk_create_users_api_v1_users_bulk_post',
           'requestBody': dict({
             'content': dict({
@@ -1940,6 +3685,10 @@
           'security': list([
             dict({
               'OAuth2PasswordBearer': list([
+              ]),
+            }),
+            dict({
+              'APIKeyHeader': list([
               ]),
             }),
           ]),
@@ -1995,6 +3744,10 @@
               'OAuth2PasswordBearer': list([
               ]),
             }),
+            dict({
+              'APIKeyHeader': list([
+              ]),
+            }),
           ]),
           'summary': 'Export users',
           'tags': list([
@@ -2004,7 +3757,11 @@
       }),
       '/api/v1/users/import/csv': dict({
         'post': dict({
-          'description': 'Import users from a CSV file (requires user:write).',
+          'description': '''
+            Import users from a CSV file using per-row savepoints (requires user:write).
+            
+            Skips duplicate rows (IntegrityError) without aborting the entire import.
+          ''',
           'operationId': 'import_users_csv_api_v1_users_import_csv_post',
           'requestBody': dict({
             'content': dict({
@@ -2045,6 +3802,10 @@
           'security': list([
             dict({
               'OAuth2PasswordBearer': list([
+              ]),
+            }),
+            dict({
+              'APIKeyHeader': list([
               ]),
             }),
           ]),
@@ -2107,6 +3868,10 @@
               'OAuth2PasswordBearer': list([
               ]),
             }),
+            dict({
+              'APIKeyHeader': list([
+              ]),
+            }),
           ]),
           'summary': 'Delete a user',
           'tags': list([
@@ -2161,6 +3926,10 @@
           'security': list([
             dict({
               'OAuth2PasswordBearer': list([
+              ]),
+            }),
+            dict({
+              'APIKeyHeader': list([
               ]),
             }),
           ]),
@@ -2220,6 +3989,10 @@
           'security': list([
             dict({
               'OAuth2PasswordBearer': list([
+              ]),
+            }),
+            dict({
+              'APIKeyHeader': list([
               ]),
             }),
           ]),
@@ -2552,6 +4325,30 @@
       dict({
         'description': 'Prometheus metrics endpoint.',
         'name': 'metrics',
+      }),
+      dict({
+        'description': 'HTMX-powered admin dashboard for managing application data.',
+        'name': 'admin',
+      }),
+      dict({
+        'description': 'User profile management endpoints.',
+        'name': 'profile',
+      }),
+      dict({
+        'description': 'Multi-tenant management endpoints.',
+        'name': 'tenants',
+      }),
+      dict({
+        'description': 'Event bus monitoring and management endpoints.',
+        'name': 'events',
+      }),
+      dict({
+        'description': 'WebSocket chat endpoints with JWT authentication.',
+        'name': 'websocket',
+      }),
+      dict({
+        'description': 'GraphQL endpoint for queries, mutations, and subscriptions.',
+        'name': 'graphql',
       }),
     ]),
   })

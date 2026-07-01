@@ -22,7 +22,13 @@ def upgrade() -> None:
     op.create_table(
         "tenant_ip_rules",
         sa.Column("id", sa.Integer(), autoincrement=True, nullable=False),
-        sa.Column("tenant_id", sa.Integer(), sa.ForeignKey("tenants.id", ondelete="CASCADE"), nullable=True, index=True),
+        sa.Column(
+            "tenant_id",
+            sa.Integer(),
+            sa.ForeignKey("tenants.id", ondelete="CASCADE"),
+            nullable=True,
+            index=True,
+        ),
         sa.Column("ip_or_cidr", sa.String(45), nullable=False),
         sa.Column("action", sa.Enum("allow", "deny", name="ip_rule_action"), nullable=False),
         sa.Column("priority", sa.Integer(), nullable=False, server_default="0"),
