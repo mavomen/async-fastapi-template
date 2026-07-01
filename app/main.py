@@ -26,9 +26,8 @@ from app.gql.schema import schema
 from app.middleware.correlation import CorrelationIDMiddleware
 from app.middleware.csrf import CSRFTokenMiddleware
 from app.middleware.error_logging import error_logging_middleware
-from app.middleware.per_user_rate_limit import PerUserRateLimitMiddleware
 from app.middleware.query_count import QueryCountMiddleware
-from app.middleware.rate_limit import configure_rate_limit
+from app.middleware.redis_rate_limit import RedisRateLimitMiddleware
 from app.middleware.request_id import RequestIDMiddleware
 from app.middleware.request_logging import RequestLoggingMiddleware
 from app.middleware.request_timeout import RequestTimeoutMiddleware
@@ -122,8 +121,6 @@ def create_app() -> FastAPI:
     )
 
     configure_exception_handlers(app)
-    if settings.ENVIRONMENT != "test" and settings.RATE_LIMIT_ENABLED:
-        configure_rate_limit(app)
 
     # Request timeout (must be outermost — wraps the full request lifecycle)
     app.add_middleware(RequestTimeoutMiddleware, timeout=30)
@@ -136,8 +133,8 @@ def create_app() -> FastAPI:
     # Request ID injection into logs and traces
     app.add_middleware(RequestIDMiddleware)
 
-    # Per-user rate limiting (after auth resolution)
-    app.add_middleware(PerUserRateLimitMiddleware)
+    # Redis-backed sliding-window rate limiting (supports per-endpoint tiers)
+    app.add_middleware(RedisRateLimitMiddleware)
 
     # Request/response logging middleware
     app.add_middleware(RequestLoggingMiddleware)
