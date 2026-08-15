@@ -10,6 +10,7 @@ from app.models.tenant_base import TenantBaseModel
 from app.models.tenant_ip_rule import TenantIPRule
 from app.models.user import User
 from app.models.webauthn_credential import WebAuthnCredential
+from app.models.webhook import Webhook, WebhookDelivery
 
 __all__ = [
     "ApiKey",
@@ -25,6 +26,8 @@ __all__ = [
     "TimestampMixin",
     "User",
     "WebAuthnCredential",
+    "Webhook",
+    "WebhookDelivery",
     "role_permissions",
     "user_roles",
 ]
