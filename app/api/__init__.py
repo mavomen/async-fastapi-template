@@ -13,6 +13,7 @@ from app.api.endpoints import (
     tenants,
     totp,
     users,
+    webhooks,
 )
 
 api_router = APIRouter()
@@ -27,3 +28,4 @@ api_router.include_router(tasks.router, prefix="/tasks", tags=["tasks"])
 api_router.include_router(files.router, prefix="/files", tags=["files"])
 api_router.include_router(tenant_ip_rules.router, tags=["ip-rules"])
 api_router.include_router(events.router, prefix="/events", tags=["events"])
+api_router.include_router(webhooks.router, prefix="/webhooks", tags=["webhooks"])

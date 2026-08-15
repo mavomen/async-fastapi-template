@@ -96,7 +96,10 @@ class KafkaEventBus(EventBus):
                             id=event_data["id"],
                             timestamp=event_data["timestamp"],
                         )
-                        handlers = self._handlers.get(event.event_type, [])
+                        handlers = [
+                            *self._handlers.get("*", []),
+                            *self._handlers.get(event.event_type, []),
+                        ]
                         for handler in handlers:
                             try:
                                 await handler(event)

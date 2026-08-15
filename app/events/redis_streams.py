@@ -64,7 +64,10 @@ class RedisStreamsEventBus(EventBus):
                 for _stream_name, messages in results:
                     for msg_id, fields in messages:
                         event = Event.from_json(fields["event"])
-                        handlers = self._handlers.get(event.event_type, [])
+                        handlers = [
+                            *self._handlers.get("*", []),
+                            *self._handlers.get(event.event_type, []),
+                        ]
                         failed = False
                         for handler in handlers:
                             try:

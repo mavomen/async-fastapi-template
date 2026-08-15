@@ -4,6 +4,22 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased]
+
+### Added
+
+- Outgoing webhook engine: HMAC‑SHA256 signed deliveries for domain events, Celery retries
+  with exponential backoff, delivery history, ping endpoint, and REST management API
+  (`POST/GET/PATCH/DELETE /api/v1/webhooks`, `POST /{id}/ping`, `GET /{id}/deliveries`)
+- `webhook:read` and `webhook:write` permissions
+- Alembic migration `013_add_webhooks` (`webhooks`, `webhook_deliveries` tables)
+
+### Fixed
+
+- Brotli/gzip compression middleware returned an empty body for responses below the minimum
+  compression size; streaming responses from `BaseHTTPMiddleware` (`_StreamingResponse`) are
+  now handled correctly
+
 ## [3.1.0] — 2026‑05‑11
 
 ### Added

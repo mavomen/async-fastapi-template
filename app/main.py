@@ -56,12 +56,32 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 
         install_audit_log_listener(User)
         await TenantMiddleware.warm_default_tenant()
+        if settings.WEBHOOK_ENABLED:
+            await _subscribe_webhook_dispatcher()
     yield
     # Shutdown: only close in non-test environments
     if settings.ENVIRONMENT != "test":
         await sessionmanager.close()
         await cache.disconnect()
         await http_client.disconnect()
+
+
+async def _subscribe_webhook_dispatcher() -> None:
+    """Subscribe the webhook dispatcher to every event bus message.
+
+    Swallowed on failure so an unreachable event bus never blocks startup.
+    """
+    import logging
+
+    from app.events import get_event_bus
+    from app.services.webhook import handle_event
+
+    logger = logging.getLogger("app.main")
+    try:
+        bus = await get_event_bus()
+        await bus.subscribe("*", handle_event)
+    except Exception:
+        logger.exception("Failed to subscribe webhook dispatcher to event bus")
 
 
 def create_app() -> FastAPI:
@@ -120,6 +140,10 @@ def create_app() -> FastAPI:
             {
                 "name": "graphql",
                 "description": "GraphQL endpoint for queries, mutations, and subscriptions.",
+            },
+            {
+                "name": "webhooks",
+                "description": "Outgoing webhook registration, delivery, and history.",
             },
         ],
     )

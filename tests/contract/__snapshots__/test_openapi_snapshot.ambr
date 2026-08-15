@@ -1183,6 +1183,395 @@
           'title': 'ValidationError',
           'type': 'object',
         }),
+        'WebhookCreate': dict({
+          'properties': dict({
+            'event_types': dict({
+              'anyOf': list([
+                dict({
+                  'items': dict({
+                    'type': 'string',
+                  }),
+                  'type': 'array',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'description': 'Event types to subscribe to. Omit or pass null/[] to receive all events.',
+              'title': 'Event Types',
+            }),
+            'name': dict({
+              'maxLength': 100,
+              'minLength': 1,
+              'title': 'Name',
+              'type': 'string',
+            }),
+            'url': dict({
+              'description': 'Target URL receiving the signed POST payload',
+              'format': 'uri',
+              'minLength': 1,
+              'title': 'Url',
+              'type': 'string',
+            }),
+          }),
+          'required': list([
+            'name',
+            'url',
+          ]),
+          'title': 'WebhookCreate',
+          'type': 'object',
+        }),
+        'WebhookCreated': dict({
+          'properties': dict({
+            'created_at': dict({
+              'format': 'date-time',
+              'title': 'Created At',
+              'type': 'string',
+            }),
+            'event_types': dict({
+              'anyOf': list([
+                dict({
+                  'items': dict({
+                    'type': 'string',
+                  }),
+                  'type': 'array',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Event Types',
+            }),
+            'failure_count': dict({
+              'title': 'Failure Count',
+              'type': 'integer',
+            }),
+            'id': dict({
+              'title': 'Id',
+              'type': 'integer',
+            }),
+            'is_active': dict({
+              'title': 'Is Active',
+              'type': 'boolean',
+            }),
+            'last_delivery_at': dict({
+              'anyOf': list([
+                dict({
+                  'format': 'date-time',
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Last Delivery At',
+            }),
+            'last_status': dict({
+              'anyOf': list([
+                dict({
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Last Status',
+            }),
+            'name': dict({
+              'title': 'Name',
+              'type': 'string',
+            }),
+            'secret': dict({
+              'description': 'HMAC signing secret. Shown only once at creation — store it safely.',
+              'title': 'Secret',
+              'type': 'string',
+            }),
+            'updated_at': dict({
+              'format': 'date-time',
+              'title': 'Updated At',
+              'type': 'string',
+            }),
+            'url': dict({
+              'title': 'Url',
+              'type': 'string',
+            }),
+          }),
+          'required': list([
+            'id',
+            'name',
+            'url',
+            'event_types',
+            'is_active',
+            'last_delivery_at',
+            'last_status',
+            'failure_count',
+            'created_at',
+            'updated_at',
+            'secret',
+          ]),
+          'title': 'WebhookCreated',
+          'type': 'object',
+        }),
+        'WebhookDeliveryResponse': dict({
+          'properties': dict({
+            'attempt': dict({
+              'title': 'Attempt',
+              'type': 'integer',
+            }),
+            'created_at': dict({
+              'format': 'date-time',
+              'title': 'Created At',
+              'type': 'string',
+            }),
+            'delivered_at': dict({
+              'anyOf': list([
+                dict({
+                  'format': 'date-time',
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Delivered At',
+            }),
+            'error': dict({
+              'anyOf': list([
+                dict({
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Error',
+            }),
+            'event_id': dict({
+              'title': 'Event Id',
+              'type': 'string',
+            }),
+            'event_type': dict({
+              'title': 'Event Type',
+              'type': 'string',
+            }),
+            'id': dict({
+              'title': 'Id',
+              'type': 'integer',
+            }),
+            'max_attempts': dict({
+              'title': 'Max Attempts',
+              'type': 'integer',
+            }),
+            'next_retry_at': dict({
+              'anyOf': list([
+                dict({
+                  'format': 'date-time',
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Next Retry At',
+            }),
+            'response_body': dict({
+              'anyOf': list([
+                dict({
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Response Body',
+            }),
+            'response_status': dict({
+              'anyOf': list([
+                dict({
+                  'type': 'integer',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Response Status',
+            }),
+            'status': dict({
+              'title': 'Status',
+              'type': 'string',
+            }),
+            'updated_at': dict({
+              'format': 'date-time',
+              'title': 'Updated At',
+              'type': 'string',
+            }),
+            'webhook_id': dict({
+              'title': 'Webhook Id',
+              'type': 'integer',
+            }),
+          }),
+          'required': list([
+            'id',
+            'webhook_id',
+            'event_id',
+            'event_type',
+            'attempt',
+            'max_attempts',
+            'status',
+            'response_status',
+            'response_body',
+            'error',
+            'next_retry_at',
+            'delivered_at',
+            'created_at',
+            'updated_at',
+          ]),
+          'title': 'WebhookDeliveryResponse',
+          'type': 'object',
+        }),
+        'WebhookResponse': dict({
+          'properties': dict({
+            'created_at': dict({
+              'format': 'date-time',
+              'title': 'Created At',
+              'type': 'string',
+            }),
+            'event_types': dict({
+              'anyOf': list([
+                dict({
+                  'items': dict({
+                    'type': 'string',
+                  }),
+                  'type': 'array',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Event Types',
+            }),
+            'failure_count': dict({
+              'title': 'Failure Count',
+              'type': 'integer',
+            }),
+            'id': dict({
+              'title': 'Id',
+              'type': 'integer',
+            }),
+            'is_active': dict({
+              'title': 'Is Active',
+              'type': 'boolean',
+            }),
+            'last_delivery_at': dict({
+              'anyOf': list([
+                dict({
+                  'format': 'date-time',
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Last Delivery At',
+            }),
+            'last_status': dict({
+              'anyOf': list([
+                dict({
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Last Status',
+            }),
+            'name': dict({
+              'title': 'Name',
+              'type': 'string',
+            }),
+            'updated_at': dict({
+              'format': 'date-time',
+              'title': 'Updated At',
+              'type': 'string',
+            }),
+            'url': dict({
+              'title': 'Url',
+              'type': 'string',
+            }),
+          }),
+          'required': list([
+            'id',
+            'name',
+            'url',
+            'event_types',
+            'is_active',
+            'last_delivery_at',
+            'last_status',
+            'failure_count',
+            'created_at',
+            'updated_at',
+          ]),
+          'title': 'WebhookResponse',
+          'type': 'object',
+        }),
+        'WebhookUpdate': dict({
+          'properties': dict({
+            'event_types': dict({
+              'anyOf': list([
+                dict({
+                  'items': dict({
+                    'type': 'string',
+                  }),
+                  'type': 'array',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'description': 'Event types to subscribe to. Pass null/[] to receive all events.',
+              'title': 'Event Types',
+            }),
+            'is_active': dict({
+              'anyOf': list([
+                dict({
+                  'type': 'boolean',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Is Active',
+            }),
+            'name': dict({
+              'anyOf': list([
+                dict({
+                  'maxLength': 100,
+                  'minLength': 1,
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Name',
+            }),
+            'url': dict({
+              'anyOf': list([
+                dict({
+                  'format': 'uri',
+                  'minLength': 1,
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Url',
+            }),
+          }),
+          'title': 'WebhookUpdate',
+          'type': 'object',
+        }),
       }),
       'securitySchemes': dict({
         'APIKeyHeader': dict({
@@ -4002,6 +4391,348 @@
           ]),
         }),
       }),
+      '/api/v1/webhooks': dict({
+        'get': dict({
+          'description': 'List webhooks for the current tenant (all when superuser).',
+          'operationId': 'list_webhooks_api_v1_webhooks_get',
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    'items': dict({
+                      '$ref': '#/components/schemas/WebhookResponse',
+                    }),
+                    'title': 'Response List Webhooks Api V1 Webhooks Get',
+                    'type': 'array',
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+          ]),
+          'summary': 'List webhooks',
+          'tags': list([
+            'webhooks',
+          ]),
+        }),
+        'post': dict({
+          'description': 'Register an outgoing webhook. The HMAC signing secret is returned only once.',
+          'operationId': 'create_webhook_api_v1_webhooks_post',
+          'requestBody': dict({
+            'content': dict({
+              'application/json': dict({
+                'schema': dict({
+                  '$ref': '#/components/schemas/WebhookCreate',
+                }),
+              }),
+            }),
+            'required': True,
+          }),
+          'responses': dict({
+            '201': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/WebhookCreated',
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+            dict({
+              'APIKeyHeader': list([
+              ]),
+            }),
+          ]),
+          'summary': 'Create webhook',
+          'tags': list([
+            'webhooks',
+          ]),
+        }),
+      }),
+      '/api/v1/webhooks/{webhook_id}': dict({
+        'delete': dict({
+          'description': 'Delete a webhook and its delivery history.',
+          'operationId': 'delete_webhook_api_v1_webhooks__webhook_id__delete',
+          'parameters': list([
+            dict({
+              'in': 'path',
+              'name': 'webhook_id',
+              'required': True,
+              'schema': dict({
+                'title': 'Webhook Id',
+                'type': 'integer',
+              }),
+            }),
+          ]),
+          'responses': dict({
+            '204': dict({
+              'description': 'Successful Response',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+            dict({
+              'APIKeyHeader': list([
+              ]),
+            }),
+          ]),
+          'summary': 'Delete webhook',
+          'tags': list([
+            'webhooks',
+          ]),
+        }),
+        'get': dict({
+          'description': 'Fetch a single webhook by ID.',
+          'operationId': 'get_webhook_api_v1_webhooks__webhook_id__get',
+          'parameters': list([
+            dict({
+              'in': 'path',
+              'name': 'webhook_id',
+              'required': True,
+              'schema': dict({
+                'title': 'Webhook Id',
+                'type': 'integer',
+              }),
+            }),
+          ]),
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/WebhookResponse',
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+          ]),
+          'summary': 'Get webhook',
+          'tags': list([
+            'webhooks',
+          ]),
+        }),
+        'patch': dict({
+          'description': 'Update name, URL, event subscriptions, or active status.',
+          'operationId': 'update_webhook_api_v1_webhooks__webhook_id__patch',
+          'parameters': list([
+            dict({
+              'in': 'path',
+              'name': 'webhook_id',
+              'required': True,
+              'schema': dict({
+                'title': 'Webhook Id',
+                'type': 'integer',
+              }),
+            }),
+          ]),
+          'requestBody': dict({
+            'content': dict({
+              'application/json': dict({
+                'schema': dict({
+                  '$ref': '#/components/schemas/WebhookUpdate',
+                }),
+              }),
+            }),
+            'required': True,
+          }),
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/WebhookResponse',
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+            dict({
+              'APIKeyHeader': list([
+              ]),
+            }),
+          ]),
+          'summary': 'Update webhook',
+          'tags': list([
+            'webhooks',
+          ]),
+        }),
+      }),
+      '/api/v1/webhooks/{webhook_id}/deliveries': dict({
+        'get': dict({
+          'description': 'List delivery attempts for a webhook.',
+          'operationId': 'list_deliveries_api_v1_webhooks__webhook_id__deliveries_get',
+          'parameters': list([
+            dict({
+              'in': 'path',
+              'name': 'webhook_id',
+              'required': True,
+              'schema': dict({
+                'title': 'Webhook Id',
+                'type': 'integer',
+              }),
+            }),
+          ]),
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    'items': dict({
+                      '$ref': '#/components/schemas/WebhookDeliveryResponse',
+                    }),
+                    'title': 'Response List Deliveries Api V1 Webhooks  Webhook Id  Deliveries Get',
+                    'type': 'array',
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+          ]),
+          'summary': 'Webhook delivery history',
+          'tags': list([
+            'webhooks',
+          ]),
+        }),
+      }),
+      '/api/v1/webhooks/{webhook_id}/ping': dict({
+        'post': dict({
+          'description': 'Enqueue a synthetic test event to the webhook endpoint.',
+          'operationId': 'ping_webhook_api_v1_webhooks__webhook_id__ping_post',
+          'parameters': list([
+            dict({
+              'in': 'path',
+              'name': 'webhook_id',
+              'required': True,
+              'schema': dict({
+                'title': 'Webhook Id',
+                'type': 'integer',
+              }),
+            }),
+          ]),
+          'responses': dict({
+            '202': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/WebhookDeliveryResponse',
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+            dict({
+              'APIKeyHeader': list([
+              ]),
+            }),
+          ]),
+          'summary': 'Send test webhook',
+          'tags': list([
+            'webhooks',
+          ]),
+        }),
+      }),
       '/gql/playground': dict({
         'get': dict({
           'description': 'HTMX-powered GraphQL playground.',
@@ -4349,6 +5080,10 @@
       dict({
         'description': 'GraphQL endpoint for queries, mutations, and subscriptions.',
         'name': 'graphql',
+      }),
+      dict({
+        'description': 'Outgoing webhook registration, delivery, and history.',
+        'name': 'webhooks',
       }),
     ]),
   })

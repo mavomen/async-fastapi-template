@@ -21,6 +21,7 @@ A production‑ready, fully async FastAPI template with everything you need to b
 - **File uploads** (local & S3) with SSE streaming progress
 - **WebSocket** chat with JWT auth
 - **Background tasks** with Celery + Redis + retry/backoff
+- **Outgoing webhooks** with HMAC signing, exponential-backoff retries, and delivery history
 - **Redis caching** with cache‑aside, warming, and invalidation
 - **Rate limiting** (per‑IP and per‑user) with slowapi
 - **Prometheus metrics** + **Grafana dashboards**
@@ -65,6 +66,7 @@ Visit **http://localhost:8000/docs** for the interactive API docs, **http://loca
 - [Rate Limiting](docs/rate_limiting.md)
 - [File Storage](docs/file_storage.md)
 - [WebSocket Usage](docs/websocket.md)
+- [Outgoing Webhooks](docs/webhooks.md)
 - [Logging](docs/logging.md)
 - [Metrics & Monitoring](docs/metrics.md)
 - [Health Checks](docs/health.md)

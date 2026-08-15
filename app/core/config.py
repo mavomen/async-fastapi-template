@@ -163,6 +163,24 @@ class Settings(BaseSettings):
     HTTP_CLIENT_MAX_KEEPALIVE_CONNECTIONS: int = 10
     HTTP_CLIENT_KEEPALIVE_EXPIRY: int = 300
 
+    # Outgoing Webhooks
+    WEBHOOK_ENABLED: bool = True
+    WEBHOOK_MAX_RETRIES: int = Field(
+        default=5, ge=0, description="Max delivery retries per webhook after the initial attempt"
+    )
+    WEBHOOK_BACKOFF_BASE_SECONDS: float = Field(
+        default=60.0, ge=0, description="Base delay (s) for exponential retry backoff"
+    )
+    WEBHOOK_BACKOFF_MAX_SECONDS: float = Field(
+        default=3600.0, ge=0, description="Cap (s) for exponential retry backoff"
+    )
+    WEBHOOK_TIMEOUT_SECONDS: int = Field(
+        default=10, ge=1, description="HTTP timeout for outbound webhook deliveries"
+    )
+    WEBHOOK_SIGNATURE_TOLERANCE_SECONDS: int = Field(
+        default=300, ge=0, description="Max age (s) of a webhook signature timestamp"
+    )
+
     # Content Security Policy
     CSP_REPORT_URI: str = "/api/v1/csp-report"
     CSP_REPORT_ONLY: bool = False
