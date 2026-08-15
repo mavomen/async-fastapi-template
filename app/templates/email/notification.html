@@ -1,0 +1,13 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>{{ title }}</title>
+  </head>
+  <body>
+    <h1>{{ title }}</h1>
+    <p>You have a new notification (event: {{ event_type }}):</p>
+    {% if body %}<p>{{ body }}</p>{% endif %}
+    <p>Manage your notification preferences in your account settings.</p>
+  </body>
+</html>

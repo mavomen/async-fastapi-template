@@ -17,6 +17,7 @@ class Event:
     payload: dict[str, Any] = field(default_factory=dict)
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
     timestamp: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
+    user_id: int | None = None
 
     def to_json(self) -> str:
         return json.dumps(
@@ -25,6 +26,7 @@ class Event:
                 "event_type": self.event_type,
                 "payload": self.payload,
                 "timestamp": self.timestamp,
+                "user_id": self.user_id,
             }
         )
 
@@ -36,6 +38,7 @@ class Event:
             payload=obj.get("payload", {}),
             id=obj["id"],
             timestamp=obj["timestamp"],
+            user_id=obj.get("user_id"),
         )
 
 

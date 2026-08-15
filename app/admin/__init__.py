@@ -25,6 +25,8 @@ from app.models import Permission, Role, User
 from app.models.api_key import ApiKey
 from app.models.audit_log import AuditLog
 from app.models.base import BaseModel
+from app.models.notification import Notification
+from app.models.notification_preference import NotificationPreference
 from app.models.tenant import Tenant
 
 logger = logging.getLogger("app.admin")
@@ -95,6 +97,20 @@ register_admin(
     search_columns=["name", "key_prefix"],
     form_fields=["name", "user_id", "is_active", "scopes", "expires_at"],
     permission="api_key:admin",
+)
+register_admin(
+    NotificationPreference,
+    list_display=["user_id", "email_enabled", "in_app_enabled", "webhook_enabled"],
+    search_columns=["user_id"],
+    form_fields=["user_id", "email_enabled", "in_app_enabled", "webhook_enabled"],
+    permission="notification:admin",
+)
+register_admin(
+    Notification,
+    list_display=["user_id", "event_type", "title", "is_read", "created_at"],
+    search_columns=["event_type", "title"],
+    form_fields=["user_id", "event_type", "title", "body", "is_read"],
+    permission="notification:admin",
 )
 
 # ---------- Templates ----------

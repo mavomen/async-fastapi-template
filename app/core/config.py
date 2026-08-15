@@ -181,6 +181,11 @@ class Settings(BaseSettings):
         default=300, ge=0, description="Max age (s) of a webhook signature timestamp"
     )
 
+    # Notification preferences & channels
+    NOTIFICATION_ENABLED: bool = Field(
+        default=True, description="Enable the notification dispatcher on the event bus"
+    )
+
     # Content Security Policy
     CSP_REPORT_URI: str = "/api/v1/csp-report"
     CSP_REPORT_ONLY: bool = False

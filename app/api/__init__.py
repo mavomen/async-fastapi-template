@@ -8,6 +8,7 @@ from app.api.endpoints import (
     csp,
     events,
     files,
+    notifications,
     tasks,
     tenant_ip_rules,
     tenants,
@@ -29,3 +30,4 @@ api_router.include_router(files.router, prefix="/files", tags=["files"])
 api_router.include_router(tenant_ip_rules.router, tags=["ip-rules"])
 api_router.include_router(events.router, prefix="/events", tags=["events"])
 api_router.include_router(webhooks.router, prefix="/webhooks", tags=["webhooks"])
+api_router.include_router(notifications.router, prefix="/notifications", tags=["notifications"])

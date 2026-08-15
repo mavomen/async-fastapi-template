@@ -14,6 +14,8 @@ from app.models.tenant_base import TenantBaseModel  # association table import
 
 if TYPE_CHECKING:
     from app.models.api_key import ApiKey
+    from app.models.notification import Notification
+    from app.models.notification_preference import NotificationPreference
     from app.models.role import Role
 
 
@@ -74,6 +76,19 @@ class User(SearchMixin, TenantBaseModel):
 
     # API keys
     api_keys: Mapped[list[ApiKey]] = relationship(
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
+
+    # Notification preferences (one per user)
+    notification_preference: Mapped[NotificationPreference | None] = relationship(
+        back_populates="user",
+        uselist=False,
+        cascade="all, delete-orphan",
+    )
+
+    # In-app notification inbox
+    notifications: Mapped[list[Notification]] = relationship(
         back_populates="user",
         cascade="all, delete-orphan",
     )
