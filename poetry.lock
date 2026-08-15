@@ -1373,24 +1373,6 @@ cffi = {version = ">=2.0.0", markers = "python_full_version >= \"3.9.0\" and pla
 ssh = ["bcrypt (>=3.1.5)"]
 
 [[package]]
-name = "deprecated"
-version = "1.3.1"
-description = "Python @deprecated decorator to deprecate old python classes, functions or methods."
-optional = false
-python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,>=2.7"
-groups = ["main"]
-files = [
-    {file = "deprecated-1.3.1-py2.py3-none-any.whl", hash = "sha256:597bfef186b6f60181535a29fbe44865ce137a5079f295b479886c82729d5f3f"},
-    {file = "deprecated-1.3.1.tar.gz", hash = "sha256:b1b50e0ff0c1fddaa5708a2c6b0a6588bb09b892825ab2b214ac9ea9d92a5223"},
-]
-
-[package.dependencies]
-wrapt = ">=1.10,<3"
-
-[package.extras]
-dev = ["PyTest", "PyTest-Cov", "bump2version (<1)", "setuptools ; python_version >= \"3.12\"", "tox"]
-
-[[package]]
 name = "distlib"
 version = "0.4.0"
 description = "Distribution utilities"
@@ -2741,34 +2723,6 @@ files = [
     {file = "librt-0.9.0-cp39-cp39-win_amd64.whl", hash = "sha256:54d412e47c21b85865676ed0724e37a89e9593c2eee1e7367adf85bfad56ffb1"},
     {file = "librt-0.9.0.tar.gz", hash = "sha256:a0951822531e7aee6e0dfb556b30d5ee36bbe234faf60c20a16c01be3530869d"},
 ]
-
-[[package]]
-name = "limits"
-version = "5.8.0"
-description = "Rate limiting utilities"
-optional = false
-python-versions = ">=3.10"
-groups = ["main"]
-files = [
-    {file = "limits-5.8.0-py3-none-any.whl", hash = "sha256:ae1b008a43eb43073c3c579398bd4eb4c795de60952532dc24720ab45e1ac6b8"},
-    {file = "limits-5.8.0.tar.gz", hash = "sha256:c9e0d74aed837e8f6f50d1fcebcf5fd8130957287206bc3799adaee5092655da"},
-]
-
-[package.dependencies]
-deprecated = ">=1.2"
-packaging = ">=21"
-typing-extensions = "*"
-
-[package.extras]
-async-memcached = ["memcachio (>=0.3)"]
-async-mongodb = ["motor (>=3,<4)"]
-async-redis = ["coredis (>=3.4.0,<6)"]
-async-valkey = ["valkey (>=6)"]
-memcached = ["pymemcache (>3,<5.0.0)"]
-mongodb = ["pymongo (>4.1,<5)"]
-redis = ["redis (>3,!=4.5.2,!=4.5.3,<8.0.0)"]
-rediscluster = ["redis (>=4.2.0,!=4.5.2,!=4.5.3)"]
-valkey = ["valkey (>=6)"]
 
 [[package]]
 name = "locust"
@@ -5116,24 +5070,6 @@ files = [
 ]
 
 [[package]]
-name = "slowapi"
-version = "0.1.9"
-description = "A rate limiting extension for Starlette and Fastapi"
-optional = false
-python-versions = ">=3.7,<4.0"
-groups = ["main"]
-files = [
-    {file = "slowapi-0.1.9-py3-none-any.whl", hash = "sha256:cfad116cfb84ad9d763ee155c1e5c5cbf00b0d47399a769b227865f5df576e36"},
-    {file = "slowapi-0.1.9.tar.gz", hash = "sha256:639192d0f1ca01b1c6d95bf6c71d794c3a9ee189855337b4821f7f457dddad77"},
-]
-
-[package.dependencies]
-limits = ">=2.3"
-
-[package.extras]
-redis = ["redis (>=3.4.1,<4.0.0)"]
-
-[[package]]
 name = "sortedcontainers"
 version = "2.4.0"
 description = "Sorted Containers -- Sorted List, Sorted Dict, Sorted Set"
@@ -6254,4 +6190,4 @@ testing = ["coverage[toml]", "zope.event", "zope.testing"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.12"
-content-hash = "42b5338aa4f0b38ed2dc0637c8c853c032f725d6cb7a5a6628cf5ef221e730eb"
+content-hash = "4163b7c15ecf2bcae418d963c4dbdf027db8e4d75907b7630e0a50e64bea7d7b"
