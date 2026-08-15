@@ -5,13 +5,14 @@ on:
     workflows: ["Docker Build & Push"]
     types:
       - completed
+    branches: [main]
 
 jobs:
   deploy:
-    if: ${{ github.event.workflow_run.conclusion == 'success' && secrets.SSH_HOST != '' }}
     runs-on: ubuntu-latest
     steps:
       - name: Deploy to production server (example via SSH)
+        if: ${{ github.event.workflow_run.conclusion == 'success' && secrets.SSH_HOST != '' }}
         uses: appleboy/ssh-action@v1.2.1
         with:
           host: ${{ secrets.SSH_HOST }}

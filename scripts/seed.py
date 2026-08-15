@@ -30,7 +30,14 @@ SEED_USERS = [
     },
 ]
 
-SEED_PERMISSIONS = ["user:read", "user:write", "user:delete"]
+SEED_PERMISSIONS = [
+    "user:read",
+    "user:write",
+    "user:delete",
+    "webhook:read",
+    "webhook:write",
+    "notification:admin",
+]
 
 
 async def get_or_create_permission(db, name: str) -> Permission:

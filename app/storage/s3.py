@@ -1,8 +1,7 @@
 """S3-compatible storage backend using aioboto3."""
 
 from typing import BinaryIO
-
-import aioboto3
+from urllib.parse import quote
 
 from app.core.config import settings
 from app.storage.base import StorageBackend
@@ -12,6 +11,8 @@ class S3Storage(StorageBackend):
     """Store files in an S3 bucket asynchronously."""
 
     def __init__(self) -> None:
+        import aioboto3
+
         self.bucket = settings.S3_BUCKET
         self.session = aioboto3.Session()
         self.client_kwargs = {
@@ -35,3 +36,9 @@ class S3Storage(StorageBackend):
     async def delete(self, path: str) -> None:
         async with self.session.client("s3", **self.client_kwargs) as s3:
             await s3.delete_object(Bucket=self.bucket, Key=path)
+
+    def get_url(self, key: str) -> str | None:
+        """Return a CDN URL for the given storage key."""
+        if not settings.CDN_DOMAIN:
+            return None
+        return f"https://{settings.CDN_DOMAIN}/{quote(key)}"

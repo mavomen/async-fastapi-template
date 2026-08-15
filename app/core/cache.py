@@ -118,6 +118,20 @@ class RedisCache:
             raise RuntimeError("RedisCache is not connected")
         return await self._redis.zrem(key, *members)  # type: ignore[no-any-return]
 
+    async def zremrangebyscore(
+        self, key: str, min_score: str | float, max_score: str | float
+    ) -> int:
+        """Remove members from a sorted set within a score range. Returns number removed."""
+        if self._redis is None:
+            raise RuntimeError("RedisCache is not connected")
+        return await self._redis.zremrangebyscore(key, min_score, max_score)  # type: ignore[no-any-return]
+
+    async def expire(self, key: str, seconds: int) -> bool:
+        """Set a TTL on a key. Returns True if the key existed."""
+        if self._redis is None:
+            raise RuntimeError("RedisCache is not connected")
+        return await self._redis.expire(key, seconds)  # type: ignore[no-any-return]
+
     def get_redis(self) -> aioredis.Redis:
         """Return the underlying Redis client for advanced operations."""
         if self._redis is None:

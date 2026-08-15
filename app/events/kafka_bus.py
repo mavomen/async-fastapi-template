@@ -1,13 +1,16 @@
 """Kafka adapter for EventBus (optional)."""
 
+from __future__ import annotations
+
 import asyncio
 import json
 import logging
-
-from kafka import KafkaConsumer, KafkaProducer
-from kafka.errors import NoBrokersAvailable
+from typing import TYPE_CHECKING
 
 from app.events.base import Event, EventBus, EventHandler
+
+if TYPE_CHECKING:
+    from kafka import KafkaConsumer, KafkaProducer
 
 logger = logging.getLogger("app.events.kafka")
 
@@ -31,13 +34,11 @@ class KafkaEventBus(EventBus):
 
     async def connect(self) -> None:
         """Initialize producer and consumer."""
+        from kafka import KafkaProducer
+        from kafka.errors import NoBrokersAvailable
+
         try:
             self._producer = KafkaProducer(
-                bootstrap_servers=self._bootstrap_servers,
-                value_serializer=lambda v: json.dumps(v).encode("utf-8"),
-                api_version=(2, 5, 0),
-            )
-            self._consumer = KafkaConsumer(
                 self._topic,
                 bootstrap_servers=self._bootstrap_servers,
                 group_id=self._group_id,
@@ -95,7 +96,10 @@ class KafkaEventBus(EventBus):
                             id=event_data["id"],
                             timestamp=event_data["timestamp"],
                         )
-                        handlers = self._handlers.get(event.event_type, [])
+                        handlers = [
+                            *self._handlers.get("*", []),
+                            *self._handlers.get(event.event_type, []),
+                        ]
                         for handler in handlers:
                             try:
                                 await handler(event)

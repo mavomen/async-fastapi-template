@@ -25,13 +25,13 @@ poetry run pytest --cov=app --cov-report=html
 
 ## Coverage
 
-Minimum threshold: **85%**.  
-Run `poetry run pytest --cov=app` to see the report.  
+Minimum threshold: **85%**.
+Run `poetry run pytest --cov=app` to see the report.
 An HTML report is generated in `htmlcov/`.
 
 ## Snapshot Testing
 
-OpenAPI schema changes are caught by a snapshot test (`tests/contract/test_openapi_snapshot.py`).  
+OpenAPI schema changes are caught by a snapshot test (`tests/contract/test_openapi_snapshot.py`).
 If you intentionally change the API, update the snapshot with:
 
 ```bash
@@ -40,8 +40,8 @@ poetry run pytest --snapshot-update
 
 ## Mutation Testing
 
-[Mutmut](https://mutmut.readthedocs.io/) runs weekly in CI and can be triggered manually.  
-It mutates source code and checks if tests still pass.  
+[Mutmut](https://mutmut.readthedocs.io/) runs weekly in CI and can be triggered manually.
+It mutates source code and checks if tests still pass.
 Run locally with:
 
 ```bash
@@ -57,6 +57,6 @@ poetry run mutmut run --paths-to-mutate app/
 
 ## CI
 
-Tests run on every push via GitHub Actions (Python 3.12 & 3.13).  
-Coverage must stay at or above 85%.  
+Tests run on every push via GitHub Actions (Python 3.12 & 3.13).
+Coverage must stay at or above 85%.
 Mutation testing runs every Sunday to validate test quality.

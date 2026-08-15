@@ -68,11 +68,13 @@ class Settings(BaseSettings):
         description="Redis result backend for Celery",
     )
 
-    # Rate Limiting
-    RATE_LIMIT_PER_MINUTE: int = 60
-    RATE_LIMIT_PER_HOUR: int = 1000
-    RATE_LIMIT_PER_DAY: int = 10000
+    # Rate Limiting (Redis sliding-window tiers)
     RATE_LIMIT_ENABLED: bool = True
+    RATE_LIMIT_WINDOW_SECONDS: int = 60
+    RATE_LIMIT_SENSITIVE: int = 5
+    RATE_LIMIT_PUBLIC: int = 20
+    RATE_LIMIT_AUTHENTICATED: int = 100
+    RATE_LIMIT_ADMIN: int = 300
 
     @field_validator("ENVIRONMENT")
     @classmethod
@@ -91,6 +93,7 @@ class Settings(BaseSettings):
     S3_ACCESS_KEY: str = ""
     S3_SECRET_KEY: str = ""
     S3_REGION: str = "us-east-1"
+    CDN_DOMAIN: str = ""
 
     # OpenTelemetry
     OTEL_EXPORTER_OTLP_ENDPOINT: str | None = None
@@ -149,6 +152,39 @@ class Settings(BaseSettings):
     OAUTH_REDIRECT_URL: str = "http://localhost:8000/api/v1/auth/oauth/callback"
     OAUTH_STATE_EXPIRE_SECONDS: int = 300
     OAUTH_AUTO_LINK: bool = True
+
+    # Compression
+    COMPRESSION_ENABLED: bool = True
+    COMPRESSION_MIN_SIZE: int = 1024
+    COMPRESSION_LEVEL: int = 6
+
+    # HTTP Client (shared connection pool)
+    HTTP_CLIENT_TIMEOUT: int = 30
+    HTTP_CLIENT_MAX_KEEPALIVE_CONNECTIONS: int = 10
+    HTTP_CLIENT_KEEPALIVE_EXPIRY: int = 300
+
+    # Outgoing Webhooks
+    WEBHOOK_ENABLED: bool = True
+    WEBHOOK_MAX_RETRIES: int = Field(
+        default=5, ge=0, description="Max delivery retries per webhook after the initial attempt"
+    )
+    WEBHOOK_BACKOFF_BASE_SECONDS: float = Field(
+        default=60.0, ge=0, description="Base delay (s) for exponential retry backoff"
+    )
+    WEBHOOK_BACKOFF_MAX_SECONDS: float = Field(
+        default=3600.0, ge=0, description="Cap (s) for exponential retry backoff"
+    )
+    WEBHOOK_TIMEOUT_SECONDS: int = Field(
+        default=10, ge=1, description="HTTP timeout for outbound webhook deliveries"
+    )
+    WEBHOOK_SIGNATURE_TOLERANCE_SECONDS: int = Field(
+        default=300, ge=0, description="Max age (s) of a webhook signature timestamp"
+    )
+
+    # Notification preferences & channels
+    NOTIFICATION_ENABLED: bool = Field(
+        default=True, description="Enable the notification dispatcher on the event bus"
+    )
 
     # Content Security Policy
     CSP_REPORT_URI: str = "/api/v1/csp-report"

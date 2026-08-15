@@ -19,16 +19,17 @@ from app.auth.profile import router as profile_router
 from app.core.cache import cache
 from app.core.config import settings
 from app.core.database import sessionmanager
+from app.core.http_client import http_client
 from app.core.logging import setup_logging
 from app.core.tracing import setup_tracing
 from app.gql import router as gql_playground_router
 from app.gql.schema import schema
+from app.middleware.compression import CompressionMiddleware
 from app.middleware.correlation import CorrelationIDMiddleware
 from app.middleware.csrf import CSRFTokenMiddleware
 from app.middleware.error_logging import error_logging_middleware
-from app.middleware.per_user_rate_limit import PerUserRateLimitMiddleware
 from app.middleware.query_count import QueryCountMiddleware
-from app.middleware.rate_limit import configure_rate_limit
+from app.middleware.redis_rate_limit import RedisRateLimitMiddleware
 from app.middleware.request_id import RequestIDMiddleware
 from app.middleware.request_logging import RequestLoggingMiddleware
 from app.middleware.request_timeout import RequestTimeoutMiddleware
@@ -48,17 +49,59 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         reader_url=settings.DATABASE_URL_READER,
     )
     await cache.connect()
+    await http_client.connect()
     if settings.ENVIRONMENT != "test":
         from app.models.audit_log import install_audit_log_listener
         from app.models.user import User
 
         install_audit_log_listener(User)
         await TenantMiddleware.warm_default_tenant()
+        if settings.WEBHOOK_ENABLED:
+            await _subscribe_webhook_dispatcher()
+        if settings.NOTIFICATION_ENABLED:
+            await _subscribe_notification_dispatcher()
     yield
     # Shutdown: only close in non-test environments
     if settings.ENVIRONMENT != "test":
         await sessionmanager.close()
         await cache.disconnect()
+        await http_client.disconnect()
+
+
+async def _subscribe_webhook_dispatcher() -> None:
+    """Subscribe the webhook dispatcher to every event bus message.
+
+    Swallowed on failure so an unreachable event bus never blocks startup.
+    """
+    import logging
+
+    from app.events import get_event_bus
+    from app.services.webhook import handle_event
+
+    logger = logging.getLogger("app.main")
+    try:
+        bus = await get_event_bus()
+        await bus.subscribe("*", handle_event)
+    except Exception:
+        logger.exception("Failed to subscribe webhook dispatcher to event bus")
+
+
+async def _subscribe_notification_dispatcher() -> None:
+    """Subscribe the notification dispatcher to every event bus message.
+
+    Swallowed on failure so an unreachable event bus never blocks startup.
+    """
+    import logging
+
+    from app.events import get_event_bus
+    from app.services.notifications import handle_notification_event
+
+    logger = logging.getLogger("app.main")
+    try:
+        bus = await get_event_bus()
+        await bus.subscribe("*", handle_notification_event)
+    except Exception:
+        logger.exception("Failed to subscribe notification dispatcher to event bus")
 
 
 def create_app() -> FastAPI:
@@ -118,15 +161,24 @@ def create_app() -> FastAPI:
                 "name": "graphql",
                 "description": "GraphQL endpoint for queries, mutations, and subscriptions.",
             },
+            {
+                "name": "webhooks",
+                "description": "Outgoing webhook registration, delivery, and history.",
+            },
+            {
+                "name": "notifications",
+                "description": "Per-user notification preferences and in-app inbox.",
+            },
         ],
     )
 
     configure_exception_handlers(app)
-    if settings.ENVIRONMENT != "test" and settings.RATE_LIMIT_ENABLED:
-        configure_rate_limit(app)
 
     # Request timeout (must be outermost — wraps the full request lifecycle)
     app.add_middleware(RequestTimeoutMiddleware, timeout=30)
+
+    # Compression middleware (early — compresses final response body)
+    app.add_middleware(CompressionMiddleware)
 
     # Correlation ID middleware (must be added early)
     app.add_middleware(CorrelationIDMiddleware)
@@ -136,8 +188,8 @@ def create_app() -> FastAPI:
     # Request ID injection into logs and traces
     app.add_middleware(RequestIDMiddleware)
 
-    # Per-user rate limiting (after auth resolution)
-    app.add_middleware(PerUserRateLimitMiddleware)
+    # Redis-backed sliding-window rate limiting (supports per-endpoint tiers)
+    app.add_middleware(RedisRateLimitMiddleware)
 
     # Request/response logging middleware
     app.add_middleware(RequestLoggingMiddleware)

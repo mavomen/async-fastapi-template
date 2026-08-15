@@ -47,6 +47,18 @@ cache_misses_total = Counter(
     "Total number of cache misses",
 )
 
+rate_limit_blocked_total = Counter(
+    "rate_limit_blocked_total",
+    "Total number of requests blocked by rate limiter",
+    ["tier", "endpoint"],
+)
+
+rate_limit_remaining = Gauge(
+    "rate_limit_remaining",
+    "Remaining requests in current rate limit window",
+    ["tier"],
+)
+
 http_queries_per_request = Histogram(
     "http_queries_per_request",
     "Number of SQL queries per HTTP request",
