@@ -107,6 +107,15 @@ async def handle_event(event: Event) -> None:
         return
     try:
         async with _db_session() as db:
+            if event.user_id is not None:
+                from app.services.notifications import channel_enabled
+
+                if not await channel_enabled(db, user_id=event.user_id, channel="webhook"):
+                    logger.debug(
+                        "Webhook dispatch skipped: webhook channel disabled",
+                        extra={"event_id": event.id, "user_id": event.user_id},
+                    )
+                    return
             webhooks = await webhook_crud.get_active_for_event_type(db, event_type=event.event_type)
             for webhook in webhooks:
                 delivery = await webhook_crud.create_delivery(

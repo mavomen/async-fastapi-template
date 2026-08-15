@@ -36,6 +36,7 @@ SEED_PERMISSIONS = [
     "user:delete",
     "webhook:read",
     "webhook:write",
+    "notification:admin",
 ]
 
 

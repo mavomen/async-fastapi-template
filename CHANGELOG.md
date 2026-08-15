@@ -13,6 +13,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   (`POST/GET/PATCH/DELETE /api/v1/webhooks`, `POST /{id}/ping`, `GET /{id}/deliveries`)
 - `webhook:read` and `webhook:write` permissions
 - Alembic migration `013_add_webhooks` (`webhooks`, `webhook_deliveries` tables)
+- Per-user notification preferences (email / in-app / webhook channels) with self-service
+  `GET|PUT /api/v1/notifications/preferences`
+- In-app notification inbox with list / mark-read / mark-all-read / delete endpoints
+  (`GET /api/v1/notifications`, `POST /{id}/read`, `POST /read-all`, `DELETE /{id}`) and a
+  best-effort WebSocket push to the user's live sessions
+- `POST /api/v1/notifications/test` to publish a test notification through the event bus;
+  events now carry an optional `user_id` used to gate channel delivery
+- Webhook dispatcher suppresses deliveries for events whose actor disabled the webhook channel
+- Alembic migration `014_add_notifications` (`notification_preferences`, `notifications` tables)
 
 ### Fixed
 

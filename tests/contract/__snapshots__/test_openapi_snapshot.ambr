@@ -630,6 +630,203 @@
           'title': 'IPRuleUpdate',
           'type': 'object',
         }),
+        'NotificationListResponse': dict({
+          'properties': dict({
+            'items': dict({
+              'items': dict({
+                '$ref': '#/components/schemas/NotificationResponse',
+              }),
+              'title': 'Items',
+              'type': 'array',
+            }),
+            'total': dict({
+              'title': 'Total',
+              'type': 'integer',
+            }),
+            'unread_count': dict({
+              'title': 'Unread Count',
+              'type': 'integer',
+            }),
+          }),
+          'required': list([
+            'items',
+            'total',
+            'unread_count',
+          ]),
+          'title': 'NotificationListResponse',
+          'type': 'object',
+        }),
+        'NotificationPreferenceResponse': dict({
+          'properties': dict({
+            'created_at': dict({
+              'format': 'date-time',
+              'title': 'Created At',
+              'type': 'string',
+            }),
+            'email_enabled': dict({
+              'title': 'Email Enabled',
+              'type': 'boolean',
+            }),
+            'id': dict({
+              'title': 'Id',
+              'type': 'integer',
+            }),
+            'in_app_enabled': dict({
+              'title': 'In App Enabled',
+              'type': 'boolean',
+            }),
+            'updated_at': dict({
+              'format': 'date-time',
+              'title': 'Updated At',
+              'type': 'string',
+            }),
+            'user_id': dict({
+              'title': 'User Id',
+              'type': 'integer',
+            }),
+            'webhook_enabled': dict({
+              'title': 'Webhook Enabled',
+              'type': 'boolean',
+            }),
+          }),
+          'required': list([
+            'id',
+            'user_id',
+            'email_enabled',
+            'in_app_enabled',
+            'webhook_enabled',
+            'created_at',
+            'updated_at',
+          ]),
+          'title': 'NotificationPreferenceResponse',
+          'type': 'object',
+        }),
+        'NotificationPreferenceUpdate': dict({
+          'properties': dict({
+            'email_enabled': dict({
+              'anyOf': list([
+                dict({
+                  'type': 'boolean',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'description': 'Opt in/out of notification emails',
+              'title': 'Email Enabled',
+            }),
+            'in_app_enabled': dict({
+              'anyOf': list([
+                dict({
+                  'type': 'boolean',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'description': 'Opt in/out of in-app inbox notifications',
+              'title': 'In App Enabled',
+            }),
+            'webhook_enabled': dict({
+              'anyOf': list([
+                dict({
+                  'type': 'boolean',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'description': 'Opt in/out of webhook deliveries triggered by this user',
+              'title': 'Webhook Enabled',
+            }),
+          }),
+          'title': 'NotificationPreferenceUpdate',
+          'type': 'object',
+        }),
+        'NotificationResponse': dict({
+          'properties': dict({
+            'body': dict({
+              'anyOf': list([
+                dict({
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Body',
+            }),
+            'created_at': dict({
+              'format': 'date-time',
+              'title': 'Created At',
+              'type': 'string',
+            }),
+            'event_type': dict({
+              'title': 'Event Type',
+              'type': 'string',
+            }),
+            'id': dict({
+              'title': 'Id',
+              'type': 'integer',
+            }),
+            'is_read': dict({
+              'title': 'Is Read',
+              'type': 'boolean',
+            }),
+            'read_at': dict({
+              'anyOf': list([
+                dict({
+                  'format': 'date-time',
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Read At',
+            }),
+            'title': dict({
+              'title': 'Title',
+              'type': 'string',
+            }),
+          }),
+          'required': list([
+            'id',
+            'event_type',
+            'title',
+            'body',
+            'is_read',
+            'read_at',
+            'created_at',
+          ]),
+          'title': 'NotificationResponse',
+          'type': 'object',
+        }),
+        'NotificationTestRequest': dict({
+          'properties': dict({
+            'body': dict({
+              'anyOf': list([
+                dict({
+                  'maxLength': 2000,
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Body',
+            }),
+            'title': dict({
+              'default': 'Test notification',
+              'maxLength': 200,
+              'minLength': 1,
+              'title': 'Title',
+              'type': 'string',
+            }),
+          }),
+          'title': 'NotificationTestRequest',
+          'type': 'object',
+        }),
         'OAuthLoginResponse': dict({
           'properties': dict({
             'authorize_url': dict({
@@ -3439,6 +3636,323 @@
           ]),
         }),
       }),
+      '/api/v1/notifications': dict({
+        'get': dict({
+          'description': "List the current user's in-app notifications, newest first.",
+          'operationId': 'list_notifications_api_v1_notifications_get',
+          'parameters': list([
+            dict({
+              'in': 'query',
+              'name': 'skip',
+              'required': False,
+              'schema': dict({
+                'default': 0,
+                'title': 'Skip',
+                'type': 'integer',
+              }),
+            }),
+            dict({
+              'in': 'query',
+              'name': 'limit',
+              'required': False,
+              'schema': dict({
+                'default': 100,
+                'title': 'Limit',
+                'type': 'integer',
+              }),
+            }),
+            dict({
+              'in': 'query',
+              'name': 'unread_only',
+              'required': False,
+              'schema': dict({
+                'default': False,
+                'title': 'Unread Only',
+                'type': 'boolean',
+              }),
+            }),
+          ]),
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/NotificationListResponse',
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+          ]),
+          'summary': 'List notifications',
+          'tags': list([
+            'notifications',
+          ]),
+        }),
+      }),
+      '/api/v1/notifications/preferences': dict({
+        'get': dict({
+          'description': "Return the current user's per-channel notification preferences.",
+          'operationId': 'get_preferences_api_v1_notifications_preferences_get',
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/NotificationPreferenceResponse',
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+          ]),
+          'summary': 'Get notification preferences',
+          'tags': list([
+            'notifications',
+          ]),
+        }),
+        'put': dict({
+          'description': 'Opt in/out of the email, in-app, and webhook channels for this user.',
+          'operationId': 'update_preferences_api_v1_notifications_preferences_put',
+          'requestBody': dict({
+            'content': dict({
+              'application/json': dict({
+                'schema': dict({
+                  '$ref': '#/components/schemas/NotificationPreferenceUpdate',
+                }),
+              }),
+            }),
+            'required': True,
+          }),
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/NotificationPreferenceResponse',
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+          ]),
+          'summary': 'Update notification preferences',
+          'tags': list([
+            'notifications',
+          ]),
+        }),
+      }),
+      '/api/v1/notifications/read-all': dict({
+        'post': dict({
+          'description': 'Mark every unread in-app notification of the current user as read.',
+          'operationId': 'mark_all_read_api_v1_notifications_read_all_post',
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    'additionalProperties': True,
+                    'title': 'Response Mark All Read Api V1 Notifications Read All Post',
+                    'type': 'object',
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+          ]),
+          'summary': 'Mark all notifications as read',
+          'tags': list([
+            'notifications',
+          ]),
+        }),
+      }),
+      '/api/v1/notifications/test': dict({
+        'post': dict({
+          'description': 'Publish a synthetic notification.test event for the current user, exercising the in-app and email channels according to their preferences.',
+          'operationId': 'send_test_notification_api_v1_notifications_test_post',
+          'requestBody': dict({
+            'content': dict({
+              'application/json': dict({
+                'schema': dict({
+                  '$ref': '#/components/schemas/NotificationTestRequest',
+                  'default': dict({
+                    'title': 'Test notification',
+                  }),
+                }),
+              }),
+            }),
+          }),
+          'responses': dict({
+            '202': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    'additionalProperties': True,
+                    'title': 'Response Send Test Notification Api V1 Notifications Test Post',
+                    'type': 'object',
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+          ]),
+          'summary': 'Send a test notification',
+          'tags': list([
+            'notifications',
+          ]),
+        }),
+      }),
+      '/api/v1/notifications/{notification_id}': dict({
+        'delete': dict({
+          'description': 'Delete a single in-app notification.',
+          'operationId': 'delete_notification_api_v1_notifications__notification_id__delete',
+          'parameters': list([
+            dict({
+              'in': 'path',
+              'name': 'notification_id',
+              'required': True,
+              'schema': dict({
+                'title': 'Notification Id',
+                'type': 'integer',
+              }),
+            }),
+          ]),
+          'responses': dict({
+            '204': dict({
+              'description': 'Successful Response',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+          ]),
+          'summary': 'Delete notification',
+          'tags': list([
+            'notifications',
+          ]),
+        }),
+      }),
+      '/api/v1/notifications/{notification_id}/read': dict({
+        'post': dict({
+          'description': 'Mark a single in-app notification as read.',
+          'operationId': 'mark_read_api_v1_notifications__notification_id__read_post',
+          'parameters': list([
+            dict({
+              'in': 'path',
+              'name': 'notification_id',
+              'required': True,
+              'schema': dict({
+                'title': 'Notification Id',
+                'type': 'integer',
+              }),
+            }),
+          ]),
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/NotificationResponse',
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+          ]),
+          'summary': 'Mark notification as read',
+          'tags': list([
+            'notifications',
+          ]),
+        }),
+      }),
       '/api/v1/tasks/email/send': dict({
         'post': dict({
           'description': 'Trigger a background task to send an email notification. Returns the task ID for status tracking.',
@@ -5084,6 +5598,10 @@
       dict({
         'description': 'Outgoing webhook registration, delivery, and history.',
         'name': 'webhooks',
+      }),
+      dict({
+        'description': 'Per-user notification preferences and in-app inbox.',
+        'name': 'notifications',
       }),
     ]),
   })

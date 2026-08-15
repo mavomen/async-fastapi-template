@@ -17,7 +17,9 @@ from app.middleware.compression import (
 
 TEST_BODY = b'{"key": "value", "nested": {"a": 1, "b": 2}}' * 50  # ~2KB
 
-_ENABLED_SETTINGS = MagicMock(COMPRESSION_ENABLED=True, COMPRESSION_MIN_SIZE=1024, COMPRESSION_LEVEL=6)
+_ENABLED_SETTINGS = MagicMock(
+    COMPRESSION_ENABLED=True, COMPRESSION_MIN_SIZE=1024, COMPRESSION_LEVEL=6
+)
 _DISABLED_SETTINGS = MagicMock(COMPRESSION_ENABLED=False)
 
 
@@ -74,7 +76,9 @@ class TestCompressionMiddleware:
     async def test_brotli_compression(self):
         request = MagicMock(spec=Request)
         request.headers = {"Accept-Encoding": "br"}
-        call_next = AsyncMock(return_value=Response(content=TEST_BODY, media_type="application/json"))
+        call_next = AsyncMock(
+            return_value=Response(content=TEST_BODY, media_type="application/json")
+        )
         middleware = CompressionMiddleware(app=None)
 
         with patch("app.middleware.compression.settings", _ENABLED_SETTINGS):
@@ -89,7 +93,9 @@ class TestCompressionMiddleware:
     async def test_gzip_compression(self):
         request = MagicMock(spec=Request)
         request.headers = {"Accept-Encoding": "gzip"}
-        call_next = AsyncMock(return_value=Response(content=TEST_BODY, media_type="application/json"))
+        call_next = AsyncMock(
+            return_value=Response(content=TEST_BODY, media_type="application/json")
+        )
         middleware = CompressionMiddleware(app=None)
 
         with patch("app.middleware.compression.settings", _ENABLED_SETTINGS):
@@ -103,7 +109,9 @@ class TestCompressionMiddleware:
     async def test_brotli_preferred_over_gzip(self):
         request = MagicMock(spec=Request)
         request.headers = {"Accept-Encoding": "gzip, br"}
-        call_next = AsyncMock(return_value=Response(content=TEST_BODY, media_type="application/json"))
+        call_next = AsyncMock(
+            return_value=Response(content=TEST_BODY, media_type="application/json")
+        )
         middleware = CompressionMiddleware(app=None)
 
         with patch("app.middleware.compression.settings", _ENABLED_SETTINGS):
@@ -116,7 +124,9 @@ class TestCompressionMiddleware:
         small_body = b'{"ok": true}'
         request = MagicMock(spec=Request)
         request.headers = {"Accept-Encoding": "br"}
-        call_next = AsyncMock(return_value=Response(content=small_body, media_type="application/json"))
+        call_next = AsyncMock(
+            return_value=Response(content=small_body, media_type="application/json")
+        )
         middleware = CompressionMiddleware(app=None, minimum_size=1024)
 
         with patch("app.middleware.compression.settings", _ENABLED_SETTINGS):
@@ -129,7 +139,9 @@ class TestCompressionMiddleware:
     async def test_no_accept_encoding_passthrough(self):
         request = MagicMock(spec=Request)
         request.headers = {}
-        call_next = AsyncMock(return_value=Response(content=TEST_BODY, media_type="application/json"))
+        call_next = AsyncMock(
+            return_value=Response(content=TEST_BODY, media_type="application/json")
+        )
         middleware = CompressionMiddleware(app=None)
 
         with patch("app.middleware.compression.settings", _ENABLED_SETTINGS):
@@ -203,7 +215,9 @@ class TestCompressionMiddleware:
     async def test_compression_disabled_by_settings(self):
         request = MagicMock(spec=Request)
         request.headers = {"Accept-Encoding": "br"}
-        call_next = AsyncMock(return_value=Response(content=TEST_BODY, media_type="application/json"))
+        call_next = AsyncMock(
+            return_value=Response(content=TEST_BODY, media_type="application/json")
+        )
         middleware = CompressionMiddleware(app=None)
 
         with patch("app.middleware.compression.settings", _DISABLED_SETTINGS):

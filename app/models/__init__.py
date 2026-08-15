@@ -4,6 +4,8 @@ from app.models.api_key import ApiKey
 from app.models.audit_log import AuditLog
 from app.models.auth_audit_log import AuthAuditLog
 from app.models.base import Base, BaseModel, TimestampMixin
+from app.models.notification import Notification
+from app.models.notification_preference import NotificationPreference
 from app.models.role import Permission, Role, role_permissions, user_roles
 from app.models.tenant import Tenant
 from app.models.tenant_base import TenantBaseModel
@@ -18,6 +20,8 @@ __all__ = [
     "AuthAuditLog",
     "Base",
     "BaseModel",
+    "Notification",
+    "NotificationPreference",
     "Permission",
     "Role",
     "Tenant",

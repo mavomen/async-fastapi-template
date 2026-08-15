@@ -22,6 +22,7 @@ A production‑ready, fully async FastAPI template with everything you need to b
 - **WebSocket** chat with JWT auth
 - **Background tasks** with Celery + Redis + retry/backoff
 - **Outgoing webhooks** with HMAC signing, exponential-backoff retries, and delivery history
+- **Notification preferences** — per-user opt-in/opt-out for email, in-app, and webhook channels, with a persisted in-app inbox and WebSocket push
 - **Redis caching** with cache‑aside, warming, and invalidation
 - **Rate limiting** (per‑IP and per‑user) with slowapi
 - **Prometheus metrics** + **Grafana dashboards**
@@ -67,6 +68,7 @@ Visit **http://localhost:8000/docs** for the interactive API docs, **http://loca
 - [File Storage](docs/file_storage.md)
 - [WebSocket Usage](docs/websocket.md)
 - [Outgoing Webhooks](docs/webhooks.md)
+- [Notification Preferences](docs/notifications.md)
 - [Logging](docs/logging.md)
 - [Metrics & Monitoring](docs/metrics.md)
 - [Health Checks](docs/health.md)

@@ -58,6 +58,8 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         await TenantMiddleware.warm_default_tenant()
         if settings.WEBHOOK_ENABLED:
             await _subscribe_webhook_dispatcher()
+        if settings.NOTIFICATION_ENABLED:
+            await _subscribe_notification_dispatcher()
     yield
     # Shutdown: only close in non-test environments
     if settings.ENVIRONMENT != "test":
@@ -82,6 +84,24 @@ async def _subscribe_webhook_dispatcher() -> None:
         await bus.subscribe("*", handle_event)
     except Exception:
         logger.exception("Failed to subscribe webhook dispatcher to event bus")
+
+
+async def _subscribe_notification_dispatcher() -> None:
+    """Subscribe the notification dispatcher to every event bus message.
+
+    Swallowed on failure so an unreachable event bus never blocks startup.
+    """
+    import logging
+
+    from app.events import get_event_bus
+    from app.services.notifications import handle_notification_event
+
+    logger = logging.getLogger("app.main")
+    try:
+        bus = await get_event_bus()
+        await bus.subscribe("*", handle_notification_event)
+    except Exception:
+        logger.exception("Failed to subscribe notification dispatcher to event bus")
 
 
 def create_app() -> FastAPI:
@@ -144,6 +164,10 @@ def create_app() -> FastAPI:
             {
                 "name": "webhooks",
                 "description": "Outgoing webhook registration, delivery, and history.",
+            },
+            {
+                "name": "notifications",
+                "description": "Per-user notification preferences and in-app inbox.",
             },
         ],
     )
