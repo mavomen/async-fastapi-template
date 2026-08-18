@@ -1,5 +1,6 @@
 """User management endpoints with RBAC protection and data export."""
 
+import asyncio
 import csv
 import io
 from typing import Any
@@ -14,11 +15,12 @@ from fastapi import (
     UploadFile,
     status,
 )
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_db, get_read_db
 from app.auth.permissions import PermissionChecker
+from app.core.security import get_password_hash
 from app.crud.user import user as crud_user
 from app.models.user import User
 from app.schemas.user import UserCreate, UserDetailResponse, UserUpdate
@@ -207,24 +209,43 @@ async def import_users_csv(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(PermissionChecker(["user:write"])),
 ) -> Any:
-    """Import users from a CSV file using per-row savepoints (requires user:write).
+    """Bulk-import users from a CSV file in a single commit (requires user:write).
 
-    Skips duplicate rows (IntegrityError) without aborting the entire import.
+    Duplicate emails are skipped via a pre-query check.
+    Passwords are hashed off the event loop.
     """
     content = await file.read()
     reader = csv.DictReader(io.StringIO(content.decode()))
-    created = []
-    for row in reader:
-        user_in = UserCreate(
+    raw_rows = [
+        {"email": r["email"], "username": r["username"], "password": r["password"],
+         "full_name": r.get("full_name")}
+        for r in reader
+    ]
+    if not raw_rows:
+        return []
+
+    existing = await db.execute(
+        select(User.email).where(User.email.in_([r["email"] for r in raw_rows]))
+    )
+    existing_emails: set[str] = {row[0] for row in existing.all()}
+
+    async def _prepare(row: dict[str, Any]) -> User | None:
+        if row["email"] in existing_emails:
+            return None
+        hashed = await asyncio.to_thread(get_password_hash, row["password"])
+        return User(
             email=row["email"],
             username=row["username"],
-            password=row["password"],
+            hashed_password=hashed,
             full_name=row.get("full_name"),
         )
-        try:
-            async with db.begin_nested():
-                user = await crud_user.create(db, obj_in=user_in)
-                created.append(user)
-        except IntegrityError:
-            continue  # skip duplicate rows, savepoint rollback is scoped
-    return created
+
+    orm_objs = [obj for obj in (await asyncio.gather(*[_prepare(r) for r in raw_rows])) if obj is not None]
+    if not orm_objs:
+        return []
+
+    db.add_all(orm_objs)
+    await db.commit()
+    for obj in orm_objs:
+        await db.refresh(obj)
+    return orm_objs

@@ -45,6 +45,14 @@ class NotificationListResponse(BaseModel):
     unread_count: int
 
 
+class NotificationCursorResponse(BaseModel):
+    items: list[NotificationResponse]
+    next_cursor: str | None = Field(None, description="Cursor for the next page")
+    has_more: bool = Field(False, description="Whether more pages are available")
+    size: int = Field(description="Number of items returned")
+    unread_count: int = Field(description="Number of unread notifications")
+
+
 class NotificationTestRequest(BaseModel):
     title: str = Field("Test notification", min_length=1, max_length=200)
     body: str | None = Field(None, max_length=2000)

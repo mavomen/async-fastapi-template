@@ -12,12 +12,13 @@ from app.events.base import Event, EventBus
 from app.models.notification import Notification
 from app.models.user import User
 from app.schemas.notification import (
-    NotificationListResponse,
+    NotificationCursorResponse,
     NotificationPreferenceResponse,
     NotificationPreferenceUpdate,
     NotificationResponse,
     NotificationTestRequest,
 )
+from app.utils.pagination import CursorParams, decode_cursor, encode_cursor
 
 router = APIRouter()
 
@@ -52,23 +53,28 @@ async def update_preferences(
 
 @router.get(
     "",
-    response_model=NotificationListResponse,
+    response_model=NotificationCursorResponse,
     summary="List notifications",
-    description="List the current user's in-app notifications, newest first.",
+    description="List the current user's in-app notifications using cursor-based keyset pagination.",
 )
 async def list_notifications(
-    db: AsyncSession = Depends(get_db),
-    skip: int = 0,
-    limit: int = 100,
+    params: CursorParams = Depends(),
     unread_only: bool = False,
+    db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> Any:
-    items = await crud_notification.list_for_user(
-        db, user_id=current_user.id, skip=skip, limit=limit, unread_only=unread_only
+    items = await crud_notification.list_for_user_cursor(
+        db, user_id=current_user.id, cursor=decode_cursor(params.cursor) if params.cursor else None,
+        size=params.size, unread_only=unread_only,
     )
-    total = await crud_notification.count_for_user(db, user_id=current_user.id)
+    has_more = len(items) > params.size
+    page_items = items[: params.size]
+    next_cursor = encode_cursor(page_items[-1].id) if has_more and page_items else None
     unread_count = await crud_notification.count_unread(db, user_id=current_user.id)
-    return NotificationListResponse(items=items, total=total, unread_count=unread_count)
+    return NotificationCursorResponse(
+        items=page_items, next_cursor=next_cursor, has_more=has_more,
+        size=len(page_items), unread_count=unread_count,
+    )
 
 
 def _get_owned_notification(notification_obj: Notification | None) -> Notification:

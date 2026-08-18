@@ -14,13 +14,17 @@ from sqlalchemy.ext.asyncio import (
     async_sessionmaker,
     create_async_engine,
 )
-from sqlalchemy.pool import NullPool
+from sqlalchemy.pool import NullPool, QueuePool
 from sqlalchemy.sql import Delete, Insert, Select, Update
 
 from app.core.config import settings
 from app.core.metrics import (
     db_connections_total,
+    db_pool_active,
+    db_pool_idle,
+    db_pool_overflow,
     db_pool_saturation_ratio,
+    db_pool_waiting,
     db_reader_connections_total,
 )
 from app.core.tenant import get_current_tenant
@@ -28,6 +32,17 @@ from app.core.tenant import get_current_tenant
 logger = logging.getLogger("app.db")
 
 query_count_var: ContextVar[int] = ContextVar("query_count", default=0)
+
+
+class InstrumentedQueuePool(QueuePool):
+    """QueuePool subclass that counts in-flight checkout calls as a waiter proxy."""
+
+    def _do_get(self) -> Any:
+        db_pool_waiting.inc()
+        try:
+            return super()._do_get()
+        finally:
+            db_pool_waiting.dec()
 
 
 def _make_engine_kwargs() -> dict[str, Any]:
@@ -39,8 +54,9 @@ def _make_engine_kwargs() -> dict[str, Any]:
     if settings.ENVIRONMENT == "test":
         kwargs["poolclass"] = NullPool
     else:
-        kwargs["pool_size"] = settings.DB_POOL_SIZE
-        kwargs["max_overflow"] = settings.DB_MAX_OVERFLOW
+        kwargs["poolclass"] = InstrumentedQueuePool
+        kwargs["pool_size"] = settings.effective_pool_size
+        kwargs["max_overflow"] = settings.effective_max_overflow
         kwargs["pool_recycle"] = settings.DB_POOL_RECYCLE
     return kwargs
 
@@ -223,29 +239,40 @@ async def get_read_db() -> AsyncGenerator[AsyncSession, None]:
 
 
 def _report_pool_saturation(pool: str) -> None:
-    """Log and expose pool saturation ratio if above threshold."""
+    """Report pool gauges and log a warning when saturation exceeds the threshold."""
     engine = sessionmanager._writer_engine if pool == "writer" else sessionmanager._reader_engine
     if engine is None:
         return
 
     pool_instance = engine.pool
-    pool_size = getattr(pool_instance, "size", None)
-    pool_checkedin = getattr(pool_instance, "checkedin", None)
-    if pool_size is not None and pool_checkedin is not None:
-        total = pool_size()
-        active = pool_checkedin()
-        if total > 0:
-            ratio = 1.0 - (active / total)
-            db_pool_saturation_ratio.labels(pool=pool).set(ratio)
-            if ratio >= settings.DB_POOL_SATURATION_THRESHOLD:
-                logger.warning(
-                    "Database pool saturation above threshold",
-                    extra={
-                        "pool": pool,
-                        "ratio": round(ratio, 2),
-                        "threshold": settings.DB_POOL_SATURATION_THRESHOLD,
-                    },
-                )
+    checkedout = getattr(pool_instance, "checkedout", None)
+    checkedin = getattr(pool_instance, "checkedin", None)
+    overflow_fn = getattr(pool_instance, "overflow", None)
+    size_fn = getattr(pool_instance, "size", None)
+    if checkedout is None or checkedin is None:
+        return
+
+    active = checkedout()
+    idle = checkedin()
+    overflow_val = overflow_fn() if overflow_fn else 0
+    total = size_fn() if size_fn else active + idle
+
+    db_pool_active.labels(pool=pool).set(active)
+    db_pool_idle.labels(pool=pool).set(idle)
+    db_pool_overflow.labels(pool=pool).set(overflow_val)
+
+    if total > 0:
+        ratio = active / total
+        db_pool_saturation_ratio.labels(pool=pool).set(ratio)
+        if ratio >= settings.DB_POOL_SATURATION_THRESHOLD:
+            logger.warning(
+                "Database pool saturation above threshold",
+                extra={
+                    "pool": pool,
+                    "ratio": round(ratio, 2),
+                    "threshold": settings.DB_POOL_SATURATION_THRESHOLD,
+                },
+            )
 
 
 def apply_tenant_filter(

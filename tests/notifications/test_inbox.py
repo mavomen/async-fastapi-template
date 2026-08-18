@@ -1,11 +1,16 @@
 """Tests for in-app notification inbox CRUD (real Postgres)."""
 
+import httpx
 import pytest
 from sqlalchemy import select
 
+from app.core.security import create_access_token
 from app.crud.notification import notification as notification_crud
+from app.crud.user import user as crud_user
+from app.main import app
 from app.models.notification import Notification
 from app.models.user import User
+from app.schemas.user import UserCreate
 
 
 @pytest.mark.asyncio
@@ -115,3 +120,52 @@ async def test_delete_removes_notification(db_session):
         select(Notification).where(Notification.id == notification.id)
     )
     assert result.scalar_one_or_none() is None
+
+
+@pytest.mark.asyncio
+async def test_cursor_endpoint_returns_cursor_envelope(db_session):
+    """GET /notifications via async_client returns cursor fields, not total."""
+    user_in = UserCreate(
+        email="cursor-endpoint@example.com", username="cursor-ep", password="Pass1!"
+    )
+    user = await crud_user.create(db_session, obj_in=user_in)
+    token = create_access_token(subject=user.id)
+
+    for i in range(3):
+        await notification_crud.create_for_user(
+            db_session, user_id=user.id, event_type="e", title=f"n{i}", body=None
+        )
+
+    async with httpx.AsyncClient(
+        transport=httpx.ASGITransport(app=app), base_url="http://test"
+    ) as client:
+        resp = await client.get(
+            "/api/v1/notifications",
+            params={"size": 2},
+            headers={"Authorization": f"Bearer {token}"},
+        )
+
+    assert resp.status_code == 200
+    body = resp.json()
+    assert "next_cursor" in body
+    assert "has_more" in body
+    assert "unread_count" in body
+    assert "size" in body
+    assert "total" not in body
+    assert body["size"] == 2
+    assert body["has_more"] is True
+    assert body["next_cursor"] is not None
+
+    # Walk to next page
+    async with httpx.AsyncClient(
+        transport=httpx.ASGITransport(app=app), base_url="http://test"
+    ) as client:
+        resp2 = await client.get(
+            "/api/v1/notifications",
+            params={"size": 2, "cursor": body["next_cursor"]},
+            headers={"Authorization": f"Bearer {token}"},
+        )
+    body2 = resp2.json()
+    assert body2["size"] == 1
+    assert body2["has_more"] is False
+    assert body2["next_cursor"] is None
