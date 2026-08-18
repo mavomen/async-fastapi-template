@@ -212,6 +212,15 @@ class Settings(BaseSettings):
         default=True, description="Enable the notification dispatcher on the event bus"
     )
 
+    # Database Backup
+    BACKUP_S3_PREFIX: str = Field(
+        default="backups/",
+        description="S3 key prefix for database backups",
+    )
+    BACKUP_RETENTION_DAYS: int = Field(
+        default=30, ge=1, description="Number of days to retain database backups in S3"
+    )
+
     # Content Security Policy
     CSP_REPORT_URI: str = "/api/v1/csp-report"
     CSP_REPORT_ONLY: bool = False

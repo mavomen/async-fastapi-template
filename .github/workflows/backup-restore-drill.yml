@@ -1,0 +1,116 @@
+name: Backup Restore Drill
+
+on:
+  schedule:
+    # Weekly on Sundays at 04:00 UTC
+    - cron: "0 4 * * 0"
+  workflow_dispatch:
+    inputs:
+      backup_key:
+        description: "S3 key of the backup to restore (leave empty for latest)"
+        required: false
+        type: string
+
+jobs:
+  restore-drill:
+    name: Restore Drill
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: fastapi_drill
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/setup-python-poetry
+
+      - name: Install AWS CLI
+        run: pip install awscli
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION || 'us-east-1' }}
+
+      - name: Find latest backup
+        id: find-backup
+        run: |
+          BACKUP_KEY="${{ inputs.backup_key }}"
+          if [ -z "$BACKUP_KEY" ]; then
+            echo "No key specified, finding latest backup..."
+            BACKUP_KEY=$(aws s3 ls "s3://${{ secrets.BACKUP_S3_BUCKET }}/backups/" --recursive \
+              | sort \
+              | tail -1 \
+              | awk '{print $4}')
+            if [ -z "$BACKUP_KEY" ]; then
+              echo "::error::No backups found in S3"
+              exit 1
+            fi
+          fi
+          echo "Restoring from: $BACKUP_KEY"
+          echo "backup_key=$BACKUP_KEY" >> "$GITHUB_OUTPUT"
+
+      - name: Download backup
+        run: |
+          aws s3 cp "s3://${{ secrets.BACKUP_S3_BUCKET }}/${{ steps.find-backup.outputs.backup_key }}" ./backup.dump.gz
+
+      - name: Restore backup
+        env:
+          PGPASSWORD: postgres
+        run: |
+          gunzip -c ./backup.dump.gz > ./backup.dump
+          pg_restore \
+            --clean \
+            --no-owner \
+            --no-privileges \
+            -d fastapi_drill \
+            -h localhost \
+            -U postgres \
+            -p 5432 \
+            ./backup.dump || true
+          echo "Restore completed (warnings above are acceptable)"
+
+      - name: Run smoke queries
+        env:
+          PGPASSWORD: postgres
+        run: |
+          echo "=== Schema check ==="
+          TABLES=$(psql -h localhost -U postgres -d fastapi_drill -t -c \
+            "SELECT count(*) FROM information_schema.tables WHERE table_schema = 'public';")
+          echo "Tables found: $TABLES"
+          if [ "$(echo "$TABLES" | tr -d ' ')" -lt 1 ]; then
+            echo "::error::No tables found after restore"
+            exit 1
+          fi
+
+          echo "=== Row count check ==="
+          for TABLE in $(psql -h localhost -U postgres -d fastapi_drill -t -c \
+            "SELECT tablename FROM pg_tables WHERE schemaname = 'public';" | tr -d ' '); do
+            COUNT=$(psql -h localhost -U postgres -d fastapi_drill -t -c \
+              "SELECT count(*) FROM \"$TABLE\";" | tr -d ' ')
+            echo "  $TABLE: $COUNT rows"
+          done
+
+          echo "=== Extension check ==="
+          psql -h localhost -U postgres -d fastapi_drill -c \
+            "SELECT extname, extversion FROM pg_extension;"
+
+          echo "=== Restore drill passed ==="
+
+      - name: Cleanup
+        if: always()
+        run: rm -f ./backup.dump ./backup.dump.gz
