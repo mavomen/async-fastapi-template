@@ -1,5 +1,5 @@
 """Utility functions package."""
 
-from app.utils.pagination import Page, Params
+from app.utils.pagination import CursorPage, CursorParams, Page, Params
 
-__all__ = ["Page", "Params"]
+__all__ = ["CursorPage", "CursorParams", "Page", "Params"]

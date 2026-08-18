@@ -630,8 +630,14 @@
           'title': 'IPRuleUpdate',
           'type': 'object',
         }),
-        'NotificationListResponse': dict({
+        'NotificationCursorResponse': dict({
           'properties': dict({
+            'has_more': dict({
+              'default': False,
+              'description': 'Whether more pages are available',
+              'title': 'Has More',
+              'type': 'boolean',
+            }),
             'items': dict({
               'items': dict({
                 '$ref': '#/components/schemas/NotificationResponse',
@@ -639,21 +645,35 @@
               'title': 'Items',
               'type': 'array',
             }),
-            'total': dict({
-              'title': 'Total',
+            'next_cursor': dict({
+              'anyOf': list([
+                dict({
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'description': 'Cursor for the next page',
+              'title': 'Next Cursor',
+            }),
+            'size': dict({
+              'description': 'Number of items returned',
+              'title': 'Size',
               'type': 'integer',
             }),
             'unread_count': dict({
+              'description': 'Number of unread notifications',
               'title': 'Unread Count',
               'type': 'integer',
             }),
           }),
           'required': list([
             'items',
-            'total',
+            'size',
             'unread_count',
           ]),
-          'title': 'NotificationListResponse',
+          'title': 'NotificationCursorResponse',
           'type': 'object',
         }),
         'NotificationPreferenceResponse': dict({
@@ -3638,29 +3658,9 @@
       }),
       '/api/v1/notifications': dict({
         'get': dict({
-          'description': "List the current user's in-app notifications, newest first.",
+          'description': "List the current user's in-app notifications using cursor-based keyset pagination.",
           'operationId': 'list_notifications_api_v1_notifications_get',
           'parameters': list([
-            dict({
-              'in': 'query',
-              'name': 'skip',
-              'required': False,
-              'schema': dict({
-                'default': 0,
-                'title': 'Skip',
-                'type': 'integer',
-              }),
-            }),
-            dict({
-              'in': 'query',
-              'name': 'limit',
-              'required': False,
-              'schema': dict({
-                'default': 100,
-                'title': 'Limit',
-                'type': 'integer',
-              }),
-            }),
             dict({
               'in': 'query',
               'name': 'unread_only',
@@ -3671,13 +3671,41 @@
                 'type': 'boolean',
               }),
             }),
+            dict({
+              'in': 'query',
+              'name': 'cursor',
+              'required': False,
+              'schema': dict({
+                'anyOf': list([
+                  dict({
+                    'type': 'string',
+                  }),
+                  dict({
+                    'type': 'null',
+                  }),
+                ]),
+                'title': 'Cursor',
+              }),
+            }),
+            dict({
+              'in': 'query',
+              'name': 'size',
+              'required': False,
+              'schema': dict({
+                'default': 50,
+                'maximum': 100,
+                'minimum': 1,
+                'title': 'Size',
+                'type': 'integer',
+              }),
+            }),
           ]),
           'responses': dict({
             '200': dict({
               'content': dict({
                 'application/json': dict({
                   'schema': dict({
-                    '$ref': '#/components/schemas/NotificationListResponse',
+                    '$ref': '#/components/schemas/NotificationCursorResponse',
                   }),
                 }),
               }),
@@ -4661,9 +4689,10 @@
       '/api/v1/users/import/csv': dict({
         'post': dict({
           'description': '''
-            Import users from a CSV file using per-row savepoints (requires user:write).
+            Bulk-import users from a CSV file in a single commit (requires user:write).
             
-            Skips duplicate rows (IntegrityError) without aborting the entire import.
+            Duplicate emails are skipped via a pre-query check.
+            Passwords are hashed off the event loop.
           ''',
           'operationId': 'import_users_csv_api_v1_users_import_csv_post',
           'requestBody': dict({

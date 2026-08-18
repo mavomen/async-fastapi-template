@@ -107,6 +107,29 @@ class CRUDNotification(CRUDBase[Notification, NotificationCreate, NotificationUp
         result = await db.execute(query)
         return list(result.scalars().all())
 
+    async def list_for_user_cursor(
+        self,
+        db: AsyncSession,
+        *,
+        user_id: int,
+        cursor: int | None = None,
+        size: int = 50,
+        unread_only: bool = False,
+    ) -> list[Notification]:
+        """Keyset pagination: fetch the next page using ``WHERE id < cursor``."""
+        query = (
+            select(Notification)
+            .where(Notification.user_id == user_id)
+            .order_by(Notification.id.desc())
+            .limit(size + 1)
+        )
+        if cursor is not None:
+            query = query.where(Notification.id < cursor)
+        if unread_only:
+            query = query.where(Notification.is_read.is_(False))
+        result = await db.execute(query)
+        return list(result.scalars().all())
+
     async def count_for_user(self, db: AsyncSession, *, user_id: int) -> int:
         result = await db.execute(
             select(func.count()).select_from(Notification).where(Notification.user_id == user_id)

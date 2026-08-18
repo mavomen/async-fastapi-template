@@ -42,8 +42,14 @@ class Settings(BaseSettings):
         default=None,
         description="PostgreSQL read-replica connection string. Falls back to DATABASE_URL when unset.",
     )
-    DB_POOL_SIZE: int = 20
-    DB_MAX_OVERFLOW: int = 10
+    DB_POOL_SIZE: int | None = Field(
+        default=None,
+        description="Asyncpg pool base size. When unset, resolved per environment (dev=10, staging=20, prod=40).",
+    )
+    DB_MAX_OVERFLOW: int | None = Field(
+        default=None,
+        description="Asyncpg pool max overflow. When unset, resolved per environment (dev=5, staging=10, prod=20).",
+    )
     DB_POOL_RECYCLE: int = 3600
     DB_POOL_SATURATION_THRESHOLD: float = Field(
         default=0.8,
@@ -51,6 +57,26 @@ class Settings(BaseSettings):
         le=1.0,
         description="Pool saturation ratio that triggers a warning alert",
     )
+
+    _POOL_PRESETS: dict[str, tuple[int, int]] = {
+        "development": (10, 5),
+        "staging": (20, 10),
+        "production": (40, 20),
+    }
+
+    @property
+    def effective_pool_size(self) -> int:
+        """Resolve pool size: explicit env var > per-environment preset."""
+        if self.DB_POOL_SIZE is not None:
+            return self.DB_POOL_SIZE
+        return self._POOL_PRESETS.get(self.ENVIRONMENT, (20, 10))[0]
+
+    @property
+    def effective_max_overflow(self) -> int:
+        """Resolve max overflow: explicit env var > per-environment preset."""
+        if self.DB_MAX_OVERFLOW is not None:
+            return self.DB_MAX_OVERFLOW
+        return self._POOL_PRESETS.get(self.ENVIRONMENT, (20, 10))[1]
 
     # Redis (application cache)
     REDIS_URL: str = Field(

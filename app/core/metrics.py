@@ -37,6 +37,29 @@ db_pool_saturation_ratio = Gauge(
     ["pool"],
 )
 
+db_pool_active = Gauge(
+    "db_pool_active",
+    "Checked-out (in-use) connections per pool",
+    ["pool"],
+)
+
+db_pool_idle = Gauge(
+    "db_pool_idle",
+    "Idle connections waiting in the pool",
+    ["pool"],
+)
+
+db_pool_overflow = Gauge(
+    "db_pool_overflow",
+    "Connections beyond base pool_size (overflow)",
+    ["pool"],
+)
+
+db_pool_waiting = Gauge(
+    "db_pool_waiting",
+    "In-flight checkout calls (proxy for waiter count)",
+)
+
 cache_hits_total = Counter(
     "cache_hits_total",
     "Total number of cache hits",
