@@ -1,6 +1,7 @@
 """Celery application configuration."""
 
 from celery import Celery
+from celery.schedules import crontab
 
 from app.core.config import settings
 
@@ -20,3 +21,14 @@ celery_app.conf.update(
     task_acks_late=True,
     worker_prefetch_multiplier=1,
 )
+
+celery_app.conf.beat_schedule = {
+    "backup-database-daily": {
+        "task": "app.tasks.backup.backup_database",
+        "schedule": crontab(hour=2, minute=0),
+    },
+    "cleanup-old-backups-daily": {
+        "task": "app.tasks.backup.cleanup_old_backups",
+        "schedule": crontab(hour=3, minute=0),
+    },
+}

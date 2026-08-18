@@ -22,12 +22,35 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   events now carry an optional `user_id` used to gate channel delivery
 - Webhook dispatcher suppresses deliveries for events whose actor disabled the webhook channel
 - Alembic migration `014_add_notifications` (`notification_preferences`, `notifications` tables)
+- Cursor-based keyset pagination for `GET /api/v1/notifications` (DESC order, `cursor`/`size`
+  params, `next_cursor`/`has_more` response fields)
+- `CursorParams`, `CursorPage` exported from `app.utils`
+- `NotificationCursorResponse` schema for the paginated notification inbox
+- Bulk CSV user import rewritten to single-commit `add_all()` with pre-query duplicate
+  filtering and off-event-loop bcrypt hashing via `asyncio.to_thread`
+- Per-environment pool tuning: `DB_POOL_SIZE` / `DB_MAX_OVERFLOW` resolve from
+  `ENVIRONMENT` presets when unset (dev=10/5, staging=20/10, prod=40/20)
+- Prometheus gauges `db_pool_active`, `db_pool_idle`, `db_pool_overflow`,
+  `db_pool_waiting` (in-flight checkout proxy)
+- `InstrumentedQueuePool` subclass for waiting-connection gauge
+- Automated PostgreSQL backup via Celery beat: `pg_dump` → gzip → S3 with configurable
+  `BACKUP_S3_PREFIX` and `BACKUP_RETENTION_DAYS` (default 30)
+- Celery `cleanup_old_backups` task deletes expired backups from S3 daily
+- `restore_backup` task for manual point-in-time restore (downloads latest or explicit key)
+- MinIO service in `docker-compose.dev.yml` for local S3-compatible backup testing
+- Weekly CI restore-drill workflow (`.github/workflows/backup-restore-drill.yml`)
 
 ### Fixed
 
 - Brotli/gzip compression middleware returned an empty body for responses below the minimum
   compression size; streaming responses from `BaseHTTPMiddleware` (`_StreamingResponse`) are
   now handled correctly
+
+### Changed
+
+- `GET /api/v1/notifications` now uses cursor pagination (`cursor`/`size` query params)
+  instead of `skip`/`limit`; response shape changed to `NotificationCursorResponse`
+  (no `total` field; `next_cursor`, `has_more`, `size`, `unread_count` instead)
 
 ## [3.1.0] — 2026‑05‑11
 

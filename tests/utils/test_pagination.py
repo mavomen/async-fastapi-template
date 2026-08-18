@@ -3,7 +3,14 @@
 import pytest
 from pydantic import ValidationError
 
-from app.utils.pagination import Page, Params
+from app.utils.pagination import (
+    CursorPage,
+    CursorParams,
+    Page,
+    Params,
+    decode_cursor,
+    encode_cursor,
+)
 
 
 class TestParams:
@@ -174,3 +181,83 @@ class TestPage:
         dict_items = [{"id": 1}, {"id": 2}]
         dict_page = Page.create(items=dict_items, total=2, params=params)
         assert dict_page.items == dict_items
+
+
+class TestCursorCodec:
+    """Test encode_cursor / decode_cursor round-trip."""
+
+    def test_round_trip(self):
+        for value in [0, 1, 42, 999999]:
+            assert decode_cursor(encode_cursor(value)) == value
+
+    def test_encodes_to_base64(self):
+        import base64
+        import json
+
+        encoded = encode_cursor(10)
+        decoded = json.loads(base64.urlsafe_b64decode(encoded.encode()))
+        assert decoded == 10
+
+    def test_different_values_produce_different_strings(self):
+        assert encode_cursor(1) != encode_cursor(2)
+
+
+class TestCursorParams:
+    """Test CursorParams defaults and limit property."""
+
+    def test_defaults(self):
+        params = CursorParams()
+        assert params.cursor is None
+        assert params.size == 50
+
+    def test_limit_equals_size_plus_one(self):
+        params = CursorParams(size=20)
+        assert params.limit == 21
+
+    def test_size_bounds(self):
+        with pytest.raises(ValidationError):
+            CursorParams(size=0)
+        with pytest.raises(ValidationError):
+            CursorParams(size=101)
+        assert CursorParams(size=100).size == 100
+
+
+class TestCursorPage:
+    """Test CursorPage.create helper."""
+
+    def test_first_page_with_more(self):
+        class FakeItem:
+            def __init__(self, id: int):
+                self.id = id
+
+        items = [FakeItem(3), FakeItem(2), FakeItem(1)]
+        params = CursorParams(size=2)
+        page = CursorPage.create(items=items, params=params)
+
+        assert len(page.items) == 2
+        assert page.has_more is True
+        assert page.next_cursor == encode_cursor(2)
+        assert page.size == 2
+
+    def test_last_page_no_more(self):
+        class FakeItem:
+            def __init__(self, id: int):
+                self.id = id
+
+        items = [FakeItem(2), FakeItem(1)]
+        params = CursorParams(size=50)
+        page = CursorPage.create(items=items, params=params)
+
+        assert len(page.items) == 2
+        assert page.has_more is False
+        assert page.next_cursor is None
+        assert page.size == 2
+
+    def test_empty_page(self):
+        params = CursorParams(size=10)
+        page = CursorPage.create(items=[], params=params)
+
+        assert page.items == []
+        assert page.has_more is False
+        assert page.next_cursor is None
+        assert page.size == 0
