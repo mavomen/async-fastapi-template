@@ -33,6 +33,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Prometheus gauges `db_pool_active`, `db_pool_idle`, `db_pool_overflow`,
   `db_pool_waiting` (in-flight checkout proxy)
 - `InstrumentedQueuePool` subclass for waiting-connection gauge
+- Automated PostgreSQL backup via Celery beat: `pg_dump` → gzip → S3 with configurable
+  `BACKUP_S3_PREFIX` and `BACKUP_RETENTION_DAYS` (default 30)
+- Celery `cleanup_old_backups` task deletes expired backups from S3 daily
+- `restore_backup` task for manual point-in-time restore (downloads latest or explicit key)
+- MinIO service in `docker-compose.dev.yml` for local S3-compatible backup testing
+- Weekly CI restore-drill workflow (`.github/workflows/backup-restore-drill.yml`)
 
 ### Fixed
 

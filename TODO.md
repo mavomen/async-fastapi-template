@@ -38,7 +38,7 @@
 - Materialized views or Redis sorted sets for expensive aggregations
 - Bulk insert/update for CSV import and audit log writes
 
-**`ops/db-backup-automation`**
+**`ops/db-backup-automation`** ✅
 - `pg_dump` to S3 on a schedule with 30-day retention
 - Automated restore drill in CI
 
