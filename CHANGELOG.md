@@ -39,6 +39,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `restore_backup` task for manual point-in-time restore (downloads latest or explicit key)
 - MinIO service in `docker-compose.dev.yml` for local S3-compatible backup testing
 - Weekly CI restore-drill workflow (`.github/workflows/backup-restore-drill.yml`)
+- Pre-commit hooks: `poetry check --lock`, `pip-audit`, `detect-secrets` with baseline
 
 ### Fixed
 

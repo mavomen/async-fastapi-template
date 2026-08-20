@@ -202,7 +202,7 @@
 - Celery auto-restart on code changes in dev (live reload for workers)
 - Hot-reloadable Jinja2 templates in the admin dashboard
 
-**`dx/pre-commit-expansion`**
+**`dx/pre-commit-expansion`** ✅
 - Add `poetry check`, `pip-audit`, and `detect-secrets` hooks
 
 **`dx/openapi-sdk-generation`**
