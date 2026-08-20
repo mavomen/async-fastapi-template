@@ -1,12 +1,14 @@
 """HTMX Admin Dashboard - auto-discovery of SQLAlchemy models."""
 
 import logging
+import os
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
-from jinja2 import Environment, FileSystemLoader
+from jinja2 import Environment, FileSystemLoader, select_autoescape
 from sqlalchemy import Boolean, Integer, inspect, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -24,7 +26,8 @@ from app.decorators.rate_limit import rate_limit
 from app.models import Permission, Role, User
 from app.models.api_key import ApiKey
 from app.models.audit_log import AuditLog
-from app.models.base import BaseModel
+from app.models.base import BaseModel, SoftDeleteMixin
+from app.models.file import File
 from app.models.notification import Notification
 from app.models.notification_preference import NotificationPreference
 from app.models.tenant import Tenant
@@ -112,10 +115,22 @@ register_admin(
     form_fields=["user_id", "event_type", "title", "body", "is_read"],
     permission="notification:admin",
 )
+register_admin(
+    File,
+    list_display=["original_filename", "mime_type", "size_bytes", "uploader_id", "created_at"],
+    search_columns=["original_filename", "mime_type"],
+    form_fields=[],
+    permission="file:admin",
+)
 
 # ---------- Templates ----------
 TEMPLATES_DIR = Path(__file__).parent / "templates"
-env = Environment(loader=FileSystemLoader(str(TEMPLATES_DIR)))
+_auto_reload = os.environ.get("ENVIRONMENT", "production") == "development"
+env = Environment(
+    loader=FileSystemLoader(str(TEMPLATES_DIR)),
+    autoescape=select_autoescape(["html"]),
+    auto_reload=_auto_reload,
+)
 
 
 def render(template_name: str, **kwargs: Any) -> str:
@@ -397,10 +412,95 @@ async def admin_delete(
 
     obj = await db.get(config["model"], id)
     if obj:
-        await db.delete(obj)
+        if issubclass(config["model"], SoftDeleteMixin):
+            obj.deleted_at = datetime.now(UTC)
+            db.add(obj)
+            await db.commit()
+        else:
+            await db.delete(obj)
+            await db.commit()
+    await redis_cache.delete(f"admin_count:{table_name}")
+    return RedirectResponse(url=f"/admin/{table_name}", status_code=303)
+
+
+@router.post("/{table_name}/{id}/restore")
+@rate_limit(times=30, seconds=60)  # type: ignore[untyped-decorator]
+async def admin_restore(
+    request: Request,
+    table_name: str,
+    id: int,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(require_admin),
+) -> Any:
+    """Restore a soft-deleted record."""
+    config = _registry.get(table_name)
+    if not config:
+        raise HTTPException(status_code=404)
+    if not issubclass(config["model"], SoftDeleteMixin):
+        raise HTTPException(status_code=400, detail="Model does not support soft-delete")
+    if not has_permission(user, [config["permission"]]):
+        raise HTTPException(status_code=403)
+
+    obj = await db.get(config["model"], id)
+    if obj and obj.deleted_at is not None:
+        obj.deleted_at = None
+        db.add(obj)
         await db.commit()
     await redis_cache.delete(f"admin_count:{table_name}")
     return RedirectResponse(url=f"/admin/{table_name}", status_code=303)
+
+
+@router.get("/{table_name}/trashed", response_class=HTMLResponse)
+async def admin_list_trashed(
+    request: Request,
+    table_name: str,
+    q: str = "",
+    page: int = 1,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(require_admin),
+) -> HTMLResponse:
+    """List soft-deleted records for a model."""
+    config = _registry.get(table_name)
+    if not config:
+        raise HTTPException(status_code=404)
+    if not issubclass(config["model"], SoftDeleteMixin):
+        raise HTTPException(status_code=400, detail="Model does not support soft-delete")
+    if not has_permission(user, [config["permission"]]):
+        raise HTTPException(status_code=403)
+
+    model = config["model"]
+    page_size = 20
+    offset = (page - 1) * page_size
+
+    stmt = (
+        select(model)
+        .where(model.deleted_at.isnot(None))
+        .order_by(model.deleted_at.desc())
+        .offset(offset)
+        .limit(page_size + 1)
+    )
+    if q and hasattr(model, config["search_columns"][0] if config["search_columns"] else ""):
+        col = getattr(model, config["search_columns"][0], None)
+        if col is not None:
+            stmt = stmt.where(col.ilike(f"%{q}%"))
+
+    result = await db.execute(stmt)
+    rows = list(result.scalars().all())
+    has_next = len(rows) > page_size
+    items = rows[:page_size]
+
+    template = env.get_template("list.html")
+    html = template.render(
+        table_name=table_name,
+        items=items,
+        columns=config["list_display"],
+        q=q,
+        page=page,
+        has_next=has_next,
+        user=user,
+        trashed_view=True,
+    )
+    return HTMLResponse(content=html)
 
 
 # ---------- Session management (Redis-based) ----------

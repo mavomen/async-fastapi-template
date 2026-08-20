@@ -8,9 +8,13 @@ from fastapi.responses import ORJSONResponse
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.config import settings
 from app.core.database import get_read_db
 
 router = APIRouter(tags=["health"])
+
+# Separate router for root-level k8s probes (mounted at /, not /health)
+k8s_router = APIRouter(tags=["health"])
 
 
 async def _check_database(db: AsyncSession) -> dict[str, str]:
@@ -29,6 +33,31 @@ async def _check_redis() -> dict[str, str]:
         return {"redis": "connected" if ok else "disconnected"}
     except Exception:
         return {"redis": "disconnected"}
+
+
+async def _check_event_bus() -> dict[str, str]:
+    """Check event bus connectivity (Redis or Kafka)."""
+    if settings.EVENT_BUS_BACKEND == "redis":
+        try:
+            from app.core.cache import cache
+
+            ok = await cache.ping()
+            return {"event_bus": "connected" if ok else "disconnected"}
+        except Exception:
+            return {"event_bus": "disconnected"}
+    elif settings.EVENT_BUS_BACKEND == "kafka":
+        try:
+            from kafka import KafkaProducer
+
+            producer = KafkaProducer(
+                bootstrap_servers=settings.EVENT_BUS_KAFKA_SERVERS,
+                request_timeout_ms=2000,
+            )
+            producer.close(timeout=3)
+            return {"event_bus": "connected"}
+        except Exception:
+            return {"event_bus": "disconnected"}
+    return {"event_bus": "unknown"}
 
 
 @router.get(
@@ -50,16 +79,21 @@ async def health_check() -> dict[str, Any]:
     status_code=status.HTTP_200_OK,
 )
 async def readiness_check(db: AsyncSession = Depends(get_read_db)) -> dict[str, Any]:
-    """Readiness check including database and Redis status."""
+    """Readiness check including database, Redis, and event bus status."""
     db_status = await _check_database(db)
     redis_status = await _check_redis()
+    event_bus_status = await _check_event_bus()
 
-    all_connected = all(v == "connected" for v in [db_status["database"], redis_status["redis"]])
+    all_connected = all(
+        v == "connected"
+        for v in [db_status["database"], redis_status["redis"], event_bus_status["event_bus"]]
+    )
 
     return {
         "status": "ready" if all_connected else "degraded",
         **db_status,
         **redis_status,
+        **event_bus_status,
     }
 
 
@@ -85,11 +119,72 @@ async def dependencies_check(db: AsyncSession = Depends(get_read_db)) -> dict[st
     """Detailed dependency health check."""
     db_status = await _check_database(db)
     redis_status = await _check_redis()
+    event_bus_status = await _check_event_bus()
 
     return {
         "status": "ok",
         "components": {
             "database": db_status["database"],
             "redis": redis_status["redis"],
+            "event_bus": event_bus_status["event_bus"],
         },
     }
+
+
+# ---------------------------------------------------------------------------
+# Canonical k8s probe aliases: /healthz (liveness) and /readyz (readiness)
+# ---------------------------------------------------------------------------
+
+@k8s_router.get(
+    "/healthz",
+    response_class=ORJSONResponse,
+    status_code=status.HTTP_200_OK,
+    include_in_schema=False,
+)
+async def healthz() -> dict[str, str]:
+    """Kubernetes liveness probe — process is alive."""
+    return {"status": "ok"}
+
+
+@k8s_router.get(
+    "/readyz",
+    response_class=ORJSONResponse,
+    include_in_schema=False,
+)
+async def readyz(db: AsyncSession = Depends(get_read_db)) -> ORJSONResponse:
+    """Kubernetes readiness probe.
+
+    Returns 200 when the app can accept traffic, 503 during graceful drain.
+    """
+    from app.main import _draining
+
+    if _draining.is_set():
+        return ORJSONResponse(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            content={"status": "draining"},
+        )
+
+    db_status = await _check_database(db)
+    redis_status = await _check_redis()
+    event_bus_status = await _check_event_bus()
+
+    all_connected = all(
+        v == "connected"
+        for v in [db_status["database"], redis_status["redis"], event_bus_status["event_bus"]]
+    )
+
+    if not all_connected:
+        return ORJSONResponse(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            content={
+                "status": "degraded",
+                **db_status,
+                **redis_status,
+                **event_bus_status,
+            },
+        )
+
+    return ORJSONResponse(
+        status_code=status.HTTP_200_OK,
+        content={"status": "ready"},
+    )

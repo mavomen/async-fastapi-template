@@ -1,10 +1,11 @@
 """Email service with Jinja2 template rendering."""
 
 import logging
+import os
 from pathlib import Path
 from typing import Any
 
-from jinja2 import Environment, FileSystemLoader
+from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from app.core.celery_app import celery_app
 from app.core.config import settings
@@ -12,7 +13,12 @@ from app.core.config import settings
 logger = logging.getLogger("app.email")
 
 TEMPLATES_DIR = Path(__file__).resolve().parent.parent / "templates" / "email"
-env = Environment(loader=FileSystemLoader(str(TEMPLATES_DIR)))
+_auto_reload = os.environ.get("ENVIRONMENT", "production") == "development"
+env = Environment(
+    loader=FileSystemLoader(str(TEMPLATES_DIR)),
+    autoescape=select_autoescape(["html"]),
+    auto_reload=_auto_reload,
+)
 
 
 class EmailService:

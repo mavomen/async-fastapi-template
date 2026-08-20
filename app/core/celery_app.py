@@ -31,4 +31,8 @@ celery_app.conf.beat_schedule = {
         "task": "app.tasks.backup.cleanup_old_backups",
         "schedule": crontab(hour=3, minute=0),
     },
+    "purge-soft-deleted-weekly": {
+        "task": "app.tasks.purge.purge_soft_deleted",
+        "schedule": crontab(hour=4, minute=0, day_of_week=0),  # Sunday 04:00 UTC
+    },
 }

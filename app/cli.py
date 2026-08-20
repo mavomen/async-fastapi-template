@@ -19,7 +19,7 @@ def install() -> None:
 
 
 @app.command()
-def dev(host: str = "0.0.0.0", port: int = 8000, reload: bool = True) -> None:
+def dev(host: str = "0.0.0.0", port: int = 8000, reload: bool = True) -> None:  # nosec B104
     """Start the development server."""
     cmd = ["poetry", "run", "uvicorn", "app.main:app", "--host", host, f"--port={port}"]
     if reload:
@@ -69,32 +69,79 @@ def seed() -> None:
 
 
 @app.command()
-def docker(start: bool = typer.Option(True, "--up/--down")) -> None:
-    """Manage Docker services."""
-    if start:
-        subprocess.run(
-            ["docker", "compose", "-f", "docker-compose.dev.yml", "up", "-d"],
-            check=True,
-        )
+def docker(
+    up: bool = typer.Option(True, "--up/--down"),
+    full: bool = typer.Option(False, "--full/--core"),
+) -> None:
+    """Manage Docker services.
+
+    --core (default): db, redis, adminer, redis-commander only.
+    --full: includes monitoring stack (loki, tempo, promtail, minio).
+    """
+    if up:
+        cmd = ["docker", "compose", "-f", "docker-compose.dev.yml", "up", "-d"]
+        if full:
+            cmd = [
+                "docker", "compose", "-f", "docker-compose.dev.yml",
+                "--profile", "monitoring", "up", "-d",
+            ]
+        subprocess.run(cmd, check=True)
     else:
-        subprocess.run(["docker", "compose", "-f", "docker-compose.dev.yml", "down"], check=True)
+        cmd = ["docker", "compose", "-f", "docker-compose.dev.yml", "down"]
+        if full:
+            cmd = [
+                "docker", "compose", "-f", "docker-compose.dev.yml",
+                "--profile", "monitoring", "down",
+            ]
+        subprocess.run(cmd, check=True)
 
 
 @app.command()
-def celery() -> None:
-    """Start the Celery worker."""
+def setup_fast() -> None:
+    """Fast setup: start core services only, run migrations, verify."""
     subprocess.run(
-        [
-            "poetry",
-            "run",
-            "celery",
-            "-A",
-            "app.core.celery_app",
-            "worker",
-            "--loglevel=info",
-        ],
+        ["docker", "compose", "-f", "docker-compose.dev.yml", "up", "-d", "db", "redis"],
         check=True,
     )
+    typer.echo("Waiting for services to become healthy...")
+    subprocess.run(
+        ["docker", "compose", "-f", "docker-compose.dev.yml", "up", "-d", "db", "redis"],
+        check=True,
+    )
+    subprocess.run(["poetry", "install"], check=True)
+    subprocess.run(["poetry", "run", "alembic", "upgrade", "head"], check=True)
+    typer.echo("Setup complete. Run `poetry run python app/cli.py dev` to start.")
+
+
+@app.command()
+def celery(hot_reload: bool = typer.Option(True, "--hot-reload/--no-hot-reload")) -> None:
+    """Start the Celery worker with optional hot-reload via watchdog.
+
+    --hot-reload (default): auto-restarts worker on Python file changes.
+    --no-hot-reload: plain celery worker.
+    """
+    if hot_reload:
+        subprocess.run(
+            [
+                "poetry", "run", "watchmedo", "auto-restart",
+                "--directory=app",
+                "--pattern=*.py",
+                "--recursive",
+                "--",
+                "celery", "-A", "app.core.celery_app",
+                "worker", "--loglevel=info",
+            ],
+            check=True,
+        )
+    else:
+        subprocess.run(
+            [
+                "poetry", "run", "celery",
+                "-A", "app.core.celery_app",
+                "worker", "--loglevel=info",
+            ],
+            check=True,
+        )
 
 
 @app.command()
@@ -125,7 +172,7 @@ def profile() -> None:
             "uvicorn",
             "app.main:app",
             "--host",
-            "0.0.0.0",
+            "0.0.0.0",  # nosec B104
             "--port",
             "8000",
         ],
@@ -156,6 +203,45 @@ def setup() -> None:
     """Complete project setup (install + migrate)."""
     install()
     migrate()
+
+
+@app.command()
+def mutation(
+    paths: str = typer.Option("app/", help="Comma-separated paths to mutate"),
+    show_results: bool = typer.Option(True, "--results/--no-results"),
+) -> None:
+    """Run mutmut mutation testing locally."""
+    path_list = [p.strip() for p in paths.split(",")]
+    cmd = ["poetry", "run", "mutmut", "run", "--no-progress"] + path_list
+    subprocess.run(cmd, check=False)
+    if show_results:
+        subprocess.run(["poetry", "run", "mutmut", "results"], check=False)
+
+
+@app.command()
+def update_baseline() -> None:
+    """Regenerate the OpenAPI baseline snapshot for breaking-change detection."""
+    subprocess.run(["poetry", "run", "python", "scripts/update_openapi_baseline.py"], check=True)
+
+
+@app.command()
+def check_breaking() -> None:
+    """Check current OpenAPI schema against baseline for breaking changes."""
+    subprocess.run(["poetry", "run", "python", "scripts/check_api_breaking.py"], check=False)
+
+
+@app.command(name="generate-sdks")
+def generate_sdks(
+    python_only: bool = typer.Option(False, "--python", help="Generate Python SDK only"),
+    ts_only: bool = typer.Option(False, "--ts", help="Generate TypeScript SDK only"),
+) -> None:
+    """Generate typed client SDKs from the OpenAPI schema."""
+    cmd = ["poetry", "run", "python", "scripts/generate_sdks.py"]
+    if python_only:
+        cmd.append("--python")
+    elif ts_only:
+        cmd.append("--ts")
+    subprocess.run(cmd, check=True)
 
 
 if __name__ == "__main__":

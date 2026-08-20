@@ -39,6 +39,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `restore_backup` task for manual point-in-time restore (downloads latest or explicit key)
 - MinIO service in `docker-compose.dev.yml` for local S3-compatible backup testing
 - Weekly CI restore-drill workflow (`.github/workflows/backup-restore-drill.yml`)
+- Pre-commit hooks: `poetry check --lock`, `pip-audit`, `detect-secrets` with baseline
+- Error catalog: all API error responses now include an `error_code` field
+  (`NOT_FOUND`, `BAD_REQUEST`, `UNAUTHORIZED`, `FORBIDDEN`, `RATE_LIMITED`, `CONFLICT`,
+  `LOCKED_OUT`, `INTERNAL_ERROR`, `VALIDATION_ERROR`, `HTTP_ERROR`)
+- New `RateLimitException` (HTTP 429) for explicit rate-limit error responses
+- Mypy strict mode tightened: removed blanket `ignore_missing_imports = true`; only
+  untyped libraries (`kafka`, `brotli`, `boto3`, `openpyxl`) retain per-module overrides
+- OpenTelemetry `TracerProvider` now sets `Resource` attributes (`service.name`,
+  `service.version`, `deployment.environment`) so Grafana Tempo can group and filter traces
+- Configurable `OTEL_SERVICE_NAME` and `OTEL_SAMPLE_RATE` (`TraceIdRatioBased`) settings
+- `TracerProvider.shutdown()` called during app lifespan for graceful span flushing
+- Grafana Tempo service added to `docker-compose.yml` and `docker-compose.dev.yml`
+- Grafana Tempo datasource auto-provisioned with traces-to-logs correlation
+- Trace-log correlation: `trace_id` and `span_id` are now injected into every structlog
+  context via `RequestIDMiddleware`, enabling direct log-to-trace navigation in Grafana
+- Configurable `OTEL_SAMPLE_RATE` controls span sampling via `TraceIdRatioBased`
 
 ### Fixed
 

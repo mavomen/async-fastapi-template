@@ -8,9 +8,10 @@ from typing import TYPE_CHECKING
 from sqlalchemy import Boolean, Index, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from app.models.base import SoftDeleteMixin
 from app.models.role import user_roles
 from app.models.search import SearchMixin
-from app.models.tenant_base import TenantBaseModel  # association table import
+from app.models.tenant_base import TenantBaseModel
 
 if TYPE_CHECKING:
     from app.models.api_key import ApiKey
@@ -19,7 +20,7 @@ if TYPE_CHECKING:
     from app.models.role import Role
 
 
-class User(SearchMixin, TenantBaseModel):
+class User(SoftDeleteMixin, SearchMixin, TenantBaseModel):
     """User model with authentication fields."""
 
     __tablename__ = "users"

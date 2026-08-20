@@ -7,8 +7,60 @@ on:
     branches: [main, develop]
 
 jobs:
+  benchmark:
+    name: Performance Benchmark
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: fastapi_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-python-poetry
+      - name: Run migrations
+        env:
+          ENVIRONMENT: test
+          DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:5432/fastapi_test
+        run: poetry run alembic upgrade head
+      - name: Run benchmarks
+        env:
+          ENVIRONMENT: test
+          SECRET_KEY: ${{ secrets.TEST_SECRET_KEY || 'ci-test-key-minimum-32-characters!!' }}
+          DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:5432/fastapi_test
+          REDIS_URL: redis://localhost:6379/0
+        run: poetry run pytest benchmarks/ --benchmark-only --benchmark-json=benchmark.json --no-cov
+      - name: Compare with baseline
+        run: poetry run python scripts/compare_benchmarks.py benchmark.json
+      - name: Upload baseline artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-baseline
+          path: benchmarks/baseline.json
+
   test:
     name: Python ${{ matrix.python-version }}
+    needs: [benchmark]
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -74,54 +126,3 @@ jobs:
           echo "Python version: $(python --version)"
           echo "Poetry version: $(poetry --version)"
           echo "CI bootstrapped successfully"
-
-  benchmark:
-    name: Performance Benchmark
-    runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:16-alpine
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: fastapi_test
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
-      redis:
-        image: redis:7-alpine
-        ports:
-          - 6379:6379
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
-    steps:
-      - uses: actions/checkout@v4
-      - uses: ./.github/actions/setup-python-poetry
-      - name: Run migrations
-        env:
-          ENVIRONMENT: test
-          DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:5432/fastapi_test
-        run: poetry run alembic upgrade head
-      - name: Run benchmarks
-        env:
-          ENVIRONMENT: test
-          SECRET_KEY: ${{ secrets.TEST_SECRET_KEY || 'ci-test-key-minimum-32-characters!!' }}
-          DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:5432/fastapi_test
-          REDIS_URL: redis://localhost:6379/0
-        run: poetry run pytest benchmarks/ --benchmark-only --benchmark-json=benchmark.json --no-cov
-      - name: Compare with baseline
-        run: poetry run python scripts/compare_benchmarks.py benchmark.json
-      - name: Upload baseline artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: benchmark-baseline
-          path: benchmarks/baseline.json

@@ -117,7 +117,7 @@ async def update_webhook(
     "/{webhook_id}",
     status_code=status.HTTP_204_NO_CONTENT,
     summary="Delete webhook",
-    description="Delete a webhook and its delivery history.",
+    description="Delete (soft-delete) a webhook and its delivery history.",
 )
 async def delete_webhook(
     webhook_id: int,
@@ -127,6 +127,21 @@ async def delete_webhook(
     webhook_obj = await crud_webhook.get(db, id=webhook_id)
     _get_owned_webhook(webhook_obj, current_user)
     await crud_webhook.delete(db, id=webhook_id)
+
+
+@router.post(
+    "/{webhook_id}/restore",
+    response_model=WebhookResponse,
+    summary="Restore webhook",
+    description="Restore a soft-deleted webhook.",
+)
+async def restore_webhook(
+    webhook_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(PermissionChecker(["webhook:write"])),
+) -> Any:
+    webhook_obj = await crud_webhook.restore(db, id=webhook_id)
+    return _get_owned_webhook(webhook_obj, current_user)
 
 
 @router.post(

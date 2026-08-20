@@ -1,7 +1,7 @@
 """Application configuration management."""
 
 from functools import lru_cache
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -23,6 +23,11 @@ class Settings(BaseSettings):
     VERSION: str = "3.1.0"
     ENVIRONMENT: Literal["development", "staging", "production", "test"] = "development"
     API_V1_STR: str = "/api/v1"
+
+    # API versioning
+    API_V2_ENABLED: bool = False
+    API_DEPRECATED_SINCE: str = ""
+    API_DEPRECATED_SUNSET_DATE: str = "Sat, 01 Jan 2028 00:00:00 GMT"
 
     # Security
     SECRET_KEY: str = Field(..., min_length=32)
@@ -121,8 +126,20 @@ class Settings(BaseSettings):
     S3_REGION: str = "us-east-1"
     CDN_DOMAIN: str = ""
 
+    # Thumbnailing
+    THUMBNAIL_SIZES: dict[str, tuple[int, int]] = {
+        "small": (64, 64),
+        "medium": (256, 256),
+        "large": (512, 512),
+    }
+    THUMBNAIL_FORMAT: Literal["JPEG", "WEBP"] = "WEBP"
+    THUMBNAIL_QUALITY: int = 85
+    FILE_MAX_UPLOAD_SIZE_MB: int = 50
+
     # OpenTelemetry
     OTEL_EXPORTER_OTLP_ENDPOINT: str | None = None
+    OTEL_SERVICE_NAME: str = "fastapi-app"
+    OTEL_SAMPLE_RATE: float = Field(default=1.0, ge=0.0, le=1.0)
 
     FRONTEND_URL: str = "http://localhost:3000"
 
@@ -139,6 +156,16 @@ class Settings(BaseSettings):
     EVENT_BUS_BACKEND: Literal["redis", "kafka"] = "redis"
     EVENT_BUS_REDIS_URL: str | None = None
     EVENT_BUS_KAFKA_SERVERS: str = "localhost:9092"
+
+    # Alerting (external webhook URLs — leave empty to disable)
+    SLACK_WEBHOOK_URL: str = Field(
+        default="",
+        description="Slack incoming webhook URL for alert notifications",
+    )
+    PAGERDUTY_KEY: str = Field(
+        default="",
+        description="PagerDuty service integration key for critical alerts",
+    )
 
     # TOTP / 2FA
     TOTP_ISSUER_NAME: str = "FastAPI Async Template"
@@ -175,7 +202,7 @@ class Settings(BaseSettings):
     GITHUB_CLIENT_SECRET: str = ""
     GITLAB_CLIENT_ID: str = ""
     GITLAB_CLIENT_SECRET: str = ""
-    OAUTH_REDIRECT_URL: str = "http://localhost:8000/api/v1/auth/oauth/callback"
+    OAUTH_REDIRECT_URL: str = ""  # Derived from API_V1_STR if empty
     OAUTH_STATE_EXPIRE_SECONDS: int = 300
     OAUTH_AUTO_LINK: bool = True
 
@@ -222,7 +249,7 @@ class Settings(BaseSettings):
     )
 
     # Content Security Policy
-    CSP_REPORT_URI: str = "/api/v1/csp-report"
+    CSP_REPORT_URI: str = ""  # Derived from API_V1_STR if empty
     CSP_REPORT_ONLY: bool = False
     CSP_DEFAULT_SRC: str = "'self'"
     CSP_SCRIPT_SRC: str = "'self' 'unsafe-inline'"
@@ -231,6 +258,25 @@ class Settings(BaseSettings):
     CSP_CONNECT_SRC: str = "'self'"
     CSP_FRAME_ANCESTORS: str = "'none'"
     CSP_FORM_ACTION: str = "'self'"
+
+    # Soft-delete
+    SOFT_DELETE_PURGE_DAYS: int = Field(
+        default=90, ge=1, description="Days after which soft-deleted records are hard-purged"
+    )
+
+    @field_validator("OAUTH_REDIRECT_URL", "CSP_REPORT_URI", mode="before")
+    @classmethod
+    def _derive_v1_urls(cls, v: str, info: Any) -> str:
+        """Derive default URLs from API_V1_STR when left empty."""
+        if v:
+            return v
+        api_v1 = info.data.get("API_V1_STR", "/api/v1")
+        field_name = info.field_name
+        if field_name == "OAUTH_REDIRECT_URL":
+            return f"http://localhost:8000{api_v1}/auth/oauth/callback"
+        if field_name == "CSP_REPORT_URI":
+            return f"{api_v1}/csp-report"
+        return v
 
 
 settings = Settings()

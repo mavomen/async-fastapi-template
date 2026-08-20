@@ -19,12 +19,14 @@ from sqlalchemy.sql import Delete, Insert, Select, Update
 
 from app.core.config import settings
 from app.core.metrics import (
+    db_active_queries,
     db_connections_total,
     db_pool_active,
     db_pool_idle,
     db_pool_overflow,
     db_pool_saturation_ratio,
     db_pool_waiting,
+    db_query_duration_seconds,
     db_reader_connections_total,
 )
 from app.core.tenant import get_current_tenant
@@ -70,14 +72,18 @@ def _install_engine_listeners(engine: AsyncEngine, pool_label: str) -> None:
     ):
         conn.info["query_start_time"] = time.monotonic()
         query_count_var.set(query_count_var.get() + 1)
+        db_active_queries.inc()
 
     @event.listens_for(engine.sync_engine, "after_cursor_execute")
     def _after_cursor_execute(  # type: ignore[no-untyped-def]  # noqa: PLR0913
         conn, cursor, statement, parameters, context, executemany
     ):
         start = conn.info.pop("query_start_time", None)
+        db_active_queries.dec()
         if start is not None:
-            duration_ms = (time.monotonic() - start) * 1000
+            duration = time.monotonic() - start
+            db_query_duration_seconds.labels(pool=pool_label).observe(duration)
+            duration_ms = duration * 1000
             if duration_ms > getattr(settings, "SLOW_QUERY_THRESHOLD_MS", 500):
                 extra: dict[str, Any] = {
                     "duration_ms": round(duration_ms, 2),

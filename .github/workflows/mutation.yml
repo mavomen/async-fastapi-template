@@ -4,10 +4,15 @@ on:
   schedule:
     - cron: "0 3 * * 0"   # Every Sunday at 3:00 UTC
   workflow_dispatch:
+  pull_request:
+    paths:
+      - "app/**"
+      - "tests/**"
 
 jobs:
   mutation:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     services:
       postgres:
         image: postgres:16-alpine
@@ -31,9 +36,41 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-python-poetry
-      - name: Run mutation tests (subset to keep CI fast)
-        run: |
-          poetry run mutmut run --paths-to-mutate app/core/security.py app/crud/base.py app/auth/permissions.py --no-progress
+      - name: Run migration tests
+        run: poetry run pytest tests/test_migrations.py -v --no-cov
+      - name: Run mutation tests
+        run: poetry run mutmut run --no-progress
       - name: Show mutation results
         if: always()
         run: poetry run mutmut results
+      - name: Generate mutation badge
+        if: always()
+        run: |
+          RESULT=$(poetry run mutmut results 2>&1 || true)
+          KILLED=$(echo "$RESULT" | grep -oP 'killed \K\d+' || echo "0")
+          SURVIVED=$(echo "$RESULT" | grep -oP 'survived \K\d+' || echo "0")
+          TOTAL=$((KILLED + SURVIVED))
+          if [ "$TOTAL" -gt 0 ]; then
+            SCORE=$((KILLED * 100 / TOTAL))
+          else
+            SCORE=0
+          fi
+          COLOR="brightgreen"
+          if [ "$SCORE" -lt 80 ]; then COLOR="yellow"; fi
+          if [ "$SCORE" -lt 60 ]; then COLOR="red"; fi
+          cat > mutation-badge.json <<EOF
+          {
+            "schemaVersion": 1,
+            "label": "mutation score",
+            "message": "${SCORE}%",
+            "color": "${COLOR}"
+          }
+          EOF
+      - name: Upload mutation results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mutation-results-${{ github.run_id }}
+          path: |
+            .mutmut-cache
+            mutation-badge.json

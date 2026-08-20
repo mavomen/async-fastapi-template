@@ -40,6 +40,7 @@ typer = {extras = ["all"], version = "^0.25.1"}
 scalar-fastapi = "^1.8.2"
 pyotp = "^2.10.0"
 httpx = "^0.28.1"
+Pillow = "^11.0.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.4"
@@ -55,6 +56,12 @@ locust = "^2.43.4"
 schemathesis = ">=3,<4"
 hypothesis = "^6.152.4"
 syrupy = "^5.1.0"
+bandit = "^1.9.4"
+safety = "^3.8.1"
+mutmut = "^3.0.0"
+openapi-python-client = ">=0.25,<1.0"
+pytest-subtests = "^0.14.2"
+pytest-playwright = "^0.9.0"
 
 [build-system]
 requires = ["poetry-core"]
@@ -67,6 +74,10 @@ python_classes = ["Test*"]
 python_functions = ["test_*"]
 asyncio_mode = "auto"
 addopts = "--cov=app --cov-report=term-missing --cov-report=html --cov-fail-under=85"
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "e2e: marks end-to-end tests requiring a running server and browsers",
+]
 
 # ----- ruff (lint + format) -----
 [tool.ruff]
@@ -96,6 +107,8 @@ ignore = [
 "app/admin/__init__.py" = ["PLR0913"]
 "app/api/endpoints/auth.py" = ["PLR0913"]
 "app/crud/user.py" = ["PLR0913"]
+"app/api/endpoints/files.py" = ["PLR0913"]
+"app/crud/file.py" = ["PLR0913"]
 "app/events/kafka_bus.py" = ["SIM105", "B007"]
 "app/events/redis_streams.py" = ["SIM105", "B007"]
 
@@ -109,7 +122,7 @@ line-ending = "auto"
 [tool.mypy]
 python_version = "3.12"
 strict = true
-ignore_missing_imports = true
+ignore_missing_imports = false
 exclude = ["alembic/", "tests/"]
 plugins = ["pydantic.mypy"]
 
@@ -120,8 +133,22 @@ module = [
     "prometheus_fastapi_instrumentator.*", "pythonjsonlogger.*", "structlog.*",
     "sqlalchemy.*", "asyncpg.*", "orjson.*", "email_validator.*",
     "strawberry.*",
+    "kafka.*", "brotli.*", "boto3.*", "openpyxl.*",
+    "PIL.*", "PIL.Image",
+    "openapi_python_client.*",
 ]
 ignore_missing_imports = true
 
 [tool.syrupy]
 snapshot_dir = "tests/contract/__snapshots__"
+
+[tool.bandit]
+exclude_dirs = ["tests", "benchmarks"]
+skipped = ["B101"]
+
+# ----- mutmut (mutation testing) -----
+[tool.mutmut]
+paths_to_mutate = ["app/"]
+tests_dir = ["tests/"]
+runner = "poetry run pytest {test_file} -x --no-cov -q --timeout=30"
+timeout = 300

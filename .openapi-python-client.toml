@@ -1,0 +1,8 @@
+"""Configuration for openapi-python-client."""
+
+[tool.openapi_python_client]
+project_name = "async-fastapi-template-client"
+package_name = "async_fastapi_template_client"
+output_path = "sdk/python"
+openapi_path = "docs/openapi.json"
+path_style = "flat"

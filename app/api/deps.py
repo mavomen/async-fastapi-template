@@ -19,7 +19,7 @@ from app.storage.base import StorageBackend
 from app.storage.local import LocalStorage
 from app.storage.s3 import S3Storage
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl=f"{settings.API_V1_STR}/auth/login")
 oauth2_scheme_optional = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login", auto_error=False)
 api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
 

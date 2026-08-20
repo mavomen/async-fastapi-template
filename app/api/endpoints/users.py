@@ -23,7 +23,7 @@ from app.auth.permissions import PermissionChecker
 from app.core.security import get_password_hash
 from app.crud.user import user as crud_user
 from app.models.user import User
-from app.schemas.user import UserCreate, UserDetailResponse, UserUpdate
+from app.schemas.user import PurgeResponse, UserCreate, UserDetailResponse, UserUpdate
 from app.utils.export_csv import export_to_csv
 from app.utils.export_excel import export_to_excel
 from app.utils.pagination import CursorPage, CursorParams, decode_cursor
@@ -178,11 +178,74 @@ async def delete_user(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(PermissionChecker(["user:delete"])),
 ) -> Any:
-    """Delete a user (requires 'user:delete' permission)."""
+    """Delete (soft-delete) a user (requires 'user:delete' permission)."""
     user = await crud_user.delete(db, id=user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     return {"detail": "User deleted successfully"}
+
+
+@router.post(
+    "/{user_id}/restore",
+    response_model=UserDetailResponse,
+    summary="Restore a deleted user",
+    description="Restore a soft-deleted user. Requires `user:delete` permission.",
+    responses={
+        200: {"description": "User restored"},
+        401: {"description": "Not authenticated"},
+        403: {"description": "Not enough permissions"},
+        404: {"description": "Deleted user not found"},
+    },
+)
+async def restore_user(
+    user_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(PermissionChecker(["user:delete"])),
+) -> Any:
+    """Restore a soft-deleted user (requires 'user:delete' permission)."""
+    user = await crud_user.restore(db, id=user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="Deleted user not found")
+    return await crud_user.get_with_roles(db, id=user.id)
+
+
+@router.get(
+    "/trashed",
+    response_model=list[UserDetailResponse],
+    summary="List deleted users",
+    description="List soft-deleted users. Requires `user:read` permission.",
+)
+async def list_trashed_users(
+    cursor: str | None = Query(None, description="Cursor from previous page response"),
+    size: int = Query(50, ge=1, le=100, description="Page size"),
+    db: AsyncSession = Depends(get_read_db),
+    current_user: User = Depends(PermissionChecker(["user:read"])),
+) -> Any:
+    """List soft-deleted users (requires 'user:read' permission)."""
+    cursor_id = decode_cursor(cursor) if cursor else None
+    users, next_cursor = await crud_user.get_multi_cursor(
+        db, cursor=cursor_id, limit=size, include_deleted=True
+    )
+    return CursorPage.create(users, CursorParams(cursor=cursor, size=size))
+
+
+@router.post(
+    "/purge",
+    response_model=PurgeResponse,
+    summary="Purge old deleted users",
+    description="Hard-delete users that have been soft-deleted for more than N days. "
+    "Requires superuser permissions.",
+)
+async def purge_deleted_users(
+    older_than_days: int = Query(90, ge=1, description="Minimum age in days"),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(PermissionChecker(["user:delete"])),
+) -> Any:
+    """Hard-delete users soft-deleted more than N days ago (superuser only)."""
+    if not current_user.is_superuser:
+        raise HTTPException(status_code=403, detail="Superuser required")
+    count = await crud_user.purge(db, older_than_days=older_than_days)
+    return PurgeResponse(purged_count=count)
 
 
 @router.post(

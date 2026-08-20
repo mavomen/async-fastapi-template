@@ -33,7 +33,7 @@ CORS is configured via `ALLOWED_ORIGINS` settings. In production, restrict to yo
 
 ### Rate Limiting
 
-Rate limits (slowapi) protect against brute-force attacks.
+Rate limits (Redis sliding-window) protect against brute-force attacks.
 
 ## WebAuthn / Passkey Authentication
 

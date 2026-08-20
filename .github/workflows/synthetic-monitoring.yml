@@ -1,0 +1,161 @@
+name: Synthetic Monitoring
+
+on:
+  schedule:
+    # Monthly on the 1st at 06:00 UTC
+    - cron: "0 6 1 * *"
+  workflow_dispatch:
+    inputs:
+      scenario:
+        description: "k6 scenario to run (smoke or load)"
+        required: false
+        default: "smoke"
+        type: choice
+        options:
+          - smoke
+          - load
+
+jobs:
+  k6-smoke:
+    name: k6 Smoke Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Start application services
+        run: |
+          docker compose -f docker-compose.dev.yml up -d
+          echo "Waiting for services to be healthy..."
+          sleep 15
+
+      - name: Run k6 smoke test
+        uses: grafana/k6-action@v0.3.1
+        with:
+          filename: benchmarks/k6/smoke.js
+          out: json=benchmarks/k6/smoke-results.json
+        env:
+          BASE_URL: http://localhost:8000
+
+      - name: Compare k6 results against baseline
+        if: always()
+        run: |
+          if [ -f benchmarks/k6/smoke-results.json ]; then
+            python3 scripts/compare_k6_results.py \
+              benchmarks/k6/smoke-results.json \
+              --baseline benchmarks/k6/baseline.json \
+              --p95-budget 500
+          else
+            echo "No k6 results generated, skipping comparison."
+          fi
+
+      - name: Upload k6 results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: k6-smoke-results-${{ github.run_id }}
+          path: benchmarks/k6/smoke-results.json
+
+      - name: Stop services
+        if: always()
+        run: docker compose -f docker-compose.dev.yml down
+
+  k6-load:
+    name: k6 Load Test
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' || inputs.scenario == 'load'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Start application services
+        run: |
+          docker compose -f docker-compose.dev.yml up -d
+          echo "Waiting for services to be healthy..."
+          sleep 15
+
+      - name: Run k6 load test
+        uses: grafana/k6-action@v0.3.1
+        with:
+          filename: benchmarks/k6/load.js
+          out: json=benchmarks/k6/load-results.json
+        env:
+          BASE_URL: http://localhost:8000
+
+      - name: Compare k6 results against baseline
+        if: always()
+        run: |
+          if [ -f benchmarks/k6/load-results.json ]; then
+            python3 scripts/compare_k6_results.py \
+              benchmarks/k6/load-results.json \
+              --baseline benchmarks/k6/baseline.json \
+              --p95-budget 500
+          else
+            echo "No k6 results generated, skipping comparison."
+          fi
+
+      - name: Upload k6 results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: k6-load-results-${{ github.run_id }}
+          path: benchmarks/k6/load-results.json
+
+      - name: Stop services
+        if: always()
+        run: docker compose -f docker-compose.dev.yml down
+
+  benchmark-trend:
+    name: Benchmark Trend Report
+    runs-on: ubuntu-latest
+    needs: [k6-smoke]
+    if: github.event_name == 'schedule'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/setup-python-poetry
+
+      - name: Run benchmarks
+        services:
+          postgres:
+            image: postgres:16-alpine
+            env:
+              POSTGRES_USER: postgres
+              POSTGRES_PASSWORD: postgres
+              POSTGRES_DB: fastapi_test
+            ports:
+              - 5432:5432
+            options: >-
+              --health-cmd pg_isready
+              --health-interval 10s
+              --health-timeout 5s
+              --health-retries 5
+          redis:
+            image: redis:7-alpine
+            ports:
+              - 6379:6379
+            options: >-
+              --health-cmd "redis-cli ping"
+              --health-interval 10s
+              --health-timeout 5s
+              --health-retries 5
+        env:
+          ENVIRONMENT: test
+          SECRET_KEY: ci-test-key-minimum-32-characters!!
+          DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:5432/fastapi_test
+          REDIS_URL: redis://localhost:6379/0
+        run: |
+          poetry run pytest benchmarks/ \
+            --benchmark-only \
+            --benchmark-json=benchmark.json \
+            --no-cov
+
+      - name: Compare with baseline
+        run: poetry run python scripts/compare_benchmarks.py benchmark.json
+
+      - name: Upload benchmark artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: benchmark-report-${{ github.run_id }}
+          path: |
+            benchmark.json
+            benchmarks/baseline.json

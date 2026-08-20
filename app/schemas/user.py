@@ -59,6 +59,7 @@ class UserResponse(UserBase):
     is_verified: bool
     created_at: datetime
     updated_at: datetime
+    deleted_at: datetime | None = None
 
     model_config = ConfigDict(
         from_attributes=True,
@@ -95,3 +96,9 @@ class UserDetailResponse(UserResponse):
     is_superuser: bool = False
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class PurgeResponse(BaseModel):
+    """Response for the purge endpoint."""
+
+    purged_count: int

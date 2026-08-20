@@ -40,7 +40,7 @@
   "tags": ["fastapi", "async", "database"],
   "panels": [
     {
-      "title": "DB Connections",
+      "title": "DB Pool Connections",
       "type": "timeseries",
       "datasource": {
         "type": "prometheus",
@@ -49,6 +49,15 @@
       "targets": [
         {
           "expr": "db_connections_total",
+          "legendFormat": "Writer pool connections",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          }
+        },
+        {
+          "expr": "db_reader_connections_total",
+          "legendFormat": "Reader pool connections",
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
@@ -57,7 +66,7 @@
       ]
     },
     {
-      "title": "Active Queries",
+      "title": "Active SQL Queries",
       "type": "timeseries",
       "datasource": {
         "type": "prometheus",
@@ -66,6 +75,7 @@
       "targets": [
         {
           "expr": "db_active_queries",
+          "legendFormat": "Active queries",
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
@@ -80,9 +90,91 @@
         "type": "prometheus",
         "uid": "${DS_PROMETHEUS}"
       },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s"
+        },
+        "overrides": []
+      },
       "targets": [
         {
           "expr": "histogram_quantile(0.99, rate(db_query_duration_seconds_bucket[5m]))",
+          "legendFormat": "p99",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          }
+        },
+        {
+          "expr": "histogram_quantile(0.95, rate(db_query_duration_seconds_bucket[5m]))",
+          "legendFormat": "p95",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          }
+        },
+        {
+          "expr": "histogram_quantile(0.50, rate(db_query_duration_seconds_bucket[5m]))",
+          "legendFormat": "p50",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          }
+        }
+      ]
+    },
+    {
+      "title": "Pool Saturation",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "max": 1.0
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "expr": "db_pool_saturation_ratio",
+          "legendFormat": "{{ pool }}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          }
+        }
+      ]
+    },
+    {
+      "title": "Pool Active / Idle / Overflow",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "targets": [
+        {
+          "expr": "db_pool_active",
+          "legendFormat": "active {{ pool }}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          }
+        },
+        {
+          "expr": "db_pool_idle",
+          "legendFormat": "idle {{ pool }}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          }
+        },
+        {
+          "expr": "db_pool_overflow",
+          "legendFormat": "overflow {{ pool }}",
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"

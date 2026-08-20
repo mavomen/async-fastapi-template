@@ -24,7 +24,7 @@ A production‑ready, fully async FastAPI template with everything you need to b
 - **Outgoing webhooks** with HMAC signing, exponential-backoff retries, and delivery history
 - **Notification preferences** — per-user opt-in/opt-out for email, in-app, and webhook channels, with a persisted in-app inbox and WebSocket push
 - **Redis caching** with cache‑aside, warming, and invalidation
-- **Rate limiting** (per‑IP and per‑user) with slowapi
+- **Rate limiting** (per‑IP and per‑user) with Redis sliding-window
 - **Prometheus metrics** + **Grafana dashboards**
 - **Distributed tracing** with OpenTelemetry
 - **Email verification** with Jinja2 templates and Celery retry

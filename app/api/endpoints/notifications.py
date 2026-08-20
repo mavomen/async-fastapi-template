@@ -120,7 +120,7 @@ async def mark_all_read(
     "/{notification_id}",
     status_code=status.HTTP_204_NO_CONTENT,
     summary="Delete notification",
-    description="Delete a single in-app notification.",
+    description="Delete (soft-delete) a single in-app notification.",
 )
 async def delete_notification(
     notification_id: int,
@@ -132,6 +132,22 @@ async def delete_notification(
     )
     _get_owned_notification(notification_obj)
     await crud_notification.delete(db, id=notification_id)
+
+
+@router.post(
+    "/{notification_id}/restore",
+    response_model=NotificationResponse,
+    summary="Restore a deleted notification",
+    description="Restore a soft-deleted in-app notification.",
+)
+async def restore_notification(
+    notification_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> Any:
+    notification_obj = await crud_notification.restore(db, id=notification_id)
+    _get_owned_notification(notification_obj)
+    return notification_obj
 
 
 @router.post(

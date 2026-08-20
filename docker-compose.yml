@@ -120,6 +120,7 @@ services:
     container_name: fastapi_prometheus
     volumes:
       - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./monitoring/prometheus/rules:/etc/prometheus/rules
       - prometheus_data:/prometheus
     command:
       - "--config.file=/etc/prometheus/prometheus.yml"
@@ -145,12 +146,38 @@ services:
       - app-network
     restart: unless-stopped
 
+  tempo:
+    image: grafana/tempo:latest
+    container_name: fastapi_tempo
+    command: -config.file=/etc/tempo/tempo.yaml
+    volumes:
+      - ./monitoring/tempo/tempo.yaml:/etc/tempo/tempo.yaml
+      - tempo_data:/var/tempo
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  alertmanager:
+    image: prom/alertmanager:latest
+    container_name: fastapi_alertmanager
+    volumes:
+      - ./monitoring/alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml
+      - alertmanager_data:/alertmanager
+    command:
+      - "--config.file=/etc/alertmanager/alertmanager.yml"
+      - "--storage.path=/alertmanager"
+    networks:
+      - app-network
+    restart: unless-stopped
+
 volumes:
   postgres_data:
   postgres_replica_data:
   redis_data:
   prometheus_data:
   grafana_data:
+  tempo_data:
+  alertmanager_data:
 
 networks:
   app-network:

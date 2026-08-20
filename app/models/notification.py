@@ -8,13 +8,13 @@ from typing import TYPE_CHECKING
 from sqlalchemy import Boolean, ForeignKey, Index, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.models.base import BaseModel
+from app.models.base import BaseModel, SoftDeleteMixin
 
 if TYPE_CHECKING:
     from app.models.user import User
 
 
-class Notification(BaseModel):
+class Notification(SoftDeleteMixin, BaseModel):
     """A persisted in-app notification for a user's inbox."""
 
     __tablename__ = "notifications"
