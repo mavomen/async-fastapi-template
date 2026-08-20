@@ -151,7 +151,7 @@
 **`feat/cms-module`**
 - Markdown pages with version history and draft/publish workflow
 
-**`feat/file-thumbnailing`**
+**`feat/file-thumbnailing`** ✅
 - Automatic thumbnail generation for uploaded images
 
 **`feat/i18n`**

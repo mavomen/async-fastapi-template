@@ -18,6 +18,10 @@ class StorageBackend(ABC):
 
         return await self.upload(BytesIO(data), filename)
 
+    async def upload_bytes_with_prefix(self, prefix: str, data: bytes, filename: str) -> str:
+        """Store raw bytes under a path prefix (e.g. thumbnails/)."""
+        return await self.upload_bytes(data, f"{prefix}/{filename}")
+
     @abstractmethod
     async def download(self, path: str) -> bytes:
         """Retrieve file contents by path."""
