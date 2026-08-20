@@ -1,7 +1,7 @@
 """Application configuration management."""
 
 from functools import lru_cache
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -23,6 +23,11 @@ class Settings(BaseSettings):
     VERSION: str = "3.1.0"
     ENVIRONMENT: Literal["development", "staging", "production", "test"] = "development"
     API_V1_STR: str = "/api/v1"
+
+    # API versioning
+    API_V2_ENABLED: bool = False
+    API_DEPRECATED_SINCE: str = ""
+    API_DEPRECATED_SUNSET_DATE: str = "Sat, 01 Jan 2028 00:00:00 GMT"
 
     # Security
     SECRET_KEY: str = Field(..., min_length=32)
@@ -197,7 +202,7 @@ class Settings(BaseSettings):
     GITHUB_CLIENT_SECRET: str = ""
     GITLAB_CLIENT_ID: str = ""
     GITLAB_CLIENT_SECRET: str = ""
-    OAUTH_REDIRECT_URL: str = "http://localhost:8000/api/v1/auth/oauth/callback"
+    OAUTH_REDIRECT_URL: str = ""  # Derived from API_V1_STR if empty
     OAUTH_STATE_EXPIRE_SECONDS: int = 300
     OAUTH_AUTO_LINK: bool = True
 
@@ -244,7 +249,7 @@ class Settings(BaseSettings):
     )
 
     # Content Security Policy
-    CSP_REPORT_URI: str = "/api/v1/csp-report"
+    CSP_REPORT_URI: str = ""  # Derived from API_V1_STR if empty
     CSP_REPORT_ONLY: bool = False
     CSP_DEFAULT_SRC: str = "'self'"
     CSP_SCRIPT_SRC: str = "'self' 'unsafe-inline'"
@@ -258,6 +263,20 @@ class Settings(BaseSettings):
     SOFT_DELETE_PURGE_DAYS: int = Field(
         default=90, ge=1, description="Days after which soft-deleted records are hard-purged"
     )
+
+    @field_validator("OAUTH_REDIRECT_URL", "CSP_REPORT_URI", mode="before")
+    @classmethod
+    def _derive_v1_urls(cls, v: str, info: Any) -> str:
+        """Derive default URLs from API_V1_STR when left empty."""
+        if v:
+            return v
+        api_v1 = info.data.get("API_V1_STR", "/api/v1")
+        field_name = info.field_name
+        if field_name == "OAUTH_REDIRECT_URL":
+            return f"http://localhost:8000{api_v1}/auth/oauth/callback"
+        if field_name == "CSP_REPORT_URI":
+            return f"{api_v1}/csp-report"
+        return v
 
 
 settings = Settings()

@@ -218,5 +218,17 @@ def mutation(
         subprocess.run(["poetry", "run", "mutmut", "results"], check=False)
 
 
+@app.command()
+def update_baseline() -> None:
+    """Regenerate the OpenAPI baseline snapshot for breaking-change detection."""
+    subprocess.run(["poetry", "run", "python", "scripts/update_openapi_baseline.py"], check=True)
+
+
+@app.command()
+def check_breaking() -> None:
+    """Check current OpenAPI schema against baseline for breaking changes."""
+    subprocess.run(["poetry", "run", "python", "scripts/check_api_breaking.py"], check=False)
+
+
 if __name__ == "__main__":
     app()

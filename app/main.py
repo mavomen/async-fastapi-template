@@ -24,6 +24,7 @@ from app.core.logging import setup_logging
 from app.core.tracing import setup_tracing
 from app.gql import router as gql_playground_router
 from app.gql.schema import schema
+from app.middleware.api_versioning import APIVersioningMiddleware
 from app.middleware.compression import CompressionMiddleware
 from app.middleware.correlation import CorrelationIDMiddleware
 from app.middleware.csrf import CSRFTokenMiddleware
@@ -205,6 +206,9 @@ def create_app() -> FastAPI:
     app.add_middleware(CSRFTokenMiddleware)
     app.add_middleware(SQLInjectionMonitorMiddleware)
 
+    # API versioning middleware (adds X-API-Version header)
+    app.add_middleware(APIVersioningMiddleware)
+
     # Tenant resolution middleware (after security, before CORS)
     app.add_middleware(TenantMiddleware)
 
@@ -226,6 +230,15 @@ def create_app() -> FastAPI:
     app.include_router(profile_router, prefix="/profile", tags=["profile"])
     app.include_router(api_router, prefix=settings.API_V1_STR)
     app.include_router(websocket_router)
+
+    # API v2 router (opt-in via API_V2_ENABLED)
+    if settings.API_V2_ENABLED:
+        from app.api.v2 import api_v2_router
+
+        app.include_router(api_v2_router, prefix="/api/v2", tags=["v2"])
+        app.title = f"{settings.PROJECT_NAME} (v1+v2)"
+    else:
+        app.title = f"{settings.PROJECT_NAME} (v1)"
     app.include_router(gql_playground_router, prefix="/gql", tags=["graphql"])
 
     # Scalar API reference (modern, dark-mode capable)
