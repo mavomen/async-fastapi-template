@@ -169,9 +169,16 @@
 
 ## ☸️ Infrastructure & Deployment
 
-**`ops/k8s-autoscaling`**
-- Horizontal Pod Autoscaler based on request concurrency and CPU/memory
-- Graceful shutdown handling for preemptible / spot instances
+**`ops/k8s-autoscaling`** ✅
+- Horizontal Pod Autoscaler with scale-down stabilization window
+- Graceful shutdown: preStop sleep 5, terminationGracePeriodSeconds 45, in-flight drain flag
+- Canonical /healthz (liveness) + /readyz (readiness) probes; startupProbe for slow starts
+- RollingUpdate strategy (maxSurge 1, maxUnavailable 0) — zero-downtime deploys
+- Network policy: DNS egress (port 53) added
+- Dockerfiles: HEALTHCHECK /healthz + --timeout-graceful-shutdown 30
+- Helm chart v0.2.0: HPA, PDB, ConfigMap/Secret templates, resources, TLS ingress
+- Secrets template uses Helm placeholders — no plaintext credentials
+- 29 tests (probe endpoints, drain flag, YAML structure, Helm templates)
 
 **`ops/k8s-operator`**
 - Kubernetes operator to manage the app stack via CRDs

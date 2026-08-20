@@ -25,3 +25,11 @@ spec:
       ports:
         - port: 5432
         - port: 6379
+    # Allow DNS resolution
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - port: 53
+          protocol: UDP
+        - port: 53
+          protocol: TCP
