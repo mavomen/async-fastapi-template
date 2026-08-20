@@ -5,6 +5,7 @@ from fastapi import APIRouter
 from app.api.endpoints import (
     api_keys,
     auth,
+    cms,
     csp,
     events,
     files,
@@ -31,3 +32,4 @@ api_router.include_router(tenant_ip_rules.router, tags=["ip-rules"])
 api_router.include_router(events.router, prefix="/events", tags=["events"])
 api_router.include_router(webhooks.router, prefix="/webhooks", tags=["webhooks"])
 api_router.include_router(notifications.router, prefix="/notifications", tags=["notifications"])
+api_router.include_router(cms.router, prefix="/cms", tags=["cms"])
