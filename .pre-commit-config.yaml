@@ -36,6 +36,12 @@ repos:
     hooks:
       - id: pip-audit
         args: [--require-hashes=false]
+  - repo: https://github.com/PyCQA/bandit
+    rev: 1.9.4
+    hooks:
+      - id: bandit
+        args: ['-c', 'pyproject.toml', '-r', 'app/']
+        pass_filenames: false
   - repo: https://github.com/Yelp/detect-secrets
     rev: v1.5.0
     hooks:

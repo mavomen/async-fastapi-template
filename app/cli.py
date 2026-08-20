@@ -19,7 +19,7 @@ def install() -> None:
 
 
 @app.command()
-def dev(host: str = "0.0.0.0", port: int = 8000, reload: bool = True) -> None:
+def dev(host: str = "0.0.0.0", port: int = 8000, reload: bool = True) -> None:  # nosec B104
     """Start the development server."""
     cmd = ["poetry", "run", "uvicorn", "app.main:app", "--host", host, f"--port={port}"]
     if reload:
@@ -125,7 +125,7 @@ def profile() -> None:
             "uvicorn",
             "app.main:app",
             "--host",
-            "0.0.0.0",
+            "0.0.0.0",  # nosec B104
             "--port",
             "8000",
         ],

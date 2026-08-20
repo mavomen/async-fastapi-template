@@ -6,7 +6,7 @@ from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
-from jinja2 import Environment, FileSystemLoader
+from jinja2 import Environment, FileSystemLoader, select_autoescape
 from sqlalchemy import Boolean, Integer, inspect, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -115,7 +115,10 @@ register_admin(
 
 # ---------- Templates ----------
 TEMPLATES_DIR = Path(__file__).parent / "templates"
-env = Environment(loader=FileSystemLoader(str(TEMPLATES_DIR)))
+env = Environment(
+    loader=FileSystemLoader(str(TEMPLATES_DIR)),
+    autoescape=select_autoescape(["html"]),
+)
 
 
 def render(template_name: str, **kwargs: Any) -> str:

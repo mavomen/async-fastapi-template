@@ -4,7 +4,7 @@ import logging
 from pathlib import Path
 from typing import Any
 
-from jinja2 import Environment, FileSystemLoader
+from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from app.core.celery_app import celery_app
 from app.core.config import settings
@@ -12,7 +12,10 @@ from app.core.config import settings
 logger = logging.getLogger("app.email")
 
 TEMPLATES_DIR = Path(__file__).resolve().parent.parent / "templates" / "email"
-env = Environment(loader=FileSystemLoader(str(TEMPLATES_DIR)))
+env = Environment(
+    loader=FileSystemLoader(str(TEMPLATES_DIR)),
+    autoescape=select_autoescape(["html"]),
+)
 
 
 class EmailService:

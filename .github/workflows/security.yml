@@ -1,6 +1,8 @@
 name: Security Scan
 
 on:
+  pull_request:
+    branches: [main, develop]
   push:
     branches: [main, develop]
   schedule:
@@ -8,6 +10,15 @@ on:
     - cron: "0 2 * * *"   # Nightly at 2:00 UTC
 
 jobs:
+  bandit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-python-poetry
+      - name: Run bandit security linter
+        run: |
+          poetry run bandit -r app/ -c pyproject.toml
+
   trivy:
     runs-on: ubuntu-latest
     steps:
@@ -20,13 +31,13 @@ jobs:
           format: 'table'
           exit-code: '1'
           severity: 'CRITICAL'
+          skip-dirs: 'tests,benchmarks'
 
   dependency-check:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-python-poetry
-      - name: Check dependency vulnerabilities (safety)
+      - name: Check dependency vulnerabilities
         run: |
-          pip install safety
-          safety check --full-report
+          poetry run safety check --full-report

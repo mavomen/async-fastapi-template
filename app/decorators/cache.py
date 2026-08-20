@@ -74,4 +74,4 @@ def cached(ttl: int = 60, key_prefix: str = "") -> Callable[..., Any]:
 def _build_cache_key(prefix: str, request: Request) -> str:
     """Construct a deterministic cache key from request path and query params."""
     raw = f"{prefix}:{request.url.path}:{request.query_params}"
-    return hashlib.md5(raw.encode()).hexdigest()
+    return hashlib.md5(raw.encode(), usedforsecurity=False).hexdigest()

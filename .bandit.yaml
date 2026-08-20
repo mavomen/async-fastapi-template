@@ -1,0 +1,3 @@
+[bandit]
+exclude = tests/,benchmarks/
+skipped = B101

@@ -5,7 +5,7 @@ from typing import Any
 
 from fastapi import APIRouter, Depends, File, Form, Request, UploadFile
 from fastapi.responses import HTMLResponse, Response
-from jinja2 import Environment, FileSystemLoader
+from jinja2 import Environment, FileSystemLoader, select_autoescape
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_user, get_db
@@ -16,7 +16,10 @@ from app.schemas.user import UserUpdate
 router = APIRouter()
 
 TEMPLATES_DIR = Path(__file__).parent.parent / "admin" / "templates"
-env = Environment(loader=FileSystemLoader(str(TEMPLATES_DIR)))
+env = Environment(
+    loader=FileSystemLoader(str(TEMPLATES_DIR)),
+    autoescape=select_autoescape(["html"]),
+)
 
 
 @router.get("/", response_class=HTMLResponse)
