@@ -19,15 +19,16 @@ def _generate_thumbnail_bytes(
     from PIL import Image
 
     img = Image.open(BytesIO(image_bytes))
-    img.thumbnail(size, Image.LANCZOS)
-    if fmt.upper() in ("JPEG", "JPG") and img.mode in ("RGBA", "P"):
-        img = img.convert("RGB")
+    thumb = img.copy()
+    thumb.thumbnail(size, Image.Resampling.LANCZOS)
+    if fmt.upper() in ("JPEG", "JPG") and thumb.mode in ("RGBA", "P"):
+        thumb = thumb.convert("RGB")
     buf = BytesIO()
     save_kwargs: dict[str, Any] = {"format": fmt}
     if fmt.upper() in ("JPEG", "WEBP", "PNG"):
         save_kwargs["quality"] = quality
         save_kwargs["optimize"] = True
-    img.save(buf, **save_kwargs)
+    thumb.save(buf, **save_kwargs)
     return buf.getvalue()
 
 

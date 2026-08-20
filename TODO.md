@@ -212,7 +212,7 @@
 **`dx/openapi-sdk-generation`**
 - Auto-publish typed client SDKs for Python and TypeScript from the OpenAPI schema
 
-**`dx/api-versioning`**
+**`dx/api-versioning`** ✅
 - Formal `Accept: application/vnd.app.v2+json` header strategy
 - Auto-detect breaking OpenAPI changes in CI and post a diff on PRs
 

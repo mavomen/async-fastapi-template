@@ -1,0 +1,63 @@
+name: API Compatibility Check
+
+on:
+  pull_request:
+    branches: [develop, main]
+    paths:
+      - "app/api/**"
+      - "app/schemas/**"
+      - "app/main.py"
+      - "openapi-baseline.json"
+
+jobs:
+  breaking-check:
+    name: Breaking Change Detection
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install oasdiff
+        run: pip install oasdiff
+
+      - name: Run breaking change check
+        run: |
+          if [ ! -f openapi-baseline.json ]; then
+            echo "No baseline found — skipping check."
+            exit 0
+          fi
+          # Generate current schema from app
+          python -c "
+          import json, sys
+          sys.path.insert(0, '.')
+          import os; os.environ.setdefault('ENVIRONMENT', 'test')
+          os.environ.setdefault('SECRET_KEY', 'test-secret-key-min-32-characters-long')
+          from app.main import app
+          from fastapi.testclient import TestClient
+          with TestClient(app) as c:
+              schema = c.get('/openapi.json').json()
+              with open('openapi-current.json', 'w') as f:
+                  json.dump(schema, f)
+          "
+          oasdiff breaking openapi-baseline.json openapi-current.json --fail-on ERR
+
+      - name: Post diff on PR
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            let output = '## API Breaking Changes Detected\n\n';
+            output += 'This PR introduces breaking changes to the API schema.\n';
+            output += 'Please review and update `openapi-baseline.json` if intentional.\n';
+            output += 'Run `poetry run python scripts/update_openapi_baseline.py` to regenerate.\n';
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: output,
+            });

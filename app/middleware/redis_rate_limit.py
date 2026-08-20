@@ -19,11 +19,11 @@ from app.core.rate_limiter import limiter
 
 UNLIMITED_PATHS = {"/healthz", "/readyz", "/metrics"}
 SENSITIVE_PREFIXES = {
-    "/api/v1/auth/login",
-    "/api/v1/auth/register",
-    "/api/v1/auth/oauth",
-    "/api/v1/auth/totp",
-    "/api/v1/auth/magic-link",
+    f"{settings.API_V1_STR}/auth/login",
+    f"{settings.API_V1_STR}/auth/register",
+    f"{settings.API_V1_STR}/auth/oauth",
+    f"{settings.API_V1_STR}/auth/totp",
+    f"{settings.API_V1_STR}/auth/magic-link",
 }
 ADMIN_PREFIX = "/admin"
 
