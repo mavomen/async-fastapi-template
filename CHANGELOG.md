@@ -52,6 +52,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `TracerProvider.shutdown()` called during app lifespan for graceful span flushing
 - Grafana Tempo service added to `docker-compose.yml` and `docker-compose.dev.yml`
 - Grafana Tempo datasource auto-provisioned with traces-to-logs correlation
+- Trace-log correlation: `trace_id` and `span_id` are now injected into every structlog
+  context via `RequestIDMiddleware`, enabling direct log-to-trace navigation in Grafana
+- Configurable `OTEL_SAMPLE_RATE` controls span sampling via `TraceIdRatioBased`
 
 ### Fixed
 

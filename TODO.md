@@ -128,7 +128,7 @@
 - k6 scenario suite with CI pass/fail thresholds
 - Monthly CI job that publishes latency trend reports
 
-**`obs/log-sampling`**
+**`obs/log-sampling`** ✅
 - Adaptive sampling for high-throughput endpoints
 - Full capture retained for errors
 
