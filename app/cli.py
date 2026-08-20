@@ -205,5 +205,18 @@ def setup() -> None:
     migrate()
 
 
+@app.command()
+def mutation(
+    paths: str = typer.Option("app/", help="Comma-separated paths to mutate"),
+    show_results: bool = typer.Option(True, "--results/--no-results"),
+) -> None:
+    """Run mutmut mutation testing locally."""
+    path_list = [p.strip() for p in paths.split(",")]
+    cmd = ["poetry", "run", "mutmut", "run", "--no-progress"] + path_list
+    subprocess.run(cmd, check=False)
+    if show_results:
+        subprocess.run(["poetry", "run", "mutmut", "results"], check=False)
+
+
 if __name__ == "__main__":
     app()

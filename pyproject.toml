@@ -57,6 +57,7 @@ hypothesis = "^6.152.4"
 syrupy = "^5.1.0"
 bandit = "^1.9.4"
 safety = "^3.8.1"
+mutmut = "^3.0.0"
 
 [build-system]
 requires = ["poetry-core"]
@@ -69,6 +70,9 @@ python_classes = ["Test*"]
 python_functions = ["test_*"]
 asyncio_mode = "auto"
 addopts = "--cov=app --cov-report=term-missing --cov-report=html --cov-fail-under=85"
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+]
 
 # ----- ruff (lint + format) -----
 [tool.ruff]
@@ -132,3 +136,10 @@ snapshot_dir = "tests/contract/__snapshots__"
 [tool.bandit]
 exclude_dirs = ["tests", "benchmarks"]
 skipped = ["B101"]
+
+# ----- mutmut (mutation testing) -----
+[tool.mutmut]
+paths_to_mutate = ["app/"]
+tests_dir = ["tests/"]
+runner = "poetry run pytest {test_file} -x --no-cov -q --timeout=30"
+timeout = 300
