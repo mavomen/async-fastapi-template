@@ -1,6 +1,7 @@
 """HTMX Admin Dashboard - auto-discovery of SQLAlchemy models."""
 
 import logging
+import os
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
@@ -116,9 +117,11 @@ register_admin(
 
 # ---------- Templates ----------
 TEMPLATES_DIR = Path(__file__).parent / "templates"
+_auto_reload = os.environ.get("ENVIRONMENT", "production") == "development"
 env = Environment(
     loader=FileSystemLoader(str(TEMPLATES_DIR)),
     autoescape=select_autoescape(["html"]),
+    auto_reload=_auto_reload,
 )
 
 
