@@ -235,7 +235,7 @@
 - k6 regression suite compared against a stored baseline
 - Block deploys if SLO error budget is exhausted
 
-**`test/mutation-coverage`**
+**`test/mutation-coverage`** ✅
 - Expand mutmut mutation testing scope
 - Publish test coverage badge to README via CI
 - Migration smoke tests against a throwaway DB in CI
