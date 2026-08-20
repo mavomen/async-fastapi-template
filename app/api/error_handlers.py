@@ -20,7 +20,7 @@ def configure_exception_handlers(app: FastAPI) -> None:
     async def app_exception_handler(request: Request, exc: AppException) -> ORJSONResponse:
         return ORJSONResponse(
             status_code=exc.status_code,
-            content={"detail": exc.detail},
+            content={"detail": exc.detail, "error_code": exc.error_code},
         )
 
     @app.exception_handler(StarletteHTTPException)
@@ -29,7 +29,7 @@ def configure_exception_handlers(app: FastAPI) -> None:
     ) -> ORJSONResponse:
         return ORJSONResponse(
             status_code=exc.status_code,
-            content={"detail": exc.detail},
+            content={"detail": exc.detail, "error_code": "HTTP_ERROR"},
         )
 
     @app.exception_handler(RequestValidationError)
@@ -51,6 +51,7 @@ def configure_exception_handlers(app: FastAPI) -> None:
             status_code=422,
             content={
                 "detail": "Validation error",
+                "error_code": "VALIDATION_ERROR",
                 "errors": simplified,
             },
         )
@@ -61,5 +62,5 @@ def configure_exception_handlers(app: FastAPI) -> None:
         logger.exception("Unhandled exception: %s", exc)
         return ORJSONResponse(
             status_code=500,
-            content={"detail": "Internal server error"},
+            content={"detail": "Internal server error", "error_code": "INTERNAL_ERROR"},
         )

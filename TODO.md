@@ -132,7 +132,7 @@
 - Adaptive sampling for high-throughput endpoints
 - Full capture retained for errors
 
-**`obs/error-catalog`**
+**`obs/error-catalog`** ✅
 - Unique error codes in responses with links to internal playbooks
 
 ---

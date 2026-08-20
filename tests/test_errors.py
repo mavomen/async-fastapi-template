@@ -7,6 +7,7 @@ def test_404_route(client: TestClient):
     response = client.get("/api/v1/nonexistent")
     assert response.status_code == 404
     assert "detail" in response.json()
+    assert response.json()["error_code"] == "HTTP_ERROR"
 
 
 def test_validation_error(client: TestClient):
@@ -15,6 +16,7 @@ def test_validation_error(client: TestClient):
     assert response.status_code == 422
     data = response.json()
     assert data["detail"] == "Validation error"
+    assert data["error_code"] == "VALIDATION_ERROR"
     assert "errors" in data
     assert isinstance(data["errors"], list)
     err = data["errors"][0]

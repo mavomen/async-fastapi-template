@@ -40,6 +40,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - MinIO service in `docker-compose.dev.yml` for local S3-compatible backup testing
 - Weekly CI restore-drill workflow (`.github/workflows/backup-restore-drill.yml`)
 - Pre-commit hooks: `poetry check --lock`, `pip-audit`, `detect-secrets` with baseline
+- Error catalog: all API error responses now include an `error_code` field
+  (`NOT_FOUND`, `BAD_REQUEST`, `UNAUTHORIZED`, `FORBIDDEN`, `RATE_LIMITED`, `CONFLICT`,
+  `LOCKED_OUT`, `INTERNAL_ERROR`, `VALIDATION_ERROR`, `HTTP_ERROR`)
+- New `RateLimitException` (HTTP 429) for explicit rate-limit error responses
 
 ### Fixed
 
