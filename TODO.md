@@ -234,8 +234,13 @@
 
 ## 🧪 Testing & Quality Gates
 
-**`test/e2e-playwright`**
+**`test/e2e-playwright`** ✅
 - Full admin dashboard flows via Playwright in CI
+- JWT auth injection via page.route() header manipulation (no login form)
+- Tests: dashboard load, user list/search/detail/pagination, role list, trashed list, sessions, profile
+- Auto-started dev server via multiprocessing (session-scoped), 30s timeout
+- CI workflow with Docker services, migrations, seed, Chromium install
+- 14 tests, excluded from default pytest run (-m e2e required)
 
 **`test/fuzz-and-contract`**
 - schemathesis fuzz testing against staging
