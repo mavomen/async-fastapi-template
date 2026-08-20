@@ -230,5 +230,19 @@ def check_breaking() -> None:
     subprocess.run(["poetry", "run", "python", "scripts/check_api_breaking.py"], check=False)
 
 
+@app.command(name="generate-sdks")
+def generate_sdks(
+    python_only: bool = typer.Option(False, "--python", help="Generate Python SDK only"),
+    ts_only: bool = typer.Option(False, "--ts", help="Generate TypeScript SDK only"),
+) -> None:
+    """Generate typed client SDKs from the OpenAPI schema."""
+    cmd = ["poetry", "run", "python", "scripts/generate_sdks.py"]
+    if python_only:
+        cmd.append("--python")
+    elif ts_only:
+        cmd.append("--ts")
+    subprocess.run(cmd, check=True)
+
+
 if __name__ == "__main__":
     app()

@@ -216,8 +216,12 @@
 **`dx/pre-commit-expansion`** ✅
 - Add `poetry check`, `pip-audit`, and `detect-secrets` hooks
 
-**`dx/openapi-sdk-generation`**
+**`dx/openapi-sdk-generation`** ✅
 - Auto-publish typed client SDKs for Python and TypeScript from the OpenAPI schema
+- Python SDK via openapi-python-client (>=0.25), TypeScript via openapi-typescript (npx)
+- `generate-sdks` CLI command (--python, --ts flags), release-triggered CI workflow
+- .gitignore keeps generated output out of VCS; .gitkeep preserves directories
+- 13 tests
 
 **`dx/api-versioning`** ✅
 - Formal `Accept: application/vnd.app.v2+json` header strategy

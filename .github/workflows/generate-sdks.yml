@@ -1,0 +1,39 @@
+name: Generate SDKs
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install Poetry
+        run: pipx install poetry==1.8.2
+
+      - name: Install dependencies
+        run: poetry install --only main --no-interaction
+
+      - name: Generate SDKs
+        run: poetry run python scripts/generate_sdks.py
+
+      - name: Commit SDK changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add sdk/
+          git diff --staged --quiet || git commit -m "chore(ci): regenerate SDKs from OpenAPI schema"
+          git push
