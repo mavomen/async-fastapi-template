@@ -35,6 +35,7 @@ class WebhookResponse(BaseModel):
     failure_count: int
     created_at: datetime
     updated_at: datetime
+    deleted_at: datetime | None = None
 
     model_config = ConfigDict(from_attributes=True)
 

@@ -162,7 +162,7 @@
 - Persisted in-app inbox with list/mark-read/mark-all-read/delete endpoints and WebSocket push
 - Channel gating in the event-bus dispatcher, including actor-level webhook suppression
 
-**`feat/soft-delete`**
+**`feat/soft-delete`** ✅
 - Soft-delete pattern with restore endpoint and configurable auto-purge
 
 ---

@@ -45,3 +45,19 @@ class BaseModel(Base, TimestampMixin):
             Dictionary representation of model
         """
         return {column.name: getattr(self, column.name) for column in self.__table__.columns}
+
+
+class SoftDeleteMixin:
+    """Mixin that adds a deleted_at timestamp for soft-delete support.
+
+    Tables with this mixin automatically filter out soft-deleted rows
+    via the engine-level ``_add_soft_delete_filter`` listener in
+    ``app/core/database.py``.
+    """
+
+    deleted_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+        default=None,
+        index=True,
+    )
