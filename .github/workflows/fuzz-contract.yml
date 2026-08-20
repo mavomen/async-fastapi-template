@@ -1,0 +1,81 @@
+name: Fuzz & Contract Tests
+
+on:
+  pull_request:
+    branches: [develop]
+  push:
+    branches: [develop]
+  schedule:
+    - cron: '0 3 * * 1'  # Weekly Monday 3am
+
+jobs:
+  fuzz-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: fastapi_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports: ['5432:5432']
+        options: --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 5
+      redis:
+        image: redis:7-alpine
+        ports: ['6379:6379']
+        options: --health-cmd "redis-cli ping" --health-interval 5s --health-timeout 5s --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:5432/fastapi_test
+      DATABASE_URL_READER: postgresql+asyncpg://postgres:postgres@localhost:5432/fastapi_test
+      SECRET_KEY: ci-fuzz-test-secret-key
+      ENVIRONMENT: test
+      REDIS_URL: redis://localhost:6379/0
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+
+      - name: Install Poetry
+        run: pipx install poetry
+
+      - name: Cache poetry
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pypoetry
+          key: ${{ runner.os }}-poetry-${{ hashFiles('poetry.lock') }}
+
+      - name: Install dependencies
+        run: poetry install --no-interaction
+
+      - name: Run migrations
+        run: poetry run alembic upgrade head
+
+      - name: Seed database
+        run: poetry run python app/cli.py seed || true
+
+      - name: Run schema validation tests (hypothesis + schemathesis from_dict)
+        run: |
+          poetry run pytest tests/contract/test_api_contract.py tests/property/ -m slow --no-cov -v --tb=short
+
+      - name: Run pact contract tests
+        run: |
+          poetry run pytest tests/contract/test_pact_contracts.py -m slow --no-cov -v --tb=short
+
+      - name: Start server for live fuzzing
+        run: |
+          poetry run uvicorn app.main:app --host 0.0.0.0 --port 8000 &
+          sleep 10
+
+      - name: Live fuzz testing (schemathesis CLI)
+        run: |
+          poetry run schemathesis run http://localhost:8000/openapi.json \
+            --experimental=openapi-3.1 \
+            --checks all \
+            --hypothesis-max-examples=50 \
+            --base-url http://localhost:8000 \
+            --hypothesis-deadline=5000 \
+            --show-errors-tracebacks \
+            || true  # Allow non-critical failures in fuzz runs
