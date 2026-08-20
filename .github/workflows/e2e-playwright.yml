@@ -1,0 +1,44 @@
+name: E2E Tests (Playwright)
+
+on:
+  pull_request:
+    branches: [develop, main]
+  workflow_dispatch:
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Poetry
+        run: pipx install poetry==1.8.2
+
+      - name: Install dependencies
+        run: poetry install --no-interaction
+
+      - name: Install Playwright browsers
+        run: poetry run playwright install chromium --with-deps
+
+      - name: Start services
+        run: docker compose -f docker-compose.dev.yml up -d db redis
+
+      - name: Run migrations
+        run: poetry run alembic upgrade head
+
+      - name: Seed database
+        run: poetry run python scripts/seed.py
+
+      - name: Run E2E tests
+        run: poetry run pytest -m e2e --no-cov -v
+
+      - name: Upload screenshots on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-screenshots
+          path: test-results/
