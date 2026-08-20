@@ -63,6 +63,9 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     yield
     # Shutdown: only close in non-test environments
     if settings.ENVIRONMENT != "test":
+        from app.core.tracing import shutdown_tracing
+
+        shutdown_tracing()
         await sessionmanager.close()
         await cache.disconnect()
         await http_client.disconnect()

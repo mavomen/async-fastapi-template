@@ -145,12 +145,24 @@ services:
       - app-network
     restart: unless-stopped
 
+  tempo:
+    image: grafana/tempo:latest
+    container_name: fastapi_tempo
+    command: -config.file=/etc/tempo/tempo.yaml
+    volumes:
+      - ./monitoring/tempo/tempo.yaml:/etc/tempo/tempo.yaml
+      - tempo_data:/var/tempo
+    networks:
+      - app-network
+    restart: unless-stopped
+
 volumes:
   postgres_data:
   postgres_replica_data:
   redis_data:
   prometheus_data:
   grafana_data:
+  tempo_data:
 
 networks:
   app-network:

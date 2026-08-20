@@ -46,6 +46,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - New `RateLimitException` (HTTP 429) for explicit rate-limit error responses
 - Mypy strict mode tightened: removed blanket `ignore_missing_imports = true`; only
   untyped libraries (`kafka`, `brotli`, `boto3`, `openpyxl`) retain per-module overrides
+- OpenTelemetry `TracerProvider` now sets `Resource` attributes (`service.name`,
+  `service.version`, `deployment.environment`) so Grafana Tempo can group and filter traces
+- Configurable `OTEL_SERVICE_NAME` and `OTEL_SAMPLE_RATE` (`TraceIdRatioBased`) settings
+- `TracerProvider.shutdown()` called during app lifespan for graceful span flushing
+- Grafana Tempo service added to `docker-compose.yml` and `docker-compose.dev.yml`
+- Grafana Tempo datasource auto-provisioned with traces-to-logs correlation
 
 ### Fixed
 

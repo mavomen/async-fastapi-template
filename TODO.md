@@ -112,7 +112,7 @@
 
 ## 📡 Observability
 
-**`obs/distributed-tracing`**
+**`obs/distributed-tracing`** ✅
 - Complete Grafana Tempo ingestion for the existing OTel spans
 
 **`obs/slo-dashboards`**

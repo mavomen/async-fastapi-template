@@ -103,6 +103,17 @@ services:
     networks:
       - dev-network
 
+  tempo:
+    image: grafana/tempo:latest
+    container_name: fastapi_tempo_dev
+    command: -config.file=/etc/tempo/tempo.yaml
+    ports:
+      - "3200:3200"
+    volumes:
+      - ./monitoring/tempo/tempo.yaml:/etc/tempo/tempo.yaml
+    networks:
+      - dev-network
+
   promtail:
     image: grafana/promtail:3.0.0
     container_name: fastapi_promtail
