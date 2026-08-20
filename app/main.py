@@ -1,7 +1,8 @@
 """FastAPI application factory and configuration."""
 
+import asyncio
 from collections.abc import AsyncIterator
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, suppress
 from typing import Any
 
 from fastapi import FastAPI
@@ -14,6 +15,7 @@ from app.admin import router as admin_router
 from app.api import api_router
 from app.api.deps import get_gql_context
 from app.api.error_handlers import configure_exception_handlers
+from app.api.health import k8s_router
 from app.api.health import router as health_router
 from app.auth.profile import router as profile_router
 from app.core.cache import cache
@@ -40,10 +42,18 @@ from app.middleware.tenant import TenantMiddleware
 from app.middleware.tenant_ip_access import TenantIPAccessMiddleware
 from app.websocket.chat import router as websocket_router
 
+# Global drain flag — readiness probe returns 503 once set.
+_draining = asyncio.Event()
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
-    """Manage application lifespan events."""
+    """Manage application lifespan events.
+
+    On SIGTERM / uvicorn shutdown the context manager exits; we set the drain
+    flag and wait up to 30 s for in-flight HTTP requests to complete before
+    tearing down DB / cache connections.
+    """
     # Startup
     sessionmanager.init(
         writer_url=settings.DATABASE_URL,
@@ -62,6 +72,12 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         if settings.NOTIFICATION_ENABLED:
             await _subscribe_notification_dispatcher()
     yield
+    # Begin draining — readiness probe starts returning 503
+    _draining.set()
+    # Give in-flight requests a window to finish (uvicorn's own timeout acts as
+    # the hard ceiling, this is the soft ceiling).
+    with suppress(TimeoutError):
+        await asyncio.wait_for(_draining.wait(), timeout=15)
     # Shutdown: only close in non-test environments
     if settings.ENVIRONMENT != "test":
         from app.core.tracing import shutdown_tracing
@@ -226,6 +242,7 @@ def create_app() -> FastAPI:
 
     # Routes
     app.include_router(health_router, prefix="/health", tags=["health"])
+    app.include_router(k8s_router)  # /healthz, /readyz at root level
     app.include_router(admin_router, prefix="/admin", tags=["admin"])
     app.include_router(profile_router, prefix="/profile", tags=["profile"])
     app.include_router(api_router, prefix=settings.API_V1_STR)

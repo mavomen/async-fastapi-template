@@ -6,3 +6,5 @@ data:
   ENVIRONMENT: "production"
   REDIS_URL: "redis://redis:6379/0"
   API_V1_STR: "/api/v1"
+  STORAGE_BACKEND: "local"
+  LOCAL_STORAGE_PATH: "/data/uploads"

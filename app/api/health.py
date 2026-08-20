@@ -13,6 +13,9 @@ from app.core.database import get_read_db
 
 router = APIRouter(tags=["health"])
 
+# Separate router for root-level k8s probes (mounted at /, not /health)
+k8s_router = APIRouter(tags=["health"])
+
 
 async def _check_database(db: AsyncSession) -> dict[str, str]:
     try:
@@ -126,3 +129,62 @@ async def dependencies_check(db: AsyncSession = Depends(get_read_db)) -> dict[st
             "event_bus": event_bus_status["event_bus"],
         },
     }
+
+
+# ---------------------------------------------------------------------------
+# Canonical k8s probe aliases: /healthz (liveness) and /readyz (readiness)
+# ---------------------------------------------------------------------------
+
+@k8s_router.get(
+    "/healthz",
+    response_class=ORJSONResponse,
+    status_code=status.HTTP_200_OK,
+    include_in_schema=False,
+)
+async def healthz() -> dict[str, str]:
+    """Kubernetes liveness probe — process is alive."""
+    return {"status": "ok"}
+
+
+@k8s_router.get(
+    "/readyz",
+    response_class=ORJSONResponse,
+    include_in_schema=False,
+)
+async def readyz(db: AsyncSession = Depends(get_read_db)) -> ORJSONResponse:
+    """Kubernetes readiness probe.
+
+    Returns 200 when the app can accept traffic, 503 during graceful drain.
+    """
+    from app.main import _draining
+
+    if _draining.is_set():
+        return ORJSONResponse(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            content={"status": "draining"},
+        )
+
+    db_status = await _check_database(db)
+    redis_status = await _check_redis()
+    event_bus_status = await _check_event_bus()
+
+    all_connected = all(
+        v == "connected"
+        for v in [db_status["database"], redis_status["redis"], event_bus_status["event_bus"]]
+    )
+
+    if not all_connected:
+        return ORJSONResponse(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            content={
+                "status": "degraded",
+                **db_status,
+                **redis_status,
+                **event_bus_status,
+            },
+        )
+
+    return ORJSONResponse(
+        status_code=status.HTTP_200_OK,
+        content={"status": "ready"},
+    )
