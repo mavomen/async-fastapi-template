@@ -148,7 +148,7 @@
 - Retry with exponential backoff and HMAC signature verification
 - Delivery history, per-webhook management endpoints, and ping/test endpoint
 
-**`feat/cms-module`**
+**`feat/cms-module`** ✅
 - Markdown pages with version history and draft/publish workflow
 
 **`feat/file-thumbnailing`** ✅
