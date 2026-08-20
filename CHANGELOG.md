@@ -44,6 +44,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   (`NOT_FOUND`, `BAD_REQUEST`, `UNAUTHORIZED`, `FORBIDDEN`, `RATE_LIMITED`, `CONFLICT`,
   `LOCKED_OUT`, `INTERNAL_ERROR`, `VALIDATION_ERROR`, `HTTP_ERROR`)
 - New `RateLimitException` (HTTP 429) for explicit rate-limit error responses
+- Mypy strict mode tightened: removed blanket `ignore_missing_imports = true`; only
+  untyped libraries (`kafka`, `brotli`, `boto3`, `openpyxl`) retain per-module overrides
 
 ### Fixed
 

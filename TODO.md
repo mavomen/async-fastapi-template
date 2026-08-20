@@ -212,7 +212,7 @@
 - Formal `Accept: application/vnd.app.v2+json` header strategy
 - Auto-detect breaking OpenAPI changes in CI and post a diff on PRs
 
-**`dx/mypy-stubs`**
+**`dx/mypy-stubs`** ✅
 - Generate mypy stub files for untyped third-party dependencies
 
 ---
