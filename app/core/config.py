@@ -123,6 +123,8 @@ class Settings(BaseSettings):
 
     # OpenTelemetry
     OTEL_EXPORTER_OTLP_ENDPOINT: str | None = None
+    OTEL_SERVICE_NAME: str = "fastapi-app"
+    OTEL_SAMPLE_RATE: float = Field(default=1.0, ge=0.0, le=1.0)
 
     FRONTEND_URL: str = "http://localhost:3000"
 
