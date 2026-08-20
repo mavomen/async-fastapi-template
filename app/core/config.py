@@ -142,6 +142,16 @@ class Settings(BaseSettings):
     EVENT_BUS_REDIS_URL: str | None = None
     EVENT_BUS_KAFKA_SERVERS: str = "localhost:9092"
 
+    # Alerting (external webhook URLs — leave empty to disable)
+    SLACK_WEBHOOK_URL: str = Field(
+        default="",
+        description="Slack incoming webhook URL for alert notifications",
+    )
+    PAGERDUTY_KEY: str = Field(
+        default="",
+        description="PagerDuty service integration key for critical alerts",
+    )
+
     # TOTP / 2FA
     TOTP_ISSUER_NAME: str = "FastAPI Async Template"
     TOTP_CODE_EXPIRE_SECONDS: int = 30

@@ -1,0 +1,102 @@
+groups:
+  - name: api_alerts
+    rules:
+      - alert: HighErrorRate
+        expr: |
+          sum(rate(http_requests_total{status=~"5.."}[5m]))
+          / sum(rate(http_requests_total[5m]))
+          > 0.01
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High 5xx error rate"
+          description: "5xx errors > 1% for 5 minutes (current: {{ $value | humanizePercentage }})"
+          runbook_url: "https://docs.example.com/runbooks/high-error-rate"
+
+      - alert: HighLatencyP99
+        expr: histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket[5m])) by (le)) > 2
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High p99 latency"
+          description: "p99 request latency > 2s for 5 minutes (current: {{ $value }}s)"
+
+  - name: database_alerts
+    rules:
+      - alert: DBPoolSaturated
+        expr: db_pool_saturation_ratio > 0.8
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Database pool saturation high"
+          description: "Pool {{ $labels.pool }} saturation > 80% for 5 minutes (current: {{ $value | humanizePercentage }})"
+
+      - alert: DBPoolWaiting
+        expr: db_pool_waiting > 5
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Database connection checkout backlog"
+          description: "{{ $value }} requests waiting for a DB connection for > 2 minutes"
+
+      - alert: PostgresDown
+        expr: pg_up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "PostgreSQL is down"
+          description: "PostgreSQL health check failing for > 1 minute"
+
+  - name: infrastructure_alerts
+    rules:
+      - alert: RedisDown
+        expr: redis_up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Redis is down"
+          description: "Redis health check failing for > 1 minute"
+
+      - alert: HighActiveRequests
+        expr: active_requests > 50
+        for: 3m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High number of active requests"
+          description: "{{ $value }} active requests for > 3 minutes"
+
+      - alert: SlowQueryRate
+        expr: rate(http_queries_per_request_count[5m]) > 10
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High query count per request"
+          description: "Average queries per request > 10 for 5 minutes"
+
+  - name: slo_alerts
+    rules:
+      - alert: ErrorBudgetBurnFast
+        expr: slo:error_budget_burn_rate:1h > 14.4
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "SLO error budget burning fast"
+          description: "1h burn rate {{ $value }}x (threshold: 14.4x). Error budget exhausted in < 1 day."
+
+      - alert: ErrorBudgetBurnSlow
+        expr: slo:error_budget_burn_rate:6h > 1
+        for: 30m
+        labels:
+          severity: warning
+        annotations:
+          summary: "SLO error budget burning slowly"
+          description: "6h burn rate {{ $value }}x (threshold: 1x). Budget may be exhausted within the month."

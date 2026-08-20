@@ -3,18 +3,8 @@
 from prometheus_client import Counter, Gauge, Histogram
 from prometheus_fastapi_instrumentator import Instrumentator, metrics
 
-# Custom application metrics
-http_requests_total = Counter(
-    "http_requests_total",
-    "Total number of HTTP requests",
-    ["method", "endpoint", "status"],
-)
-
-http_request_duration_seconds = Histogram(
-    "http_request_duration_seconds",
-    "HTTP request duration in seconds",
-    ["method", "endpoint"],
-)
+# Note: http_requests_total and http_request_duration_seconds are provided by
+# prometheus_fastapi_instrumentator and must NOT be redeclared here.
 
 active_requests = Gauge(
     "active_requests",
@@ -58,6 +48,18 @@ db_pool_overflow = Gauge(
 db_pool_waiting = Gauge(
     "db_pool_waiting",
     "In-flight checkout calls (proxy for waiter count)",
+)
+
+db_active_queries = Gauge(
+    "db_active_queries",
+    "Currently executing SQL queries across all pools",
+)
+
+db_query_duration_seconds = Histogram(
+    "db_query_duration_seconds",
+    "Duration of individual SQL queries in seconds",
+    ["pool"],
+    buckets=[0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0],
 )
 
 cache_hits_total = Counter(
