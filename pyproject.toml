@@ -109,7 +109,7 @@ line-ending = "auto"
 [tool.mypy]
 python_version = "3.12"
 strict = true
-ignore_missing_imports = true
+ignore_missing_imports = false
 exclude = ["alembic/", "tests/"]
 plugins = ["pydantic.mypy"]
 
@@ -120,6 +120,7 @@ module = [
     "prometheus_fastapi_instrumentator.*", "pythonjsonlogger.*", "structlog.*",
     "sqlalchemy.*", "asyncpg.*", "orjson.*", "email_validator.*",
     "strawberry.*",
+    "kafka.*", "brotli.*", "boto3.*", "openpyxl.*",
 ]
 ignore_missing_imports = true
 
