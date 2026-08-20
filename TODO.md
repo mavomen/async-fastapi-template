@@ -183,9 +183,15 @@
 **`ops/k8s-operator`**
 - Kubernetes operator to manage the app stack via CRDs
 
-**`ops/k8s-hardening`**
-- Network policies for micro-segmentation per service
-- cosign image signing for supply chain security
+**`ops/k8s-hardening`** ✅
+- Pod/container securityContext (runAsNonRoot, readOnlyRootFilesystem, drop ALL caps, seccomp RuntimeDefault)
+- Dedicated ServiceAccount with automountServiceAccountToken: false
+- NetworkPolicy ingress restricted to ingress-nginx namespace only
+- Ingress uses ingressClassName: nginx
+- cosign keyless signing for supply chain security
+- Trivy image scanning workflow (SARIF + table + fail on CRITICAL/HIGH)
+- emptyDir volumes for /tmp and /data/uploads with readOnlyRootFilesystem
+- 21 tests validating all K8s manifests and Helm templates
 
 **`ops/terraform-module`**
 - Reusable Terraform module for the full stack (DB, Redis, Kafka, app)
