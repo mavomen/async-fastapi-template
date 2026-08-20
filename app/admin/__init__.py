@@ -27,6 +27,7 @@ from app.models import Permission, Role, User
 from app.models.api_key import ApiKey
 from app.models.audit_log import AuditLog
 from app.models.base import BaseModel, SoftDeleteMixin
+from app.models.file import File
 from app.models.notification import Notification
 from app.models.notification_preference import NotificationPreference
 from app.models.tenant import Tenant
@@ -113,6 +114,13 @@ register_admin(
     search_columns=["event_type", "title"],
     form_fields=["user_id", "event_type", "title", "body", "is_read"],
     permission="notification:admin",
+)
+register_admin(
+    File,
+    list_display=["original_filename", "mime_type", "size_bytes", "uploader_id", "created_at"],
+    search_columns=["original_filename", "mime_type"],
+    form_fields=[],
+    permission="file:admin",
 )
 
 # ---------- Templates ----------

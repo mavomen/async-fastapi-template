@@ -121,6 +121,16 @@ class Settings(BaseSettings):
     S3_REGION: str = "us-east-1"
     CDN_DOMAIN: str = ""
 
+    # Thumbnailing
+    THUMBNAIL_SIZES: dict[str, tuple[int, int]] = {
+        "small": (64, 64),
+        "medium": (256, 256),
+        "large": (512, 512),
+    }
+    THUMBNAIL_FORMAT: Literal["JPEG", "WEBP"] = "WEBP"
+    THUMBNAIL_QUALITY: int = 85
+    FILE_MAX_UPLOAD_SIZE_MB: int = 50
+
     # OpenTelemetry
     OTEL_EXPORTER_OTLP_ENDPOINT: str | None = None
     OTEL_SERVICE_NAME: str = "fastapi-app"

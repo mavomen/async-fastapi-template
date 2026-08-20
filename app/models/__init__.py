@@ -4,6 +4,7 @@ from app.models.api_key import ApiKey
 from app.models.audit_log import AuditLog
 from app.models.auth_audit_log import AuthAuditLog
 from app.models.base import Base, BaseModel, SoftDeleteMixin, TimestampMixin
+from app.models.file import File
 from app.models.notification import Notification
 from app.models.notification_preference import NotificationPreference
 from app.models.role import Permission, Role, role_permissions, user_roles
@@ -20,6 +21,7 @@ __all__ = [
     "AuthAuditLog",
     "Base",
     "BaseModel",
+    "File",
     "Notification",
     "NotificationPreference",
     "Permission",
