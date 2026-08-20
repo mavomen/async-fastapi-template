@@ -21,7 +21,7 @@ class CacheMiddleware(BaseHTTPMiddleware):
 
         # Build key
         key = f"mc:{request.url.path}:{request.query_params}"
-        key = hashlib.md5(key.encode()).hexdigest()
+        key = hashlib.md5(key.encode(), usedforsecurity=False).hexdigest()
 
         cached_data = await cache.get(key)
         if cached_data:

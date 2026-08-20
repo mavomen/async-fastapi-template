@@ -240,7 +240,7 @@
 - Publish test coverage badge to README via CI
 - Migration smoke tests against a throwaway DB in CI
 
-**`test/security-scanning`**
+**`test/security-scanning`** ✅
 - `bandit` + `safety` + Trivy as mandatory CI gates
 - Dependency vulnerability scanning via `poetry audit`
 - Weekly automated dependency update PRs (Dependabot-style)

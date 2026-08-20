@@ -55,6 +55,8 @@ locust = "^2.43.4"
 schemathesis = ">=3,<4"
 hypothesis = "^6.152.4"
 syrupy = "^5.1.0"
+bandit = "^1.9.4"
+safety = "^3.8.1"
 
 [build-system]
 requires = ["poetry-core"]
@@ -126,3 +128,7 @@ ignore_missing_imports = true
 
 [tool.syrupy]
 snapshot_dir = "tests/contract/__snapshots__"
+
+[tool.bandit]
+exclude_dirs = ["tests", "benchmarks"]
+skipped = ["B101"]
