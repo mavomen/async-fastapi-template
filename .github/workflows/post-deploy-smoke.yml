@@ -1,0 +1,39 @@
+name: Post-Deploy Smoke
+
+on:
+  workflow_run:
+    workflows: ["Deploy"]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: "URL to smoke test against"
+        required: false
+        default: "http://localhost:8000"
+
+jobs:
+  smoke:
+    name: Post-Deploy Smoke Test
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install httpx
+        run: pip install httpx
+
+      - name: Run smoke tests
+        env:
+          BASE_URL: ${{ inputs.base_url || 'http://localhost:8000' }}
+        run: python scripts/post_deploy_smoke.py
+
+      - name: Upload smoke results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: smoke-results-${{ github.run_id }}
+          path: smoke-results.json

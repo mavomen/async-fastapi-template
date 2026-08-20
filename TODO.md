@@ -245,6 +245,6 @@
 - Dependency vulnerability scanning via `poetry audit`
 - Weekly automated dependency update PRs (Dependabot-style)
 
-**`test/smoke-pipeline`**
+**`test/smoke-pipeline`** ✅
 - Post-deploy smoke suite with canary detection
 - Slack PR bot: auto-post lint score, coverage delta, and perf impact
