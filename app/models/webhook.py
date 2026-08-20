@@ -7,10 +7,11 @@ from datetime import datetime
 from sqlalchemy import JSON, Boolean, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from app.models.base import SoftDeleteMixin
 from app.models.tenant_base import TenantBaseModel
 
 
-class Webhook(TenantBaseModel):
+class Webhook(SoftDeleteMixin, TenantBaseModel):
     """An outgoing webhook endpoint subscribed to one or more event types."""
 
     __tablename__ = "webhooks"

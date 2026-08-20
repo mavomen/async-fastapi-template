@@ -244,6 +244,11 @@ class Settings(BaseSettings):
     CSP_FRAME_ANCESTORS: str = "'none'"
     CSP_FORM_ACTION: str = "'self'"
 
+    # Soft-delete
+    SOFT_DELETE_PURGE_DAYS: int = Field(
+        default=90, ge=1, description="Days after which soft-deleted records are hard-purged"
+    )
+
 
 settings = Settings()
 

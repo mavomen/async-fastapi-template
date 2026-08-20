@@ -8,13 +8,13 @@ from typing import TYPE_CHECKING
 from sqlalchemy import JSON, Boolean, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.models.base import BaseModel
+from app.models.base import BaseModel, SoftDeleteMixin
 
 if TYPE_CHECKING:
     from app.models.user import User
 
 
-class ApiKey(BaseModel):
+class ApiKey(SoftDeleteMixin, BaseModel):
     __tablename__ = "api_keys"
 
     user_id: Mapped[int] = mapped_column(

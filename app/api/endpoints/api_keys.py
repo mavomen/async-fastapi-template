@@ -82,7 +82,7 @@ async def update_api_key(
     "/api-keys/{api_key_id}",
     status_code=status.HTTP_204_NO_CONTENT,
     summary="Delete API key",
-    description="Delete (revoke) an API key.",
+    description="Delete (soft-delete) an API key.",
 )
 async def delete_api_key(
     api_key_id: int,
@@ -93,3 +93,20 @@ async def delete_api_key(
     if api_key_obj is None or api_key_obj.user_id != current_user.id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="API key not found")
     await crud_api_key.delete(db, id=api_key_id)
+
+
+@router.post(
+    "/api-keys/{api_key_id}/restore",
+    response_model=ApiKeyResponse,
+    summary="Restore API key",
+    description="Restore a soft-deleted API key.",
+)
+async def restore_api_key(
+    api_key_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> Any:
+    api_key_obj = await crud_api_key.restore(db, id=api_key_id)
+    if api_key_obj is None or api_key_obj.user_id != current_user.id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Deleted API key not found")
+    return api_key_obj
