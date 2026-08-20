@@ -242,9 +242,14 @@
 - CI workflow with Docker services, migrations, seed, Chromium install
 - 14 tests, excluded from default pytest run (-m e2e required)
 
-**`test/fuzz-and-contract`**
-- schemathesis fuzz testing against staging
-- Pact-style consumer-driven contract tests
+**`test/fuzz-and-contract`** ✅
+- Schemathesis fuzz testing against every registered endpoint
+- Hypothesis property-based tests for User schemas
+- Pact-style consumer-driven contracts + provider verification
+- Schema comparison test to detect breaking API changes against baseline
+- OpenAPI baseline generation script
+- CI workflow for weekly + PR fuzz/contract runs
+- 25+ tests total (fuzz, property, pact, schema compare)
 
 **`test/performance-budgets`** ✅
 - Fail CI if p95 latency exceeds a configured threshold
