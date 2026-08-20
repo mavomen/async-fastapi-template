@@ -59,6 +59,8 @@ syrupy = "^5.1.0"
 bandit = "^1.9.4"
 safety = "^3.8.1"
 mutmut = "^3.0.0"
+openapi-python-client = ">=0.25,<1.0"
+pytest-subtests = "^0.14.2"
 
 [build-system]
 requires = ["poetry-core"]
@@ -131,6 +133,7 @@ module = [
     "strawberry.*",
     "kafka.*", "brotli.*", "boto3.*", "openpyxl.*",
     "PIL.*", "PIL.Image",
+    "openapi_python_client.*",
 ]
 ignore_missing_imports = true
 
