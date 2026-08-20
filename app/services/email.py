@@ -1,6 +1,7 @@
 """Email service with Jinja2 template rendering."""
 
 import logging
+import os
 from pathlib import Path
 from typing import Any
 
@@ -12,9 +13,11 @@ from app.core.config import settings
 logger = logging.getLogger("app.email")
 
 TEMPLATES_DIR = Path(__file__).resolve().parent.parent / "templates" / "email"
+_auto_reload = os.environ.get("ENVIRONMENT", "production") == "development"
 env = Environment(
     loader=FileSystemLoader(str(TEMPLATES_DIR)),
     autoescape=select_autoescape(["html"]),
+    auto_reload=_auto_reload,
 )
 
 

@@ -69,32 +69,79 @@ def seed() -> None:
 
 
 @app.command()
-def docker(start: bool = typer.Option(True, "--up/--down")) -> None:
-    """Manage Docker services."""
-    if start:
-        subprocess.run(
-            ["docker", "compose", "-f", "docker-compose.dev.yml", "up", "-d"],
-            check=True,
-        )
+def docker(
+    up: bool = typer.Option(True, "--up/--down"),
+    full: bool = typer.Option(False, "--full/--core"),
+) -> None:
+    """Manage Docker services.
+
+    --core (default): db, redis, adminer, redis-commander only.
+    --full: includes monitoring stack (loki, tempo, promtail, minio).
+    """
+    if up:
+        cmd = ["docker", "compose", "-f", "docker-compose.dev.yml", "up", "-d"]
+        if full:
+            cmd = [
+                "docker", "compose", "-f", "docker-compose.dev.yml",
+                "--profile", "monitoring", "up", "-d",
+            ]
+        subprocess.run(cmd, check=True)
     else:
-        subprocess.run(["docker", "compose", "-f", "docker-compose.dev.yml", "down"], check=True)
+        cmd = ["docker", "compose", "-f", "docker-compose.dev.yml", "down"]
+        if full:
+            cmd = [
+                "docker", "compose", "-f", "docker-compose.dev.yml",
+                "--profile", "monitoring", "down",
+            ]
+        subprocess.run(cmd, check=True)
 
 
 @app.command()
-def celery() -> None:
-    """Start the Celery worker."""
+def setup_fast() -> None:
+    """Fast setup: start core services only, run migrations, verify."""
     subprocess.run(
-        [
-            "poetry",
-            "run",
-            "celery",
-            "-A",
-            "app.core.celery_app",
-            "worker",
-            "--loglevel=info",
-        ],
+        ["docker", "compose", "-f", "docker-compose.dev.yml", "up", "-d", "db", "redis"],
         check=True,
     )
+    typer.echo("Waiting for services to become healthy...")
+    subprocess.run(
+        ["docker", "compose", "-f", "docker-compose.dev.yml", "up", "-d", "db", "redis"],
+        check=True,
+    )
+    subprocess.run(["poetry", "install"], check=True)
+    subprocess.run(["poetry", "run", "alembic", "upgrade", "head"], check=True)
+    typer.echo("Setup complete. Run `poetry run python app/cli.py dev` to start.")
+
+
+@app.command()
+def celery(hot_reload: bool = typer.Option(True, "--hot-reload/--no-hot-reload")) -> None:
+    """Start the Celery worker with optional hot-reload via watchdog.
+
+    --hot-reload (default): auto-restarts worker on Python file changes.
+    --no-hot-reload: plain celery worker.
+    """
+    if hot_reload:
+        subprocess.run(
+            [
+                "poetry", "run", "watchmedo", "auto-restart",
+                "--directory=app",
+                "--pattern=*.py",
+                "--recursive",
+                "--",
+                "celery", "-A", "app.core.celery_app",
+                "worker", "--loglevel=info",
+            ],
+            check=True,
+        )
+    else:
+        subprocess.run(
+            [
+                "poetry", "run", "celery",
+                "-A", "app.core.celery_app",
+                "worker", "--loglevel=info",
+            ],
+            check=True,
+        )
 
 
 @app.command()

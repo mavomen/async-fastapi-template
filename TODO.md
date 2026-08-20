@@ -201,7 +201,7 @@
 **`dx/domain-restructure`**
 - Split `app/` into bounded contexts: `identity/`, `billing/`, `notifications/`
 
-**`dx/local-dev`**
+**`dx/local-dev`** ✅
 - `docker compose up` provisions everything in under 10 seconds
 - Celery auto-restart on code changes in dev (live reload for workers)
 - Hot-reloadable Jinja2 templates in the admin dashboard

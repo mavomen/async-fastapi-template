@@ -1,4 +1,11 @@
 # docker-compose.dev.yml
+# Profiles:
+#   core (default) — db, redis, adminer, redis-commander
+#   monitoring     — loki, tempo, promtail, minio, minio-init
+# Usage:
+#   docker compose -f docker-compose.dev.yml up -d                  (core only)
+#   docker compose -f docker-compose.dev.yml --profile monitoring up -d  (all)
+#   docker compose -f docker-compose.dev.yml up -d db redis         (explicit)
 version: "3.8"
 
 services:
@@ -13,6 +20,11 @@ services:
       - "5432:5432"
     volumes:
       - postgres_dev_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
     networks:
       - dev-network
 
@@ -27,6 +39,11 @@ services:
       - "5433:5432"
     volumes:
       - postgres_replica_dev_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
     networks:
       - dev-network
 
@@ -37,6 +54,11 @@ services:
       - "6379:6379"
     volumes:
       - redis_dev_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
     networks:
       - dev-network
 
@@ -46,7 +68,8 @@ services:
     ports:
       - "8080:8080"
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     networks:
       - dev-network
 
@@ -58,13 +81,16 @@ services:
     ports:
       - "8081:8081"
     depends_on:
-      - redis
+      redis:
+        condition: service_healthy
     networks:
       - dev-network
 
   loki:
     image: grafana/loki:3.0.0
     container_name: fastapi_loki
+    profiles:
+      - monitoring
     ports:
       - "3100:3100"
     volumes:
@@ -76,6 +102,8 @@ services:
   minio:
     image: minio/minio:latest
     container_name: fastapi_minio
+    profiles:
+      - monitoring
     command: server /data --console-address ":9001"
     environment:
       MINIO_ROOT_USER: minioadmin
@@ -91,6 +119,8 @@ services:
   minio-init:
     image: minio/mc:latest
     container_name: fastapi_minio_init
+    profiles:
+      - monitoring
     depends_on:
       - minio
     entrypoint: >
@@ -106,6 +136,8 @@ services:
   tempo:
     image: grafana/tempo:latest
     container_name: fastapi_tempo_dev
+    profiles:
+      - monitoring
     command: -config.file=/etc/tempo/tempo.yaml
     ports:
       - "3200:3200"
@@ -117,6 +149,8 @@ services:
   promtail:
     image: grafana/promtail:3.0.0
     container_name: fastapi_promtail
+    profiles:
+      - monitoring
     volumes:
       - ./monitoring/promtail:/etc/promtail
       - /var/run/docker.sock:/var/run/docker.sock
