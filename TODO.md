@@ -46,7 +46,7 @@
 
 ## ⚡ Performance
 
-**`perf/redis-rate-limiting`**
+**`perf/redis-rate-limiting`** ✅
 - Replace slowapi with a Redis sliding-window counter
 - Per-endpoint rate limit tiers (public / authenticated / admin)
 - Expose `X-RateLimit-Remaining` and related headers to API consumers
