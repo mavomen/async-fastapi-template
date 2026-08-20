@@ -115,18 +115,22 @@
 **`obs/distributed-tracing`** ✅
 - Complete Grafana Tempo ingestion for the existing OTel spans
 
-**`obs/slo-dashboards`**
-- Error budget burn rate panel
-- Latency p50/p95/p99 over a rolling window
-- Availability % widget
+**`obs/slo-dashboards`** ✅
+- Prometheus recording rules for SLO burn rates (5m/30m) and latency percentiles
+- SLO Grafana dashboard: availability % gauge, p50/p95/p99 latency, error budget burn rate, 5xx rate
+- Added db_active_queries + db_query_duration_seconds metrics (fixed broken DB dashboard)
+- Removed duplicate http_requests_total / http_request_duration_seconds from metrics.py
 
-**`obs/alerting`**
-- Alertmanager routing by severity → Slack / PagerDuty / Opsgenie
-- Dependency health dashboard for Redis, Postgres, Kafka, Celery
+**`obs/alerting`** ✅
+- Prometheus alert rules: HighErrorRate, HighLatencyP99, DBPoolSaturated, RedisDown, PostgresDown, ErrorBudgetBurnFast/Slow
+- Alertmanager with severity-based routing to Slack and PagerDuty
+- /health/ready and /health/dependencies now check event bus (Redis or Kafka)
+- SLACK_WEBHOOK_URL and PAGERDUTY_KEY config fields
 
-**`obs/synthetic-monitoring`**
-- k6 scenario suite with CI pass/fail thresholds
-- Monthly CI job that publishes latency trend reports
+**`obs/synthetic-monitoring`** ✅
+- k6 smoke test (1 VU, 30s) and load test (10-50 VU ramp, 5min) in benchmarks/k6/
+- Monthly CI workflow with pass/fail thresholds and benchmark trend reports
+- Fixed compare_benchmarks.py to actually fail on >20% regression
 
 **`obs/log-sampling`** ✅
 - Adaptive sampling for high-throughput endpoints

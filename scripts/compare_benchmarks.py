@@ -1,19 +1,20 @@
 #!/usr/bin/env python3
-"""Compare pytest-benchmark JSON output against a stored baseline (never fails)."""
+"""Compare pytest-benchmark JSON output against a stored baseline."""
 
 import json
 import sys
 from pathlib import Path
+from typing import Any
 
 BASELINE = Path("benchmarks/baseline.json")
 NEW = Path(sys.argv[1]) if len(sys.argv) > 1 else Path("benchmark.json")
 THRESHOLD_PCT = 20
 
 
-def load(path: Path):
+def load(path: Path) -> dict[str, Any] | None:
     if not path.exists():
         return None
-    return json.loads(path.read_text())
+    return json.loads(path.read_text())  # type: ignore[no-any-return]
 
 
 new_data = load(NEW)
@@ -45,8 +46,8 @@ for name, new_mean in new_tests.items():
         print(f"OK: {name} {new_mean:.6f}s vs baseline {old_mean:.6f}s ({pct_change:+.1f}%)")
 
 if failed:
-    print("Performance regression detected, but not failing the build.")
-    sys.exit(0)  # changed from 1 to 0 so it never blocks CI
+    print("Performance regression detected.")
+    sys.exit(1)
 
 NEW.replace(BASELINE)
 print("Baseline updated.")
