@@ -7,6 +7,30 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
+      - name: Check SLO error budget
+        run: |
+          PROM_URL="${PROMETHEUS_URL:-http://localhost:9090}"
+          echo "Checking SLO alerts at ${PROM_URL}..."
+          ALERTS=$(curl -sf "${PROM_URL}/api/v1/alerts" 2>/dev/null || echo '{"data":{"alerts":[]}}')
+          FIRING=$(echo "$ALERTS" | python3 -c "
+          import sys, json
+          data = json.load(sys.stdin)
+          alerts = [a for a in data.get('data', {}).get('alerts', []) if a.get('state') == 'firing']
+          slo_alerts = [a for a in alerts if a.get('labels', {}).get('alertname', '').startswith('ErrorBudgetBurn')]
+          for a in slo_alerts:
+              print(f\"  {a['labels']['alertname']}: {a['annotations'].get('summary', 'no summary')}\")
+          print(len(slo_alerts))
+          " 2>&1)
+          COUNT=$(echo "$FIRING" | tail -1)
+          echo "$FIRING" | head -n -1
+          if [ "$COUNT" != "0" ]; then
+            echo "::error::Deploy blocked: $COUNT SLO error budget burn alerts are firing"
+            exit 1
+          fi
+          echo "No SLO alerts firing — deploy is clear."
+        env:
+          PROMETHEUS_URL: ${{ secrets.PROMETHEUS_URL }}
+
       - name: Deploy to production server (example via SSH)
         if: ${{ github.ref == 'refs/heads/main' && secrets.SSH_HOST != '' }}
         uses: appleboy/ssh-action@v1.2.1

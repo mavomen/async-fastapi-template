@@ -230,7 +230,7 @@
 - schemathesis fuzz testing against staging
 - Pact-style consumer-driven contract tests
 
-**`test/performance-budgets`**
+**`test/performance-budgets`** ✅
 - Fail CI if p95 latency exceeds a configured threshold
 - k6 regression suite compared against a stored baseline
 - Block deploys if SLO error budget is exhausted

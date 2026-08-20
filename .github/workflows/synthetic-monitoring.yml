@@ -32,8 +32,28 @@ jobs:
         uses: grafana/k6-action@v0.3.1
         with:
           filename: benchmarks/k6/smoke.js
+          out: json=benchmarks/k6/smoke-results.json
         env:
           BASE_URL: http://localhost:8000
+
+      - name: Compare k6 results against baseline
+        if: always()
+        run: |
+          if [ -f benchmarks/k6/smoke-results.json ]; then
+            python3 scripts/compare_k6_results.py \
+              benchmarks/k6/smoke-results.json \
+              --baseline benchmarks/k6/baseline.json \
+              --p95-budget 500
+          else
+            echo "No k6 results generated, skipping comparison."
+          fi
+
+      - name: Upload k6 results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: k6-smoke-results-${{ github.run_id }}
+          path: benchmarks/k6/smoke-results.json
 
       - name: Stop services
         if: always()
@@ -56,8 +76,28 @@ jobs:
         uses: grafana/k6-action@v0.3.1
         with:
           filename: benchmarks/k6/load.js
+          out: json=benchmarks/k6/load-results.json
         env:
           BASE_URL: http://localhost:8000
+
+      - name: Compare k6 results against baseline
+        if: always()
+        run: |
+          if [ -f benchmarks/k6/load-results.json ]; then
+            python3 scripts/compare_k6_results.py \
+              benchmarks/k6/load-results.json \
+              --baseline benchmarks/k6/baseline.json \
+              --p95-budget 500
+          else
+            echo "No k6 results generated, skipping comparison."
+          fi
+
+      - name: Upload k6 results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: k6-load-results-${{ github.run_id }}
+          path: benchmarks/k6/load-results.json
 
       - name: Stop services
         if: always()
