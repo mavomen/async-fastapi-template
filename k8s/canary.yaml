@@ -1,0 +1,42 @@
+apiVersion: flagger.app/v1beta1
+kind: Canary
+metadata:
+  name: fastapi-template
+  labels:
+    app: fastapi-template
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: fastapi-template
+
+  ingressRef:
+    apiVersion: networking.k8s.io/v1
+    kind: Ingress
+    name: fastapi-template
+
+  progressDeadlineSeconds: 600
+
+  service:
+    port: 80
+    targetPort: 8000
+
+  analysis:
+    interval: 30s
+    threshold: 5
+    maxWeight: 50
+    stepWeight: 10
+    iterations: 10
+
+    metricsRef:
+      - name: request-success-rate
+        thresholdRange:
+          min: 99
+        interval: 60s
+      - name: request-duration
+        thresholdRange:
+          max: 500
+        interval: 60s
+
+    webhooks: []
+    alerts: []
