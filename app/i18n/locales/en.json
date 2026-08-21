@@ -1,0 +1,15 @@
+{
+  "APP_ERROR": "Application error",
+  "NOT_FOUND": "Resource not found",
+  "BAD_REQUEST": "Bad request",
+  "UNAUTHORIZED": "Not authenticated",
+  "FORBIDDEN": "Forbidden",
+  "RATE_LIMITED": "Rate limit exceeded",
+  "CONFLICT": "Resource conflict",
+  "LOCKED_OUT": "Account is locked due to too many failed login attempts",
+  "INTERNAL_ERROR": "Internal server error",
+  "HTTP_ERROR": "HTTP error",
+  "VALIDATION_ERROR": "Validation error",
+  "email.verification.subject": "Verify your email",
+  "email.magic_link.subject": "Your sign-in link"
+}

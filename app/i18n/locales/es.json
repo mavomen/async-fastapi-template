@@ -1,0 +1,15 @@
+{
+  "APP_ERROR": "Error de aplicación",
+  "NOT_FOUND": "Recurso no encontrado",
+  "BAD_REQUEST": "Solicitud incorrecta",
+  "UNAUTHORIZED": "No autenticado",
+  "FORBIDDEN": "Prohibido",
+  "RATE_LIMITED": "Límite de tasa excedido",
+  "CONFLICT": "Conflicto de recurso",
+  "LOCKED_OUT": "La cuenta está bloqueada por demasiados intentos de inicio de sesión fallidos",
+  "INTERNAL_ERROR": "Error interno del servidor",
+  "HTTP_ERROR": "Error HTTP",
+  "VALIDATION_ERROR": "Error de validación",
+  "email.verification.subject": "Verifica tu correo electrónico",
+  "email.magic_link.subject": "Tu enlace de inicio de sesión"
+}
