@@ -33,26 +33,32 @@ async def run_smoke(base_url: str) -> list[StepResult]:
     """Run all smoke test steps against the given base URL."""
     results: list[StepResult] = []
 
-    async with httpx.AsyncClient(
-        base_url=base_url, timeout=30.0, follow_redirects=True
-    ) as client:
+    async with httpx.AsyncClient(base_url=base_url, timeout=30.0, follow_redirects=True) as client:
         # 1. Health check (liveness)
         t0 = time.monotonic()
         try:
             resp = await client.get("/healthz")
             passed = resp.status_code == 200
-            results.append(StepResult("healthz", passed, resp.status_code, (time.monotonic() - t0) * 1000))
+            results.append(
+                StepResult("healthz", passed, resp.status_code, (time.monotonic() - t0) * 1000)
+            )
         except Exception as e:
-            results.append(StepResult("healthz", False, None, (time.monotonic() - t0) * 1000, str(e)))
+            results.append(
+                StepResult("healthz", False, None, (time.monotonic() - t0) * 1000, str(e))
+            )
 
         # 2. Readiness check
         t0 = time.monotonic()
         try:
             resp = await client.get("/readyz")
             passed = resp.status_code == 200
-            results.append(StepResult("readyz", passed, resp.status_code, (time.monotonic() - t0) * 1000))
+            results.append(
+                StepResult("readyz", passed, resp.status_code, (time.monotonic() - t0) * 1000)
+            )
         except Exception as e:
-            results.append(StepResult("readyz", False, None, (time.monotonic() - t0) * 1000, str(e)))
+            results.append(
+                StepResult("readyz", False, None, (time.monotonic() - t0) * 1000, str(e))
+            )
 
         # 3. Register a user
         uid = f"smoke-{int(time.time())}"
@@ -67,9 +73,13 @@ async def run_smoke(base_url: str) -> list[StepResult]:
                 },
             )
             passed = resp.status_code in (201, 409)
-            results.append(StepResult("register", passed, resp.status_code, (time.monotonic() - t0) * 1000))
+            results.append(
+                StepResult("register", passed, resp.status_code, (time.monotonic() - t0) * 1000)
+            )
         except Exception as e:
-            results.append(StepResult("register", False, None, (time.monotonic() - t0) * 1000, str(e)))
+            results.append(
+                StepResult("register", False, None, (time.monotonic() - t0) * 1000, str(e))
+            )
 
         # 4. Login
         t0 = time.monotonic()
@@ -83,7 +93,9 @@ async def run_smoke(base_url: str) -> list[StepResult]:
             if passed:
                 data = resp.json()
                 token = data.get("access_token")
-            results.append(StepResult("login", passed, resp.status_code, (time.monotonic() - t0) * 1000))
+            results.append(
+                StepResult("login", passed, resp.status_code, (time.monotonic() - t0) * 1000)
+            )
         except Exception as e:
             results.append(StepResult("login", False, None, (time.monotonic() - t0) * 1000, str(e)))
             token = None
@@ -97,27 +109,48 @@ async def run_smoke(base_url: str) -> list[StepResult]:
                     headers={"Authorization": f"Bearer {token}"},
                 )
                 passed = resp.status_code == 200
-                results.append(StepResult("notifications_list", passed, resp.status_code, (time.monotonic() - t0) * 1000))
+                results.append(
+                    StepResult(
+                        "notifications_list",
+                        passed,
+                        resp.status_code,
+                        (time.monotonic() - t0) * 1000,
+                    )
+                )
             except Exception as e:
-                results.append(StepResult("notifications_list", False, None, (time.monotonic() - t0) * 1000, str(e)))
+                results.append(
+                    StepResult(
+                        "notifications_list", False, None, (time.monotonic() - t0) * 1000, str(e)
+                    )
+                )
 
         # 6. Unauthenticated access returns 401
         t0 = time.monotonic()
         try:
             resp = await client.get("/api/v1/users/")
             passed = resp.status_code == 401
-            results.append(StepResult("auth_required", passed, resp.status_code, (time.monotonic() - t0) * 1000))
+            results.append(
+                StepResult(
+                    "auth_required", passed, resp.status_code, (time.monotonic() - t0) * 1000
+                )
+            )
         except Exception as e:
-            results.append(StepResult("auth_required", False, None, (time.monotonic() - t0) * 1000, str(e)))
+            results.append(
+                StepResult("auth_required", False, None, (time.monotonic() - t0) * 1000, str(e))
+            )
 
         # 7. Dependencies check
         t0 = time.monotonic()
         try:
             resp = await client.get("/health/dependencies")
             passed = resp.status_code == 200
-            results.append(StepResult("dependencies", passed, resp.status_code, (time.monotonic() - t0) * 1000))
+            results.append(
+                StepResult("dependencies", passed, resp.status_code, (time.monotonic() - t0) * 1000)
+            )
         except Exception as e:
-            results.append(StepResult("dependencies", False, None, (time.monotonic() - t0) * 1000, str(e)))
+            results.append(
+                StepResult("dependencies", False, None, (time.monotonic() - t0) * 1000, str(e))
+            )
 
     return results
 
@@ -151,8 +184,13 @@ def main() -> None:
 
     # Write JSON for CI artifact consumption
     output = [
-        {"name": r.name, "passed": r.passed, "status_code": r.status_code,
-         "duration_ms": round(r.duration_ms, 1), "error": r.error}
+        {
+            "name": r.name,
+            "passed": r.passed,
+            "status_code": r.status_code,
+            "duration_ms": round(r.duration_ms, 1),
+            "error": r.error,
+        }
         for r in results
     ]
     from pathlib import Path

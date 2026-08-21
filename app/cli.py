@@ -82,16 +82,27 @@ def docker(
         cmd = ["docker", "compose", "-f", "docker-compose.dev.yml", "up", "-d"]
         if full:
             cmd = [
-                "docker", "compose", "-f", "docker-compose.dev.yml",
-                "--profile", "monitoring", "up", "-d",
+                "docker",
+                "compose",
+                "-f",
+                "docker-compose.dev.yml",
+                "--profile",
+                "monitoring",
+                "up",
+                "-d",
             ]
         subprocess.run(cmd, check=True)
     else:
         cmd = ["docker", "compose", "-f", "docker-compose.dev.yml", "down"]
         if full:
             cmd = [
-                "docker", "compose", "-f", "docker-compose.dev.yml",
-                "--profile", "monitoring", "down",
+                "docker",
+                "compose",
+                "-f",
+                "docker-compose.dev.yml",
+                "--profile",
+                "monitoring",
+                "down",
             ]
         subprocess.run(cmd, check=True)
 
@@ -123,22 +134,32 @@ def celery(hot_reload: bool = typer.Option(True, "--hot-reload/--no-hot-reload")
     if hot_reload:
         subprocess.run(
             [
-                "poetry", "run", "watchmedo", "auto-restart",
+                "poetry",
+                "run",
+                "watchmedo",
+                "auto-restart",
                 "--directory=app",
                 "--pattern=*.py",
                 "--recursive",
                 "--",
-                "celery", "-A", "app.core.celery_app",
-                "worker", "--loglevel=info",
+                "celery",
+                "-A",
+                "app.core.celery_app",
+                "worker",
+                "--loglevel=info",
             ],
             check=True,
         )
     else:
         subprocess.run(
             [
-                "poetry", "run", "celery",
-                "-A", "app.core.celery_app",
-                "worker", "--loglevel=info",
+                "poetry",
+                "run",
+                "celery",
+                "-A",
+                "app.core.celery_app",
+                "worker",
+                "--loglevel=info",
             ],
             check=True,
         )

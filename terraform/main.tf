@@ -86,6 +86,41 @@ module "ecs" {
 }
 
 # ──────────────────────────────────────────────────────
+# Multi-Region Failover (optional)
+# ──────────────────────────────────────────────────────
+
+module "multi_region" {
+  source = "./modules/multi_region"
+
+  providers = {
+    aws            = aws
+    aws.secondary  = aws.secondary
+  }
+
+  count = var.enable_multi_region ? 1 : 0
+
+  project_name    = var.project_name
+  environment     = var.environment
+  primary_region  = var.aws_region
+  secondary_region = var.secondary_region
+  domain_name     = var.domain_name
+  hosted_zone_id  = var.route53_hosted_zone_id
+
+  primary_alb_dns_name = module.alb.alb_dns_name
+  primary_alb_zone_id  = module.alb.alb_zone_id
+
+  secondary_alb_dns_name = var.secondary_alb_dns_name
+  secondary_alb_zone_id  = var.secondary_alb_zone_id
+
+  enable_cross_region_replica    = var.enable_cross_region_replica
+  primary_cluster_arn            = module.database.cluster_arn
+  secondary_vpc_id               = var.secondary_vpc_id
+  secondary_subnet_ids           = var.secondary_subnet_ids
+  secondary_vpc_cidr             = var.secondary_vpc_cidr
+  secondary_db_instance_class    = var.secondary_db_instance_class
+}
+
+# ──────────────────────────────────────────────────────
 # CloudWatch
 # ──────────────────────────────────────────────────────
 

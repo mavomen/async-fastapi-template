@@ -1,0 +1,132 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: fastapiapps.app.example.com
+spec:
+  group: app.example.com
+  names:
+    kind: FastAPIApp
+    listKind: FastAPIAppList
+    plural: fastapiapps
+    singular: fastapiapp
+    shortNames:
+      - fa
+  scope: Namespaced
+  versions:
+    - name: v1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              required:
+                - image
+              properties:
+                image:
+                  type: string
+                  description: Container image URI
+                replicas:
+                  type: integer
+                  minimum: 0
+                  default: 2
+                  description: Desired replica count
+                port:
+                  type: integer
+                  default: 8000
+                  description: Container port
+                env:
+                  type: array
+                  items:
+                    type: object
+                    required:
+                      - name
+                      - value
+                    properties:
+                      name:
+                        type: string
+                      value:
+                        type: string
+                  description: Environment variables
+                resources:
+                  type: object
+                  properties:
+                    requests:
+                      type: object
+                      properties:
+                        cpu:
+                          type: string
+                        memory:
+                          type: string
+                    limits:
+                      type: object
+                      properties:
+                        cpu:
+                          type: string
+                        memory:
+                          type: string
+                autoscaling:
+                  type: object
+                  properties:
+                    enabled:
+                      type: boolean
+                      default: false
+                    minReplicas:
+                      type: integer
+                      minimum: 1
+                      default: 2
+                    maxReplicas:
+                      type: integer
+                      minimum: 1
+                      default: 10
+                    targetCPUUtilizationPercentage:
+                      type: integer
+                      minimum: 1
+                      maximum: 100
+                      default: 80
+                pdb:
+                  type: object
+                  properties:
+                    minAvailable:
+                      type: integer
+                      minimum: 1
+                      default: 1
+            status:
+              type: object
+              properties:
+                phase:
+                  type: string
+                message:
+                  type: string
+                conditions:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      type:
+                        type: string
+                      status:
+                        type: string
+                      lastTransitionTime:
+                        type: string
+                      reason:
+                        type: string
+                      message:
+                        type: string
+      subresources:
+        status: {}
+      additionalPrinterColumns:
+        - name: Image
+          type: string
+          jsonPath: .spec.image
+        - name: Replicas
+          type: integer
+          jsonPath: .spec.replicas
+        - name: Phase
+          type: string
+          jsonPath: .status.phase
+        - name: Age
+          type: date
+          jsonPath: .metadata.creationTimestamp

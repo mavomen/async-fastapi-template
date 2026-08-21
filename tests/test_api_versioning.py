@@ -63,7 +63,11 @@ class TestBreakingChangeDetection:
         }
         new: dict[str, Any] = {
             "paths": {},
-            "components": {"schemas": {"User": {"properties": {"name": {}, "email": {}}, "required": ["email"]}}},
+            "components": {
+                "schemas": {
+                    "User": {"properties": {"name": {}, "email": {}}, "required": ["email"]}
+                }
+            },
         }
         result = find_breaking_changes(old, new)
         assert any("required" in r.lower() and "added" in r.lower() for r in result)
@@ -71,7 +75,11 @@ class TestBreakingChangeDetection:
     def test_removed_required_property(self):
         old: dict[str, Any] = {
             "paths": {},
-            "components": {"schemas": {"User": {"properties": {"name": {}, "email": {}}, "required": ["email"]}}},
+            "components": {
+                "schemas": {
+                    "User": {"properties": {"name": {}, "email": {}}, "required": ["email"]}
+                }
+            },
         }
         new: dict[str, Any] = {
             "paths": {},

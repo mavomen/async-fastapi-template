@@ -823,6 +823,7 @@
           'type': 'object',
         }),
         'IPRuleCreate': dict({
+          'description': 'Schema for creating a tenant IP rule.',
           'properties': dict({
             'action': dict({
               'pattern': '^(allow|deny)$',
@@ -864,6 +865,7 @@
           'type': 'object',
         }),
         'IPRuleResponse': dict({
+          'description': 'Schema for returning a tenant IP rule.',
           'properties': dict({
             'action': dict({
               'title': 'Action',
@@ -909,6 +911,7 @@
           'type': 'object',
         }),
         'IPRuleUpdate': dict({
+          'description': 'Schema for updating a tenant IP rule.',
           'properties': dict({
             'action': dict({
               'anyOf': list([
@@ -2224,6 +2227,7 @@
           'type': 'object',
         }),
         'TenantCreate': dict({
+          'description': 'Schema for creating a new tenant.',
           'properties': dict({
             'name': dict({
               'title': 'Name',
@@ -5886,7 +5890,7 @@
               ]),
             }),
           ]),
-          'summary': 'Upload File Stream',
+          'summary': 'Upload a file with SSE progress',
           'tags': list([
             'files',
           ]),

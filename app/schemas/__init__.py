@@ -1,6 +1,8 @@
 """Pydantic schemas package."""
 
 from app.schemas.oauth import OAuthLoginResponse, OAuthProviderInfo
+from app.schemas.tenant import TenantCreate
+from app.schemas.tenant_ip_rule import IPRuleCreate, IPRuleResponse, IPRuleUpdate
 from app.schemas.token import Token, TokenPayload
 from app.schemas.totp import (
     TOTPDisableRequest,
@@ -13,6 +15,9 @@ from app.schemas.totp import (
 from app.schemas.user import UserCreate, UserInDB, UserResponse, UserUpdate
 
 __all__ = [
+    "IPRuleCreate",
+    "IPRuleResponse",
+    "IPRuleUpdate",
     "OAuthLoginResponse",
     "OAuthProviderInfo",
     "TOTPDisableRequest",
@@ -21,6 +26,7 @@ __all__ = [
     "TOTPStatusResponse",
     "TOTPVerifyEnableRequest",
     "TOTPVerifyRequest",
+    "TenantCreate",
     "Token",
     "TokenPayload",
     "UserCreate",

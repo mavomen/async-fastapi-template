@@ -22,3 +22,8 @@ output "security_group_id" {
   description = "Security group ID for the RDS cluster"
   value       = aws_security_group.database.id
 }
+
+output "cluster_arn" {
+  description = "ARN of the Aurora cluster (for global database replication)"
+  value       = aws_rds_cluster.this.arn
+}

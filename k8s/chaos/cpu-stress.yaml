@@ -1,0 +1,29 @@
+# Chaos Mesh StressChaos: CPU Stress
+#
+# Exhausts CPU on app pods to validate HPA scaling, resource limits, and
+# graceful degradation under compute pressure.
+#
+# Usage:
+#   kubectl apply -f k8s/chaos/cpu-stress.yaml
+#   kubectl delete -f k8s/chaos/cpu-stress.yaml
+#
+apiVersion: chaos-mesh.org/v1alpha1
+kind: StressChaos
+metadata:
+  name: fastapi-cpu-stress
+  namespace: default
+  labels:
+    experiment: chaos
+    type: cpu-stress
+spec:
+  mode: all
+  selector:
+    namespaces:
+      - default
+    labelSelectors:
+      app: fastapi-template
+  stressors:
+    cpu:
+      workers: 2
+      load: 80
+  duration: "30s"

@@ -1,0 +1,38 @@
+# Chaos Mesh NetworkChaos: Network Latency
+#
+# Injects 200ms of latency on egress traffic from app pods to Postgres,
+# simulating degraded cross-AZ connectivity.
+#
+# Usage:
+#   kubectl apply -f k8s/chaos/network-latency.yaml
+#   kubectl delete -f k8s/chaos/network-latency.yaml
+#
+apiVersion: chaos-mesh.org/v1alpha1
+kind: NetworkChaos
+metadata:
+  name: fastapi-network-latency
+  namespace: default
+  labels:
+    experiment: chaos
+    type: network-latency
+spec:
+  action: delay
+  mode: all
+  selector:
+    namespaces:
+      - default
+    labelSelectors:
+      app: fastapi-template
+  delay:
+    latency: "200ms"
+    jitter: "50ms"
+    correlation: "75"
+  direction: to
+  target:
+    selector:
+      namespaces:
+        - default
+      labelSelectors:
+        app: fastapi-postgres
+    mode: all
+  duration: "30s"

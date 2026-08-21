@@ -64,16 +64,22 @@ async def list_notifications(
     current_user: User = Depends(get_current_user),
 ) -> Any:
     items = await crud_notification.list_for_user_cursor(
-        db, user_id=current_user.id, cursor=decode_cursor(params.cursor) if params.cursor else None,
-        size=params.size, unread_only=unread_only,
+        db,
+        user_id=current_user.id,
+        cursor=decode_cursor(params.cursor) if params.cursor else None,
+        size=params.size,
+        unread_only=unread_only,
     )
     has_more = len(items) > params.size
     page_items = items[: params.size]
     next_cursor = encode_cursor(page_items[-1].id) if has_more and page_items else None
     unread_count = await crud_notification.count_unread(db, user_id=current_user.id)
     return NotificationCursorResponse(
-        items=page_items, next_cursor=next_cursor, has_more=has_more,
-        size=len(page_items), unread_count=unread_count,
+        items=page_items,
+        next_cursor=next_cursor,
+        has_more=has_more,
+        size=len(page_items),
+        unread_count=unread_count,
     )
 
 

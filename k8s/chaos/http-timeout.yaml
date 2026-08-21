@@ -1,0 +1,37 @@
+# Chaos Mesh NetworkChaos: HTTP Timeout
+#
+# Drops egress TCP packets to Postgres port 5432 from app pods, simulating
+# full connection timeout. Validates circuit breaker and retry logic.
+#
+# Usage:
+#   kubectl apply -f k8s/chaos/http-timeout.yaml
+#   kubectl delete -f k8s/chaos/http-timeout.yaml
+#
+apiVersion: chaos-mesh.org/v1alpha1
+kind: NetworkChaos
+metadata:
+  name: fastapi-http-timeout
+  namespace: default
+  labels:
+    experiment: chaos
+    type: http-timeout
+spec:
+  action: loss
+  mode: all
+  selector:
+    namespaces:
+      - default
+    labelSelectors:
+      app: fastapi-template
+  loss:
+    loss: "100"
+    correlation: "100"
+  direction: to
+  target:
+    selector:
+      namespaces:
+        - default
+      labelSelectors:
+        app: fastapi-postgres
+    mode: all
+  duration: "30s"

@@ -1,0 +1,32 @@
+# Chaos Mesh PodChaos: Pod Kill
+#
+# Randomly kills pods matching the selector to validate self-healing and
+# readiness/liveness probe behaviour.
+#
+# Prerequisites:
+#   - Chaos Mesh installed in the cluster (helm install chaos-mesh chaos-mesh/chaos-mesh -n chaos-mesh)
+#   - Target namespace labelled: kubectl label ns <ns> chaos-mesh.org/chaos=enable
+#
+# Usage:
+#   kubectl apply -f k8s/chaos/pod-kill.yaml
+#   kubectl delete -f k8s/chaos/pod-kill.yaml   # stop the experiment
+#
+apiVersion: chaos-mesh.org/v1alpha1
+kind: PodChaos
+metadata:
+  name: fastapi-pod-kill
+  namespace: default
+  labels:
+    experiment: chaos
+    type: pod-kill
+spec:
+  action: pod-kill
+  mode: one
+  selector:
+    namespaces:
+      - default
+    labelSelectors:
+      app: fastapi-template
+  scheduler:
+    cron: "@every 24h"
+  duration: "30s"

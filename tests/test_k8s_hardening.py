@@ -38,7 +38,9 @@ class TestK8sDeploymentHardening:
         assert sa == "fastapi-template"
 
     def test_automount_disabled(self) -> None:
-        assert self.deployment["spec"]["template"]["spec"].get("automountServiceAccountToken") is False
+        assert (
+            self.deployment["spec"]["template"]["spec"].get("automountServiceAccountToken") is False
+        )
 
     def test_pod_security_context(self) -> None:
         psc = self.deployment["spec"]["template"]["spec"]["securityContext"]
@@ -95,16 +97,14 @@ class TestK8sNetworkPolicy:
 
     def test_egress_allows_dns(self) -> None:
         egress = self.netpol["spec"]["egress"]
-        dns_egress = [e for e in egress if any(
-            p.get("port") == 53 for p in e.get("ports", [])
-        )]
+        dns_egress = [e for e in egress if any(p.get("port") == 53 for p in e.get("ports", []))]
         assert len(dns_egress) > 0, "DNS egress rule not found"
 
     def test_egress_allows_postgres_and_redis(self) -> None:
         egress = self.netpol["spec"]["egress"]
-        db_egress = [e for e in egress if any(
-            p.get("port") in (5432, 6379) for p in e.get("ports", [])
-        )]
+        db_egress = [
+            e for e in egress if any(p.get("port") in (5432, 6379) for p in e.get("ports", []))
+        ]
         assert len(db_egress) > 0, "Database/Redis egress rule not found"
 
 

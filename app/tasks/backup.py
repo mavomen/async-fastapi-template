@@ -220,5 +220,7 @@ def restore_backup(self: Any, key: str | None = None) -> dict[str, Any]:
         "key": key,
         "bytes_restored": len(dump_data),
         "elapsed_seconds": round(elapsed, 1),
-        "warnings": result.stderr.decode(errors="replace").strip() if result.returncode == 1 else None,
+        "warnings": result.stderr.decode(errors="replace").strip()
+        if result.returncode == 1
+        else None,
     }

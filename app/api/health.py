@@ -135,6 +135,7 @@ async def dependencies_check(db: AsyncSession = Depends(get_read_db)) -> dict[st
 # Canonical k8s probe aliases: /healthz (liveness) and /readyz (readiness)
 # ---------------------------------------------------------------------------
 
+
 @k8s_router.get(
     "/healthz",
     response_class=ORJSONResponse,
