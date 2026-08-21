@@ -42,3 +42,25 @@ output "cloudwatch_log_group" {
   description = "CloudWatch log group for the ECS service"
   value       = aws_cloudwatch_log_group.app.name
 }
+
+# ── Multi-Region Failover ──
+
+output "route53_health_check_id" {
+  description = "Route53 health check ID for the primary endpoint"
+  value       = try(module.multi_region[0].health_check_id, "")
+}
+
+output "failover_primary_fqdn" {
+  description = "FQDN of the primary failover record"
+  value       = try(module.multi_region[0].primary_record_fqdn, "")
+}
+
+output "failover_secondary_fqdn" {
+  description = "FQDN of the secondary failover record"
+  value       = try(module.multi_region[0].secondary_record_fqdn, "")
+}
+
+output "secondary_cluster_endpoint" {
+  description = "Cross-region Aurora replica endpoint"
+  value       = try(module.multi_region[0].secondary_cluster_endpoint, "")
+}

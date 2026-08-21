@@ -104,3 +104,65 @@ variable "single_nat_gateway" {
   type        = bool
   default     = true
 }
+
+# ── Multi-Region Failover ──
+
+variable "enable_multi_region" {
+  description = "Enable multi-region failover with Route53"
+  type        = bool
+  default     = false
+}
+
+variable "secondary_region" {
+  description = "Secondary (DR) AWS region"
+  type        = string
+  default     = "us-west-2"
+}
+
+variable "route53_hosted_zone_id" {
+  description = "Route53 hosted zone ID for failover records"
+  type        = string
+  default     = ""
+}
+
+variable "secondary_alb_dns_name" {
+  description = "DNS name of the secondary region ALB (for failover alias)"
+  type        = string
+  default     = ""
+}
+
+variable "secondary_alb_zone_id" {
+  description = "Route53 zone ID of the secondary region ALB"
+  type        = string
+  default     = ""
+}
+
+variable "enable_cross_region_replica" {
+  description = "Create an Aurora read replica in the secondary region"
+  type        = bool
+  default     = false
+}
+
+variable "secondary_vpc_id" {
+  description = "VPC ID in the secondary region"
+  type        = string
+  default     = ""
+}
+
+variable "secondary_subnet_ids" {
+  description = "Subnet IDs in the secondary region for the replica"
+  type        = list(string)
+  default     = []
+}
+
+variable "secondary_vpc_cidr" {
+  description = "VPC CIDR in the secondary region"
+  type        = string
+  default     = ""
+}
+
+variable "secondary_db_instance_class" {
+  description = "Instance class for the cross-region Aurora replica"
+  type        = string
+  default     = "db.r6g.large"
+}
