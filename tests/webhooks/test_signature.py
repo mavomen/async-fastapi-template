@@ -2,7 +2,7 @@
 
 import time
 
-from app.services.webhook import (
+from app.notifications.services.webhook import (
     build_signature_header,
     sign_payload,
     verify_signature_header,

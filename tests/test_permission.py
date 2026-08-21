@@ -3,7 +3,7 @@
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.role import Permission
+from app.identity.models.role import Permission
 
 
 @pytest.mark.asyncio

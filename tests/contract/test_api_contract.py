@@ -108,7 +108,7 @@ class TestEndpointFuzz:
     )
     def test_user_create_payloads(self, email: str, username: str, password: str) -> None:
         """Generate valid user creation payloads."""
-        from app.schemas.user import UserCreate
+        from app.identity.schemas.user import UserCreate
 
         user = UserCreate(email=email, username=username, password=password)
         data = user.model_dump()
@@ -126,7 +126,7 @@ class TestEndpointFuzz:
         self, email: str | None, full_name: str | None, is_active: bool | None
     ) -> None:
         """Generate valid user update payloads."""
-        from app.schemas.user import UserUpdate
+        from app.identity.schemas.user import UserUpdate
 
         update = UserUpdate(email=email, full_name=full_name, is_active=is_active)
         data = update.model_dump(exclude_unset=True)

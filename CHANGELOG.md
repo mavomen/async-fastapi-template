@@ -4,7 +4,16 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## [Unreleased]
+## [3.5.0] - 2026-08-21
+
+### Changed
+
+- Internal restructure of `app/` into bounded contexts: `identity/` (users, RBAC,
+  tenants, API keys, TOTP, WebAuthn, OAuth2, auth audit, user GraphQL), `notifications/`
+  (inbox, preferences, email, webhooks), and a reserved `billing/` scaffold. Shared
+  base models, CMS, files, task status, and the audit log remain in the `app/models/`
+  shared kernel. No HTTP behavior change — routes, prefixes, and tags are identical
+  (OpenAPI snapshot unchanged); import paths for moved modules changed accordingly.
 
 ### Added
 

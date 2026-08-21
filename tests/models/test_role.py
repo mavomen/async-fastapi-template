@@ -5,7 +5,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.models.role import Permission, Role
+from app.identity.models.role import Permission, Role
 
 
 @pytest.mark.asyncio

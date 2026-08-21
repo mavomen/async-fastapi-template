@@ -46,9 +46,9 @@ class TestCRUDApiKeyVerify:
         mock_db = AsyncMock()
         mock_db.execute.return_value = mock_result
 
-        mocker.patch("app.crud.api_key.verify_api_key", return_value=True)
+        mocker.patch("app.identity.crud.api_key.verify_api_key", return_value=True)
 
-        from app.crud.api_key import api_key as crud_api_key
+        from app.identity.crud.api_key import api_key as crud_api_key
 
         result = await crud_api_key.verify(mock_db, raw_key="ak_testkey1234")
         assert result is not None
@@ -67,9 +67,9 @@ class TestCRUDApiKeyVerify:
         mock_db = AsyncMock()
         mock_db.execute.return_value = mock_result
 
-        mocker.patch("app.crud.api_key.verify_api_key", return_value=True)
+        mocker.patch("app.identity.crud.api_key.verify_api_key", return_value=True)
 
-        from app.crud.api_key import api_key as crud_api_key
+        from app.identity.crud.api_key import api_key as crud_api_key
 
         result = await crud_api_key.verify(mock_db, raw_key="ak_testkey1234")
         assert result is None
@@ -82,7 +82,7 @@ class TestCRUDApiKeyVerify:
         mock_db = AsyncMock()
         mock_db.execute.return_value = mock_result
 
-        from app.crud.api_key import api_key as crud_api_key
+        from app.identity.crud.api_key import api_key as crud_api_key
 
         result = await crud_api_key.verify(mock_db, raw_key="ak_nonexistent")
         assert result is None
@@ -100,9 +100,9 @@ class TestCRUDApiKeyVerify:
         mock_db = AsyncMock()
         mock_db.execute.return_value = mock_result
 
-        mocker.patch("app.crud.api_key.verify_api_key", return_value=False)
+        mocker.patch("app.identity.crud.api_key.verify_api_key", return_value=False)
 
-        from app.crud.api_key import api_key as crud_api_key
+        from app.identity.crud.api_key import api_key as crud_api_key
 
         result = await crud_api_key.verify(mock_db, raw_key="ak_testkey1234")
         assert result is None
@@ -122,9 +122,9 @@ class TestCRUDApiKeyVerify:
         mock_db = AsyncMock()
         mock_db.execute.return_value = mock_result
 
-        mocker.patch("app.crud.api_key.verify_api_key", return_value=True)
+        mocker.patch("app.identity.crud.api_key.verify_api_key", return_value=True)
 
-        from app.crud.api_key import api_key as crud_api_key
+        from app.identity.crud.api_key import api_key as crud_api_key
 
         result = await crud_api_key.verify(mock_db, raw_key="ak_testkey1234")
         assert result is None
@@ -192,11 +192,11 @@ class TestApiKeyEndpoints:
         app.dependency_overrides[get_current_user_or_api_key] = _fake_user
         app.dependency_overrides[get_db] = lambda: AsyncMock()
         mocker.patch(
-            "app.crud.api_key.generate_api_key",
+            "app.identity.crud.api_key.generate_api_key",
             return_value=("ak_rawkey1234567890", "hash", "ak_abc123"),
         )
         mocker.patch(
-            "app.crud.api_key.CRUDApiKey.create_with_raw_key",
+            "app.identity.crud.api_key.CRUDApiKey.create_with_raw_key",
             return_value=(mock_key_obj, "ak_rawkey1234567890"),
         )
 
@@ -238,7 +238,9 @@ class TestApiKeyEndpoints:
 
         app.dependency_overrides[get_current_user] = _fake_user
         app.dependency_overrides[get_db] = lambda: AsyncMock()
-        mocker.patch("app.crud.api_key.CRUDApiKey.get_active_for_user", return_value=[mock_key_obj])
+        mocker.patch(
+            "app.identity.crud.api_key.CRUDApiKey.get_active_for_user", return_value=[mock_key_obj]
+        )
 
         try:
             resp = client.get("/api/v1/auth/api-keys")
@@ -269,8 +271,8 @@ class TestApiKeyEndpoints:
 
         app.dependency_overrides[get_current_user] = _fake_user
         app.dependency_overrides[get_db] = lambda: AsyncMock()
-        mocker.patch("app.crud.api_key.CRUDApiKey.get", return_value=mock_key_obj)
-        mocker.patch("app.crud.api_key.CRUDApiKey.delete", return_value=None)
+        mocker.patch("app.identity.crud.api_key.CRUDApiKey.get", return_value=mock_key_obj)
+        mocker.patch("app.identity.crud.api_key.CRUDApiKey.delete", return_value=None)
 
         try:
             resp = client.delete("/api/v1/auth/api-keys/1")

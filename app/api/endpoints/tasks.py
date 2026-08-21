@@ -10,7 +10,7 @@ from starlette.responses import StreamingResponse
 
 from app.api.deps import get_read_db
 from app.models.task_status import TaskStatus
-from app.tasks.email import send_email_notification
+from app.notifications.tasks.email import send_email_notification
 
 router = APIRouter()
 

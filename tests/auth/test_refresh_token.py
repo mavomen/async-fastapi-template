@@ -4,8 +4,8 @@ import pytest
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.crud.user import user as crud_user
-from app.schemas.user import UserCreate
+from app.identity.crud.user import user as crud_user
+from app.identity.schemas.user import UserCreate
 
 
 @pytest.fixture

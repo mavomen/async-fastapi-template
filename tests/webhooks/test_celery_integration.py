@@ -3,8 +3,12 @@
 import pytest
 
 from app.core.database import sessionmanager
-from app.models.webhook import Webhook, WebhookDelivery
-from app.tasks.webhook import _load_delivery_and_webhook, _record_delivery_outcome, _run_async
+from app.notifications.models.webhook import Webhook, WebhookDelivery
+from app.notifications.tasks.webhook import (
+    _load_delivery_and_webhook,
+    _record_delivery_outcome,
+    _run_async,
+)
 
 
 def _make_webhook(session, **overrides) -> Webhook:

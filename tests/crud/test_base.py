@@ -6,7 +6,7 @@ import pytest
 from sqlalchemy import Select
 
 from app.crud.base import CRUDBase
-from app.models.user import User
+from app.identity.models.user import User
 
 
 @pytest.mark.asyncio

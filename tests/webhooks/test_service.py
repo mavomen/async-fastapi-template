@@ -7,7 +7,7 @@ import pytest
 
 from app.core.config import settings
 from app.events.base import Event
-from app.services.webhook import build_delivery_payload, compute_backoff, handle_event
+from app.notifications.services.webhook import build_delivery_payload, compute_backoff, handle_event
 
 
 class TestComputeBackoff:
@@ -47,21 +47,21 @@ class TestHandleEvent:
         async def fake_session():
             yield fake_db
 
-        mocker.patch("app.services.webhook._db_session", fake_session)
+        mocker.patch("app.notifications.services.webhook._db_session", fake_session)
         mocker.patch(
-            "app.crud.webhook.webhook.get_active_for_event_type",
+            "app.notifications.crud.webhook.webhook.get_active_for_event_type",
             new=mocker.AsyncMock(return_value=[mock_webhook]),
         )
         mocker.patch(
-            "app.crud.webhook.webhook.create_delivery",
+            "app.notifications.crud.webhook.webhook.create_delivery",
             new=mocker.AsyncMock(return_value=mock_delivery),
         )
         mock_task = mocker.MagicMock()
-        mocker.patch("app.tasks.webhook.deliver_webhook", mock_task)
+        mocker.patch("app.notifications.tasks.webhook.deliver_webhook", mock_task)
 
         await handle_event(event)
 
-        from app.crud.webhook import webhook as webhook_crud
+        from app.notifications.crud.webhook import webhook as webhook_crud
 
         webhook_crud.get_active_for_event_type.assert_awaited_once_with(
             fake_db, event_type="user.created"
@@ -78,21 +78,21 @@ class TestHandleEvent:
         async def fake_session():
             yield fake_db
 
-        mocker.patch("app.services.webhook._db_session", fake_session)
+        mocker.patch("app.notifications.services.webhook._db_session", fake_session)
         mocker.patch(
-            "app.crud.webhook.webhook.get_active_for_event_type",
+            "app.notifications.crud.webhook.webhook.get_active_for_event_type",
             new=mocker.AsyncMock(return_value=[]),
         )
         mocker.patch(
-            "app.crud.webhook.webhook.create_delivery",
+            "app.notifications.crud.webhook.webhook.create_delivery",
             new=mocker.AsyncMock(),
         )
         mock_task = mocker.MagicMock()
-        mocker.patch("app.tasks.webhook.deliver_webhook", mock_task)
+        mocker.patch("app.notifications.tasks.webhook.deliver_webhook", mock_task)
 
         await handle_event(event)
 
-        from app.crud.webhook import webhook as webhook_crud
+        from app.notifications.crud.webhook import webhook as webhook_crud
 
         webhook_crud.create_delivery.assert_not_awaited()
         mock_task.delay.assert_not_called()
@@ -100,9 +100,9 @@ class TestHandleEvent:
     @pytest.mark.asyncio
     async def test_disabled_returns_early(self, mocker):
         mock_settings = mocker.MagicMock(WEBHOOK_ENABLED=False)
-        mocker.patch("app.services.webhook.settings", mock_settings)
+        mocker.patch("app.notifications.services.webhook.settings", mock_settings)
         mock_task = mocker.MagicMock()
-        mocker.patch("app.tasks.webhook.deliver_webhook", mock_task)
+        mocker.patch("app.notifications.tasks.webhook.deliver_webhook", mock_task)
 
         await handle_event(Event(event_type="user.created", payload={}))
 
@@ -117,17 +117,17 @@ class TestHandleEvent:
         async def fake_session():
             yield fake_db
 
-        mocker.patch("app.services.webhook._db_session", fake_session)
+        mocker.patch("app.notifications.services.webhook._db_session", fake_session)
         mocker.patch(
-            "app.crud.webhook.webhook.get_active_for_event_type",
+            "app.notifications.crud.webhook.webhook.get_active_for_event_type",
             new=mocker.AsyncMock(return_value=[SimpleNamespace(id=1)]),
         )
         mocker.patch(
-            "app.crud.webhook.webhook.create_delivery",
+            "app.notifications.crud.webhook.webhook.create_delivery",
             new=mocker.AsyncMock(return_value=SimpleNamespace(id=1)),
         )
         mock_task = mocker.MagicMock()
         mock_task.delay.side_effect = RuntimeError("broker down")
-        mocker.patch("app.tasks.webhook.deliver_webhook", mock_task)
+        mocker.patch("app.notifications.tasks.webhook.deliver_webhook", mock_task)
 
         await handle_event(event)  # must not raise

@@ -2,7 +2,7 @@
 
 import pytest
 
-from app.gql.subscriptions.user_subscription import UserSubscription
+from app.identity.gql.subscriptions.user_subscription import UserSubscription
 
 
 @pytest.mark.asyncio

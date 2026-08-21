@@ -1,0 +1,1 @@
+"""Notifications domain API endpoints."""

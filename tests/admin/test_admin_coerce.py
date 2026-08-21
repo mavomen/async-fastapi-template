@@ -1,7 +1,7 @@
 """Unit tests for admin helper _coerce_value."""
 
 from app.admin import _coerce_value
-from app.models.user import User
+from app.identity.models.user import User
 
 
 def test_coerce_boolean_true():

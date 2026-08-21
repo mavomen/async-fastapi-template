@@ -142,7 +142,7 @@ class TestCrudEndpoints:
         override_user(mocker, user)
         mocker.patch("app.api.deps.get_db", lambda: AsyncMock())
         mocker.patch(
-            "app.crud.webhook.webhook.create_with_secret",
+            "app.notifications.crud.webhook.webhook.create_with_secret",
             new=AsyncMock(return_value=(make_webhook(), "super-secret")),
         )
         try:
@@ -161,7 +161,7 @@ class TestCrudEndpoints:
         override_user(mocker, user)
         mocker.patch("app.api.deps.get_db", lambda: AsyncMock())
         mocker.patch(
-            "app.crud.webhook.webhook.list_for_tenant",
+            "app.notifications.crud.webhook.webhook.list_for_tenant",
             new=AsyncMock(return_value=[make_webhook()]),
         )
         try:
@@ -177,7 +177,9 @@ class TestCrudEndpoints:
         user = make_user(superuser=True)
         override_user(mocker, user)
         mocker.patch("app.api.deps.get_db", lambda: AsyncMock())
-        mocker.patch("app.crud.webhook.webhook.get", new=AsyncMock(return_value=make_webhook()))
+        mocker.patch(
+            "app.notifications.crud.webhook.webhook.get", new=AsyncMock(return_value=make_webhook())
+        )
         try:
             resp = client.get("/api/v1/webhooks/1")
             assert resp.status_code == 200
@@ -189,7 +191,7 @@ class TestCrudEndpoints:
         user = make_user(superuser=True)
         override_user(mocker, user)
         mocker.patch("app.api.deps.get_db", lambda: AsyncMock())
-        mocker.patch("app.crud.webhook.webhook.get", new=AsyncMock(return_value=None))
+        mocker.patch("app.notifications.crud.webhook.webhook.get", new=AsyncMock(return_value=None))
         try:
             assert client.get("/api/v1/webhooks/1").status_code == 404
         finally:
@@ -200,7 +202,7 @@ class TestCrudEndpoints:
         override_user(mocker, user)
         mocker.patch("app.api.deps.get_db", lambda: AsyncMock())
         mocker.patch(
-            "app.crud.webhook.webhook.get",
+            "app.notifications.crud.webhook.webhook.get",
             new=AsyncMock(return_value=make_webhook(tenant_id=99)),
         )
         try:
@@ -212,9 +214,11 @@ class TestCrudEndpoints:
         user = make_user(superuser=True)
         override_user(mocker, user)
         mocker.patch("app.api.deps.get_db", lambda: AsyncMock())
-        mocker.patch("app.crud.webhook.webhook.get", new=AsyncMock(return_value=make_webhook()))
         mocker.patch(
-            "app.crud.webhook.webhook.update",
+            "app.notifications.crud.webhook.webhook.get", new=AsyncMock(return_value=make_webhook())
+        )
+        mocker.patch(
+            "app.notifications.crud.webhook.webhook.update",
             new=AsyncMock(return_value=make_webhook(name="renamed")),
         )
         try:
@@ -228,8 +232,13 @@ class TestCrudEndpoints:
         user = make_user(superuser=True)
         override_user(mocker, user)
         mocker.patch("app.api.deps.get_db", lambda: AsyncMock())
-        mocker.patch("app.crud.webhook.webhook.get", new=AsyncMock(return_value=make_webhook()))
-        mocker.patch("app.crud.webhook.webhook.delete", new=AsyncMock(return_value=make_webhook()))
+        mocker.patch(
+            "app.notifications.crud.webhook.webhook.get", new=AsyncMock(return_value=make_webhook())
+        )
+        mocker.patch(
+            "app.notifications.crud.webhook.webhook.delete",
+            new=AsyncMock(return_value=make_webhook()),
+        )
         try:
             assert client.delete("/api/v1/webhooks/1").status_code == 204
         finally:
@@ -239,13 +248,15 @@ class TestCrudEndpoints:
         user = make_user(superuser=True)
         override_user(mocker, user)
         mocker.patch("app.api.deps.get_db", lambda: AsyncMock())
-        mocker.patch("app.crud.webhook.webhook.get", new=AsyncMock(return_value=make_webhook()))
         mocker.patch(
-            "app.crud.webhook.webhook.create_delivery",
+            "app.notifications.crud.webhook.webhook.get", new=AsyncMock(return_value=make_webhook())
+        )
+        mocker.patch(
+            "app.notifications.crud.webhook.webhook.create_delivery",
             new=AsyncMock(return_value=make_delivery()),
         )
         mock_task = MagicMock()
-        mocker.patch("app.tasks.webhook.deliver_webhook", mock_task)
+        mocker.patch("app.notifications.tasks.webhook.deliver_webhook", mock_task)
         try:
             resp = client.post("/api/v1/webhooks/1/ping")
             assert resp.status_code == 202
@@ -258,9 +269,11 @@ class TestCrudEndpoints:
         user = make_user(superuser=True)
         override_user(mocker, user)
         mocker.patch("app.api.deps.get_db", lambda: AsyncMock())
-        mocker.patch("app.crud.webhook.webhook.get", new=AsyncMock(return_value=make_webhook()))
         mocker.patch(
-            "app.crud.webhook.webhook.list_deliveries",
+            "app.notifications.crud.webhook.webhook.get", new=AsyncMock(return_value=make_webhook())
+        )
+        mocker.patch(
+            "app.notifications.crud.webhook.webhook.list_deliveries",
             new=AsyncMock(return_value=[make_delivery()]),
         )
         try:

@@ -5,9 +5,9 @@ from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.security import create_access_token
-from app.crud.user import user as crud_user
-from app.models.role import Permission, Role
-from app.schemas.user import UserCreate
+from app.identity.crud.user import user as crud_user
+from app.identity.models.role import Permission, Role
+from app.identity.schemas.user import UserCreate
 
 
 @pytest.fixture

@@ -4,12 +4,12 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from app.auth.webauthn import (
+from app.identity.auth.webauthn import (
     begin_authentication,
     complete_authentication,
     complete_registration,
 )
-from app.models.webauthn_credential import WebAuthnCredential
+from app.identity.models.webauthn_credential import WebAuthnCredential
 
 
 # Helper to build a proper async mock for db.execute
@@ -26,14 +26,14 @@ def _mock_db_execute(return_creds: list):
 
 @pytest.mark.asyncio
 async def test_complete_registration_success():
-    from app.auth.webauthn import _pending_registrations
+    from app.identity.auth.webauthn import _pending_registrations
 
     fake_options = MagicMock()
     fake_options.challenge = b"fake-challenge"
     _pending_registrations["1"] = fake_options
 
     db = AsyncMock()
-    with patch("app.auth.webauthn.verify_registration_response") as mock_verify:
+    with patch("app.identity.auth.webauthn.verify_registration_response") as mock_verify:
         mock_verify.return_value = MagicMock(
             credential_id="cred-1",
             credential_public_key="pub-key",
@@ -46,7 +46,7 @@ async def test_complete_registration_success():
 
 @pytest.mark.asyncio
 async def test_complete_authentication_success():
-    from app.auth.webauthn import _pending_authentications
+    from app.identity.auth.webauthn import _pending_authentications
 
     fake_options = MagicMock()
     fake_options.challenge = b"fake-challenge"
@@ -58,7 +58,7 @@ async def test_complete_authentication_success():
     db_cred.sign_count = 0
     db = _mock_db_execute([db_cred])
 
-    with patch("app.auth.webauthn.verify_authentication_response"):
+    with patch("app.identity.auth.webauthn.verify_authentication_response"):
         result = await complete_authentication("2", {"rawId": "abc"}, db=db)
     assert result is True
 
@@ -71,8 +71,8 @@ async def test_begin_authentication_success():
     db = _mock_db_execute([db_cred])
 
     with (
-        patch("app.auth.webauthn.generate_authentication_options") as mock_gen,
-        patch("app.auth.webauthn._options_to_dict") as mock_opt,
+        patch("app.identity.auth.webauthn.generate_authentication_options") as mock_gen,
+        patch("app.identity.auth.webauthn._options_to_dict") as mock_opt,
     ):
         mock_gen.return_value = MagicMock()
         mock_opt.return_value = {"challenge": "def"}

@@ -1,0 +1,121 @@
+name: Chaos Engineering
+
+on:
+  schedule:
+    # Weekly, Sunday 04:00 UTC
+    - cron: "0 4 * * 0"
+  workflow_dispatch:
+    inputs:
+      experiments:
+        description: >-
+          Comma-separated experiment names (pod-kill, network-latency,
+          http-timeout, dns-error, cpu-stress) or "all"
+        required: false
+        default: "all"
+
+concurrency:
+  group: chaos-engineering
+  cancel-in-progress: false
+
+jobs:
+  chaos:
+    name: Chaos experiments on kind
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create kind cluster
+        uses: helm/kind-action@v1.10.0
+        with:
+          cluster_name: chaos-lab
+
+      - name: Build and load app image
+        run: |
+          docker build -f Dockerfile.prod -t async-fastapi-template:chaos .
+          kind load docker-image async-fastapi-template:chaos --name chaos-lab
+
+      - name: Deploy dependencies (Postgres, Redis)
+        run: |
+          kubectl apply -f k8s/chaos/deps/
+          kubectl wait --for=condition=available deployment/postgres --timeout=180s
+          kubectl wait --for=condition=available deployment/redis --timeout=180s
+
+      - name: Deploy app via Helm chart
+        run: |
+          helm install fastapi-template ./helm/async-fastapi-template \
+            --namespace default \
+            -f k8s/chaos/values-chaos.yaml \
+            --wait --timeout 5m
+
+      - name: Run database migrations
+        run: |
+          kubectl apply -f - <<'EOF'
+          apiVersion: batch/v1
+          kind: Job
+          metadata:
+            name: alembic-migrate
+            namespace: default
+          spec:
+            backoffLimit: 2
+            template:
+              spec:
+                restartPolicy: Never
+                containers:
+                  - name: alembic
+                    image: async-fastapi-template:chaos
+                    command: ["poetry", "run", "alembic", "upgrade", "head"]
+                    envFrom:
+                      - configMapRef:
+                          name: fastapi-template-config
+                      - secretRef:
+                          name: fastapi-template-secret
+          EOF
+          kubectl wait --for=condition=complete job/alembic-migrate --timeout=180s
+
+      - name: Verify app readiness before injecting faults
+        run: |
+          kubectl rollout status deployment/fastapi-template --timeout=180s
+          kubectl run pre-chaos-probe --rm -i --restart=Never \
+            --image=curlimages/curl:8.9.1 --quiet -- \
+            curl -fsS -o /dev/null -m 10 http://fastapi-template.default.svc.cluster.local/healthz
+
+      - name: Install Chaos Mesh
+        run: |
+          helm repo add chaos-mesh https://charts.chaos-mesh.org
+          helm repo update
+          helm install chaos-mesh chaos-mesh/chaos-mesh \
+            --namespace chaos-mesh --create-namespace \
+            --version 2.7.2 \
+            --set dnsServer.create=true \
+            --wait --timeout 5m
+          kubectl label namespace default chaos-mesh.org/chaos=enable
+
+      - name: Run chaos experiments
+        env:
+          EXPERIMENTS: ${{ inputs.experiments || 'all' }}
+        run: |
+          if [ "$EXPERIMENTS" = "all" ]; then
+            ./scripts/run_chaos_experiments.sh
+          else
+            # shellcheck disable=SC2086
+            ./scripts/run_chaos_experiments.sh $(echo "$EXPERIMENTS" | tr ',' ' ')
+          fi
+
+      - name: Collect diagnostics
+        if: always()
+        run: |
+          mkdir -p chaos-diagnostics
+          kubectl get events --sort-by=.lastTimestamp > chaos-diagnostics/events.txt || true
+          kubectl get pods -A -o wide > chaos-diagnostics/pods.txt || true
+          kubectl describe pods -n default > chaos-diagnostics/pod-describe.txt || true
+          helm list -A > chaos-diagnostics/helm-releases.txt || true
+
+      - name: Upload diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: chaos-diagnostics-${{ github.run_id }}
+          path: chaos-diagnostics/
+          if-no-files-found: ignore

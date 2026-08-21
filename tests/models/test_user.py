@@ -4,7 +4,7 @@ import pytest
 from sqlalchemy import inspect, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.user import User
+from app.identity.models.user import User
 
 
 class TestUserModel:

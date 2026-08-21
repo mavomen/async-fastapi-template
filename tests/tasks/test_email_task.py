@@ -1,6 +1,6 @@
 """Test for email Celery task existence."""
 
-from app.tasks.email import send_email_notification
+from app.notifications.tasks.email import send_email_notification
 
 
 def test_email_task_registered():

@@ -5,7 +5,7 @@ from unittest.mock import MagicMock, patch
 import httpx
 import pytest
 
-from app.auth.oauth2 import (
+from app.identity.auth.oauth2 import (
     exchange_code,
     generate_oauth_state,
     get_authorize_url,
@@ -26,7 +26,7 @@ class TestGetProviderMeta:
 
 
 class TestGetAuthorizeUrl:
-    @patch("app.auth.oauth2._get_client_credentials", return_value=("my-id", "my-secret"))
+    @patch("app.identity.auth.oauth2._get_client_credentials", return_value=("my-id", "my-secret"))
     def test_returns_correct_url(self, _mock_creds):
         url = get_authorize_url("github", "state123", "http://localhost:8000/callback")
         assert url.startswith("https://github.com/login/oauth/authorize")
@@ -34,7 +34,7 @@ class TestGetAuthorizeUrl:
         assert "state=state123" in url
         assert "response_type=code" in url
 
-    @patch("app.auth.oauth2._get_client_credentials", return_value=("my-id", "my-secret"))
+    @patch("app.identity.auth.oauth2._get_client_credentials", return_value=("my-id", "my-secret"))
     def test_includes_scopes(self, _mock_creds):
         url = get_authorize_url("google", "s", "http://localhost:8000/callback")
         assert "scope=" in url
@@ -43,7 +43,7 @@ class TestGetAuthorizeUrl:
 
 class TestExchangeCode:
     @pytest.mark.asyncio
-    @patch("app.auth.oauth2._get_client_credentials", return_value=("cid", "cs"))
+    @patch("app.identity.auth.oauth2._get_client_credentials", return_value=("cid", "cs"))
     async def test_exchange_success(self, _mock_creds, mocker):
         mock_post = mocker.patch("httpx.AsyncClient.post")
         mock_response = MagicMock()
@@ -60,7 +60,7 @@ class TestExchangeCode:
         assert result["refresh_token"] == "rt123"
 
     @pytest.mark.asyncio
-    @patch("app.auth.oauth2._get_client_credentials", return_value=("cid", "cs"))
+    @patch("app.identity.auth.oauth2._get_client_credentials", return_value=("cid", "cs"))
     async def test_exchange_failure_raises(self, _mock_creds, mocker):
         mock_post = mocker.patch("httpx.AsyncClient.post")
         mock_response = MagicMock()
@@ -143,11 +143,11 @@ class TestGenerateOAuthState:
 class TestOAuthService:
     @pytest.mark.asyncio
     async def test_store_and_consume_state(self, mocker):
-        from app.services.oauth2 import consume_oauth_state, store_oauth_state
+        from app.identity.services.oauth2 import consume_oauth_state, store_oauth_state
 
-        mock_cache_set = mocker.patch("app.services.oauth2.cache.set")
-        mock_cache_get = mocker.patch("app.services.oauth2.cache.get")
-        mock_cache_delete = mocker.patch("app.services.oauth2.cache.delete")
+        mock_cache_set = mocker.patch("app.identity.services.oauth2.cache.set")
+        mock_cache_get = mocker.patch("app.identity.services.oauth2.cache.get")
+        mock_cache_delete = mocker.patch("app.identity.services.oauth2.cache.delete")
 
         mock_cache_get.return_value = {"provider": "google"}
 
@@ -160,9 +160,9 @@ class TestOAuthService:
 
     @pytest.mark.asyncio
     async def test_consume_invalid_state_returns_none(self, mocker):
-        from app.services.oauth2 import consume_oauth_state
+        from app.identity.services.oauth2 import consume_oauth_state
 
-        mocker.patch("app.services.oauth2.cache.get", return_value=None)
+        mocker.patch("app.identity.services.oauth2.cache.get", return_value=None)
 
         result = await consume_oauth_state("invalid")
         assert result is None

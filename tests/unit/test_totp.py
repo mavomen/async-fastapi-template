@@ -9,7 +9,8 @@ import pytest
 from fastapi import HTTPException
 from jose import jwt
 
-from app.auth.totp import (
+from app.core.config import settings
+from app.identity.auth.totp import (
     create_totp_challenge_token,
     decode_totp_challenge_token,
     generate_backup_codes,
@@ -20,7 +21,6 @@ from app.auth.totp import (
     verify_backup_code,
     verify_totp_code,
 )
-from app.core.config import settings
 
 
 class TestGenerateSecret:

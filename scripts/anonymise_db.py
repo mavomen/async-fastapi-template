@@ -12,7 +12,7 @@ from sqlalchemy import update
 
 from app.core.config import settings
 from app.core.database import sessionmanager
-from app.models.user import User
+from app.identity.models.user import User
 
 
 async def main():

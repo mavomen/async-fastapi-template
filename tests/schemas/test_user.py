@@ -3,7 +3,7 @@
 import pytest
 from pydantic import ValidationError
 
-from app.schemas.user import UserCreate, UserResponse, UserUpdate
+from app.identity.schemas.user import UserCreate, UserResponse, UserUpdate
 
 
 class TestUserCreateSchema:
@@ -191,7 +191,7 @@ class TestUserResponseSchema:
         """Test UserResponse can be created from ORM model."""
         from datetime import UTC, datetime
 
-        from app.models.user import User
+        from app.identity.models.user import User
 
         user_model = User(
             id=1,
