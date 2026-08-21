@@ -9,7 +9,7 @@ The project includes a **GraphQL** endpoint powered by **Strawberry** with async
 
 ## Schema
 
-The schema is defined in `app/gql/schema.py`. It includes:
+The schema is defined in `app/identity/gql/schema.py`. It includes:
 
 - **Queries:** `me`, `user(userId: Int!)`
 - **Mutations:** `createUser(email: String!, username: String!, password: String!, fullName: String)`, `updateUser(userId: Int!, fullName: String, isActive: Boolean)`
@@ -17,7 +17,7 @@ The schema is defined in `app/gql/schema.py`. It includes:
 
 ## Authentication
 
-Include a JWT token in the HTTP `Authorization` header as `Bearer <token>`. The `me` query requires authentication; other queries/mutations enforce RBAC permissions using the existing `app.auth.permissions` module.
+Include a JWT token in the HTTP `Authorization` header as `Bearer <token>`. The `me` query requires authentication; other queries/mutations enforce RBAC permissions using the existing `app.identity.auth.permissions` module.
 
 ## Usage
 
@@ -25,7 +25,7 @@ Open `http://localhost:8000/graphql` in a browser to use the interactive playgro
 
 ## Adding New Types
 
-1. Create a Strawberry type in `app/gql/types/`.
+1. Create a Strawberry type in `app/identity/gql/types/`.
 2. Add resolver methods in the appropriate `*_query.py`, `*_mutation.py`, or `*_subscription.py` files.
 3. The resolver receives `info: Info`, from which you can access `info.context` (the `request` and `db` session).
 
