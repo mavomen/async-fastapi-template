@@ -80,6 +80,7 @@ Visit **http://localhost:8000/docs** for the interactive API docs, **http://loca
 - [CI/CD](docs/ci_cd.md)
 - [Deployment](docs/deployment.md)
 - [Kubernetes Operator](docs/operator.md)
+- [Chaos Engineering](docs/chaos.md)
 - [Developer Experience](docs/developer_experience.md)
 - [FAQ](docs/faq.md)
 - [Security](SECURITY.md)

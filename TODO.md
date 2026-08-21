@@ -207,9 +207,11 @@
 - Active-passive region configuration with DNS failover
 - Route53 health checks + failover routing policies, cross-region Aurora replica (terraform/modules/multi_region)
 
-**`ops/chaos-engineering`** ⏳ partial — scenarios shipped, CI job missing
-- ✅ Chaos Mesh scenarios with safety defaults in k8s/chaos/ (cpu-stress, dns-error, http-timeout, network-latency, pod-kill)
-- ❌ Weekly automated chaos experiments as a CI job
+**`ops/chaos-engineering`** ✅
+- Chaos Mesh scenarios with safety defaults in k8s/chaos/ (cpu-stress, dns-error, http-timeout, network-latency, pod-kill)
+- Weekly automated chaos experiments as a CI job: ephemeral kind cluster, full app stack
+  (deps + Helm chart + migrations), pinned Chaos Mesh, recovery assertions
+  (rollout status + /healthz) per experiment — see docs/chaos.md
 
 ---
 

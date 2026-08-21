@@ -1,0 +1,30 @@
+# Helm overrides for the disposable chaos-engineering environment (CI kind cluster).
+# Credentials are throwaway, cluster-local only — same precedent as the CI test env.
+# Release must be named "fastapi-template" so pods get the app: fastapi-template
+# label that k8s/chaos/*.yaml selectors expect.
+replicaCount: 3
+
+image:
+  repository: async-fastapi-template
+  tag: chaos
+  pullPolicy: IfNotPresent
+
+ingress:
+  enabled: false
+
+autoscaling:
+  enabled: false
+
+config:
+  ENVIRONMENT: "production"
+  REDIS_URL: "redis://redis:6379/0"
+  API_V1_STR: "/api/v1"
+  STORAGE_BACKEND: "local"
+  LOCAL_STORAGE_PATH: "/data/uploads"
+
+secret:
+  SECRET_KEY: "ci-chaos-key-minimum-32-characters!!"
+  DATABASE_URL: "postgresql+asyncpg://postgres:postgres@postgres:5432/fastapi_db"
+  POSTGRES_PASSWORD: "postgres"
+  CELERY_BROKER_URL: "redis://redis:6379/2"
+  CELERY_RESULT_BACKEND: "redis://redis:6379/1"

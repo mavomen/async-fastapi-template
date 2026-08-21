@@ -8,7 +8,9 @@ import pytest
 import yaml
 
 CHAOS_DIR = pathlib.Path("k8s/chaos")
-MANIFESTS = sorted(CHAOS_DIR.glob("*.yaml"))
+# Experiment manifests only: Helm value overrides (values-*.yaml) and the
+# deps/ environment directory are part of the chaos setup but not Chaos CRs.
+MANIFESTS = sorted(p for p in CHAOS_DIR.glob("*.yaml") if not p.name.startswith("values-"))
 
 
 def _load(name: str) -> dict:  # type: ignore[type-arg]
@@ -154,7 +156,7 @@ class TestChaosDirectoryLayout:
     """Directory should be clean with only YAML files."""
 
     def test_no_non_yaml_files(self) -> None:
-        non_yaml = [f for f in CHAOS_DIR.iterdir() if f.suffix != ".yaml"]
+        non_yaml = [f for f in CHAOS_DIR.iterdir() if f.is_file() and f.suffix != ".yaml"]
         assert non_yaml == [], f"Non-YAML files in chaos dir: {non_yaml}"
 
     def test_all_files_parseable(self) -> None:
