@@ -148,13 +148,13 @@
 - Retry with exponential backoff and HMAC signature verification
 - Delivery history, per-webhook management endpoints, and ping/test endpoint
 
-**`feat/cms-module`**
+**`feat/cms-module`** ✅
 - Markdown pages with version history and draft/publish workflow
 
 **`feat/file-thumbnailing`** ✅
 - Automatic thumbnail generation for uploaded images
 
-**`feat/i18n`**
+**`feat/i18n`** ✅
 - Locale support for API error messages and email templates
 
 **`feat/notification-preferences`** ✅
@@ -183,15 +183,21 @@
 **`ops/k8s-operator`**
 - Kubernetes operator to manage the app stack via CRDs
 
-**`ops/k8s-hardening`**
-- Network policies for micro-segmentation per service
-- cosign image signing for supply chain security
+**`ops/k8s-hardening`** ✅
+- Pod/container securityContext (runAsNonRoot, readOnlyRootFilesystem, drop ALL caps, seccomp RuntimeDefault)
+- Dedicated ServiceAccount with automountServiceAccountToken: false
+- NetworkPolicy ingress restricted to ingress-nginx namespace only
+- Ingress uses ingressClassName: nginx
+- cosign keyless signing for supply chain security
+- Trivy image scanning workflow (SARIF + table + fail on CRITICAL/HIGH)
+- emptyDir volumes for /tmp and /data/uploads with readOnlyRootFilesystem
+- 21 tests validating all K8s manifests and Helm templates
 
-**`ops/terraform-module`**
+**`ops/terraform-module`** ✅
 - Reusable Terraform module for the full stack (DB, Redis, Kafka, app)
 - Cost allocation tags propagated to all cloud resources
 
-**`ops/canary-deployments`**
+**`ops/canary-deployments`** ✅
 - Flagger or Argo Rollouts with metric-based promotion gates
 
 **`ops/multi-region-failover`**
@@ -242,9 +248,14 @@
 - CI workflow with Docker services, migrations, seed, Chromium install
 - 14 tests, excluded from default pytest run (-m e2e required)
 
-**`test/fuzz-and-contract`**
-- schemathesis fuzz testing against staging
-- Pact-style consumer-driven contract tests
+**`test/fuzz-and-contract`** ✅
+- Schemathesis fuzz testing against every registered endpoint
+- Hypothesis property-based tests for User schemas
+- Pact-style consumer-driven contracts + provider verification
+- Schema comparison test to detect breaking API changes against baseline
+- OpenAPI baseline generation script
+- CI workflow for weekly + PR fuzz/contract runs
+- 25+ tests total (fuzz, property, pact, schema compare)
 
 **`test/performance-budgets`** ✅
 - Fail CI if p95 latency exceeds a configured threshold

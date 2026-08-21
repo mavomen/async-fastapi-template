@@ -9,6 +9,7 @@ from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from app.core.celery_app import celery_app
 from app.core.config import settings
+from app.i18n import translate
 
 logger = logging.getLogger("app.email")
 
@@ -37,20 +38,20 @@ class EmailService:
         logger.info("Email sent (simulated)", extra={"to": to_email, "subject": subject})
         logger.debug("Email body: %s", html)
 
-    async def send_verification_email(self, to_email: str, token: str) -> None:
+    async def send_verification_email(self, to_email: str, token: str, locale: str = "en") -> None:
         verification_url = f"{settings.FRONTEND_URL}/verify-email?token={token}"
         await self.send_email(
             to_email,
-            "Verify your email",
+            translate("email.verification.subject", locale),
             "verification.html",
             {"verification_url": verification_url},
         )
 
-    async def send_magic_link_email(self, to_email: str, token: str) -> None:
+    async def send_magic_link_email(self, to_email: str, token: str, locale: str = "en") -> None:
         magic_link_url = f"{settings.FRONTEND_URL}/auth/magic-link?token={token}"
         await self.send_email(
             to_email,
-            "Your sign-in link",
+            translate("email.magic_link.subject", locale),
             "magic_link.html",
             {
                 "magic_link_url": magic_link_url,

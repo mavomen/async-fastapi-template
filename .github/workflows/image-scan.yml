@@ -1,0 +1,56 @@
+name: Container Image Scan
+
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [main]
+    tags: ["v*"]
+  schedule:
+    - cron: "0 6 * * 1"  # Weekly Monday 6am
+
+jobs:
+  trivy-image:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build image locally (no push)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile.prod
+          load: true
+          tags: fastapi-template:scan
+
+      - name: Run Trivy image scanner
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: 'fastapi-template:scan'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH'
+          ignore-unfixed: true
+
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+      - name: Run Trivy (table output for logs)
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: 'fastapi-template:scan'
+          format: 'table'
+          severity: 'CRITICAL,HIGH'
+          ignore-unfixed: true
+          exit-code: '1'

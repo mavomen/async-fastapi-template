@@ -585,6 +585,24 @@ files = [
 ]
 
 [[package]]
+name = "bleach"
+version = "6.4.0"
+description = "An easy safelist-based HTML-sanitizing tool."
+optional = false
+python-versions = ">=3.10"
+groups = ["main"]
+files = [
+    {file = "bleach-6.4.0-py3-none-any.whl", hash = "sha256:4b6b6a54fff2e69a3dde9d21cc6301220bee3c3cb792187d11403fd795031081"},
+    {file = "bleach-6.4.0.tar.gz", hash = "sha256:4202482733d85cedd04e59fcb2f89f4e4c7c385a78d3c3c23c30446843a37452"},
+]
+
+[package.dependencies]
+webencodings = "*"
+
+[package.extras]
+css = ["tinycss2 (>=1.1.0)"]
+
+[[package]]
 name = "blinker"
 version = "1.9.0"
 description = "Fast, simple object-to-object and broadcast signaling"
@@ -962,7 +980,7 @@ files = [
     {file = "cffi-2.0.0-cp39-cp39-win_amd64.whl", hash = "sha256:b882b3df248017dba09d6b16defe9b5c407fe32fc7c65a9c69798e6175601be9"},
     {file = "cffi-2.0.0.tar.gz", hash = "sha256:44d1b5909021139fe36001ae048dbdde8214afa20200eda0f64c068cac5d5529"},
 ]
-markers = {main = "platform_python_implementation != \"PyPy\"", dev = "platform_python_implementation != \"PyPy\" or implementation_name == \"pypy\""}
+markers = {main = "platform_python_implementation != \"PyPy\""}
 
 [package.dependencies]
 pycparser = {version = "*", markers = "implementation_name != \"PyPy\""}
@@ -3154,6 +3172,18 @@ files = [
 ]
 
 [[package]]
+name = "mistune"
+version = "3.3.4"
+description = "A sane and fast Markdown parser with useful plugins and renderers"
+optional = false
+python-versions = ">=3.8"
+groups = ["main"]
+files = [
+    {file = "mistune-3.3.4-py3-none-any.whl", hash = "sha256:ee015381e955e370962968befe1d729ab60fafb6a715ac6751763fbce38c8d4a"},
+    {file = "mistune-3.3.4.tar.gz", hash = "sha256:58b5c96d6fcb61190dfe5fae498d2b2065f99cf61e9649418fd54cf1ada86dfe"},
+]
+
+[[package]]
 name = "msgpack"
 version = "1.1.2"
 description = "MessagePack serializer"
@@ -3904,6 +3934,48 @@ files = [
 ]
 
 [[package]]
+name = "pact-python"
+version = "3.4.0"
+description = "Tool for creating and verifying consumer-driven contracts using the Pact framework."
+optional = false
+python-versions = ">=3.10"
+groups = ["dev"]
+files = [
+    {file = "pact_python-3.4.0-py3-none-any.whl", hash = "sha256:76e8fb55c403c2c87d45052b270535cd88af2cd4b60d7d17ae5714eb9d8a872a"},
+    {file = "pact_python-3.4.0.tar.gz", hash = "sha256:e4a500fa00e1fd586cecf473a74db1e604af5e1be97a312d88eced46c25395c0"},
+]
+
+[package.dependencies]
+pact-python-ffi = ">=0.5.0,<0.6.0"
+typing-extensions = {version = ">=4.0,<5.0", markers = "python_version < \"3.13\""}
+yarl = ">=1.0,<2.0"
+
+[package.extras]
+compat-v2 = ["click (>=8.0,<9.0)", "pact-python-cli (>=2.5,<3.0)", "psutil (>=7.0,<8.0)", "requests (>=2.0,<3.0)", "six (>=1.0,<2.0)"]
+
+[[package]]
+name = "pact-python-ffi"
+version = "0.5.4.1"
+description = "Python bindings for the Pact FFI library"
+optional = false
+python-versions = ">=3.10"
+groups = ["dev"]
+files = [
+    {file = "pact_python_ffi-0.5.4.1-cp310-abi3-macosx_12_0_arm64.whl", hash = "sha256:7a76c5aaafe8678fea0c9c640662c1fe988556c6a6b84c57fd2821c57689acf4"},
+    {file = "pact_python_ffi-0.5.4.1-cp310-abi3-macosx_12_0_x86_64.whl", hash = "sha256:37f39846be87db7f05622b5cf7e1990a7921c752c7ec3aebcad56859ade66f63"},
+    {file = "pact_python_ffi-0.5.4.1-cp310-abi3-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:383d6c4e6ec41d37b3b52d1a3058c0754e959d749183e8b647d9dfadfa7e57a5"},
+    {file = "pact_python_ffi-0.5.4.1-cp310-abi3-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:18e5cfa9121d75a6f2a54624f7c45d451f468b7ad0d0082afb5688d598d12db1"},
+    {file = "pact_python_ffi-0.5.4.1-cp310-abi3-musllinux_1_2_aarch64.whl", hash = "sha256:3753df1debd4ec91e8a34d8b1c542b681ed5bc7e9d2c161557f86418bbc372d2"},
+    {file = "pact_python_ffi-0.5.4.1-cp310-abi3-musllinux_1_2_x86_64.whl", hash = "sha256:11ae1f28c2f4a03d4f116c1f449ec743b6ed2555cddf6a66075141118dc1a9b3"},
+    {file = "pact_python_ffi-0.5.4.1-cp310-abi3-win_amd64.whl", hash = "sha256:346c69b325f7699d2979c5ee8b51af7eca44ebe0115b4f54fdb13c03b1ad6a97"},
+    {file = "pact_python_ffi-0.5.4.1-cp310-abi3-win_arm64.whl", hash = "sha256:bacc6f3eb0939091cdc5f3872bef93b4d7a2154f4ccd23559686eef83e20e415"},
+    {file = "pact_python_ffi-0.5.4.1.tar.gz", hash = "sha256:375eec4c604f85bffd60728feaf7f511ea81c612a4ea05ee45bae392f1e96d58"},
+]
+
+[package.dependencies]
+cffi = ">=2.0,<3.0"
+
+[[package]]
 name = "passlib"
 version = "1.7.4"
 description = "comprehensive password hashing framework supporting over 30 schemes"
@@ -4405,7 +4477,7 @@ files = [
     {file = "pycparser-3.0-py3-none-any.whl", hash = "sha256:b727414169a36b7d524c1c3e31839a521725078d7b2ff038656844266160a992"},
     {file = "pycparser-3.0.tar.gz", hash = "sha256:600f49d217304a5902ac3c37e1281c9fe94e4d0489de643a9504c5cdfdfc6b29"},
 ]
-markers = {main = "implementation_name != \"PyPy\" and platform_python_implementation != \"PyPy\"", dev = "(platform_python_implementation != \"PyPy\" or implementation_name == \"pypy\") and implementation_name != \"PyPy\""}
+markers = {main = "implementation_name != \"PyPy\" and platform_python_implementation != \"PyPy\"", dev = "implementation_name != \"PyPy\""}
 
 [[package]]
 name = "pydantic"
@@ -6344,6 +6416,48 @@ rich = ">=13.8.0"
 shellingham = ">=1.3.0"
 
 [[package]]
+name = "types-bleach"
+version = "6.4.0.20260728"
+description = "Typing stubs for bleach"
+optional = false
+python-versions = ">=3.10"
+groups = ["dev"]
+files = [
+    {file = "types_bleach-6.4.0.20260728-py3-none-any.whl", hash = "sha256:ea9feed53196b24a6d9f0cb471c1cfbb0788b3194e8335dc8da1b951b4965d7f"},
+    {file = "types_bleach-6.4.0.20260728.tar.gz", hash = "sha256:526a4fec997514bf3fe989ef59b86ec694bbb2ed70db22c59b622eb5a9b80fae"},
+]
+
+[package.dependencies]
+types-html5lib = "*"
+
+[[package]]
+name = "types-html5lib"
+version = "1.1.11.20260518"
+description = "Typing stubs for html5lib"
+optional = false
+python-versions = ">=3.10"
+groups = ["dev"]
+files = [
+    {file = "types_html5lib-1.1.11.20260518-py3-none-any.whl", hash = "sha256:9baa7912224ebb37027c5ccb7e3768e43ea47b1dfdd977e7ddc4b0a4a550584d"},
+    {file = "types_html5lib-1.1.11.20260518.tar.gz", hash = "sha256:4f33c087cb1119d65c4c80eca4323c2b501f9eaf8af9616b8b732ed4d8eae8fa"},
+]
+
+[package.dependencies]
+types-webencodings = "*"
+
+[[package]]
+name = "types-webencodings"
+version = "0.5.0.20260408"
+description = "Typing stubs for webencodings"
+optional = false
+python-versions = ">=3.10"
+groups = ["dev"]
+files = [
+    {file = "types_webencodings-0.5.0.20260408-py3-none-any.whl", hash = "sha256:19a2afe5c22d9b1e880b49ff823c7b531f473a390fe47ac903c0bdb5cd677dd9"},
+    {file = "types_webencodings-0.5.0.20260408.tar.gz", hash = "sha256:28c596619f367e43eee393d85f63e8d2fdb6874c654a8d441c37f8afe29c6d0d"},
+]
+
+[[package]]
 name = "typing-extensions"
 version = "4.15.0"
 description = "Backported and Experimental Type Hints for Python 3.9+"
@@ -6732,6 +6846,22 @@ files = [
     {file = "webcolors-25.10.0-py3-none-any.whl", hash = "sha256:032c727334856fc0b968f63daa252a1ac93d33db2f5267756623c210e57a4f1d"},
     {file = "webcolors-25.10.0.tar.gz", hash = "sha256:62abae86504f66d0f6364c2a8520de4a0c47b80c03fc3a5f1815fedbef7c19bf"},
 ]
+
+[[package]]
+name = "webencodings"
+version = "0.6.1"
+description = "Character encoding aliases for legacy web content"
+optional = false
+python-versions = ">=3.10"
+groups = ["main"]
+files = [
+    {file = "webencodings-0.6.1-py3-none-any.whl", hash = "sha256:7fab6269c8bf237c657876b52058ccb182e861518d1c695c1a9aaa8c1c105d5b"},
+    {file = "webencodings-0.6.1.tar.gz", hash = "sha256:565f9ad031c702dae404e27a099e3e09186a3ab1b9520f06d215502b651fd910"},
+]
+
+[package.extras]
+doc = ["furo", "sphinx"]
+test = ["pytest", "ruff"]
 
 [[package]]
 name = "websocket-client"
@@ -7177,4 +7307,4 @@ testing = ["coverage[toml]", "zope.event", "zope.testing"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.12"
-content-hash = "b9cb1a48f5e07002b6e3e24b211f7b01726d31c4f4a908cd080e7c5df3d93a80"
+content-hash = "f2a1d69336edcb17b51121a0f8f2b0d9bf9dc166833eb05cf9effe9b47876559"

@@ -1,0 +1,48 @@
+{{- if .Values.canary.enabled }}
+apiVersion: flagger.app/v1beta1
+kind: Canary
+metadata:
+  name: {{ .Release.Name }}
+  labels:
+    app: {{ .Release.Name }}
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ .Release.Name }}
+
+  {{- if .Values.canary.ingressRef }}
+  ingressRef:
+    apiVersion: networking.k8s.io/v1
+    kind: Ingress
+    name: {{ .Release.Name }}
+  {{- end }}
+
+  progressDeadlineSeconds: {{ .Values.canary.progressDeadlineSeconds | default 600 }}
+
+  service:
+    port: {{ .Values.service.port | default 80 }}
+    targetPort: {{ .Values.canary.service.targetPort | default 8000 }}
+
+  analysis:
+    interval: {{ .Values.canary.analysis.interval | default "30s" }}
+    threshold: {{ .Values.canary.analysis.threshold | default 5 }}
+    maxWeight: {{ .Values.canary.analysis.maxWeight | default 50 }}
+    stepWeight: {{ .Values.canary.analysis.stepWeight | default 10 }}
+    {{- if .Values.canary.analysis.iterations }}
+    iterations: {{ .Values.canary.analysis.iterations }}
+    {{- end }}
+
+    metricsRef:
+      {{- toYaml .Values.canary.analysis.metrics | nindent 6 }}
+
+    {{- if .Values.canary.analysis.webhooks }}
+    webhooks:
+      {{- toYaml .Values.canary.analysis.webhooks | nindent 6 }}
+    {{- end }}
+
+    {{- if .Values.canary.analysis.alerts }}
+    alerts:
+      {{- toYaml .Values.canary.analysis.alerts | nindent 6 }}
+    {{- end }}
+{{- end }}

@@ -21,6 +21,8 @@ class Settings(BaseSettings):
     # Application
     PROJECT_NAME: str = "FastAPI Async Template"
     VERSION: str = "3.1.0"
+    DEFAULT_LOCALE: str = "en"
+    SUPPORTED_LOCALES: list[str] = ["en", "es"]
     ENVIRONMENT: Literal["development", "staging", "production", "test"] = "development"
     API_V1_STR: str = "/api/v1"
 

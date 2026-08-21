@@ -17,10 +17,27 @@ spec:
       labels:
         app: fastapi-template
     spec:
+      serviceAccountName: fastapi-template
+      automountServiceAccountToken: false
       terminationGracePeriodSeconds: 45
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: app
           image: ghcr.io/mavomen/async-fastapi-template:{{ .Values.image.tag | default "latest" }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1000
+            capabilities:
+              drop:
+                - ALL
           envFrom:
             - configMapRef:
                 name: fastapi-config
@@ -28,6 +45,11 @@ spec:
                 name: fastapi-secret
           ports:
             - containerPort: 8000
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+            - name: uploads
+              mountPath: /data/uploads
           startupProbe:
             httpGet:
               path: /healthz
@@ -61,3 +83,8 @@ spec:
             limits:
               cpu: 500m
               memory: 512Mi
+      volumes:
+        - name: tmp
+          emptyDir: {}
+        - name: uploads
+          emptyDir: {}

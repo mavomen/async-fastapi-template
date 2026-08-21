@@ -11,7 +11,9 @@ spec:
     - Egress
   ingress:
     - from:
-        - namespaceSelector: {}
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ingress-nginx
       ports:
         - port: 8000
   egress:

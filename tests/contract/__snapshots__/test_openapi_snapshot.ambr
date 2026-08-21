@@ -51,6 +51,18 @@
               'title': 'Created At',
               'type': 'string',
             }),
+            'deleted_at': dict({
+              'anyOf': list([
+                dict({
+                  'format': 'date-time',
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Deleted At',
+            }),
             'expires_at': dict({
               'anyOf': list([
                 dict({
@@ -136,6 +148,18 @@
               'format': 'date-time',
               'title': 'Created At',
               'type': 'string',
+            }),
+            'deleted_at': dict({
+              'anyOf': list([
+                dict({
+                  'format': 'date-time',
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Deleted At',
             }),
             'expires_at': dict({
               'anyOf': list([
@@ -436,6 +460,136 @@
           'title': 'Body_verify_magic_link_api_v1_auth_magic_link_verify_post',
           'type': 'object',
         }),
+        'CategoryCreate': dict({
+          'properties': dict({
+            'description': dict({
+              'anyOf': list([
+                dict({
+                  'maxLength': 500,
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Description',
+            }),
+            'name': dict({
+              'maxLength': 100,
+              'minLength': 1,
+              'title': 'Name',
+              'type': 'string',
+            }),
+            'slug': dict({
+              'maxLength': 100,
+              'minLength': 1,
+              'pattern': '^[a-z0-9-]+$',
+              'title': 'Slug',
+              'type': 'string',
+            }),
+          }),
+          'required': list([
+            'name',
+            'slug',
+          ]),
+          'title': 'CategoryCreate',
+          'type': 'object',
+        }),
+        'CategoryRead': dict({
+          'properties': dict({
+            'description': dict({
+              'anyOf': list([
+                dict({
+                  'maxLength': 500,
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Description',
+            }),
+            'id': dict({
+              'title': 'Id',
+              'type': 'integer',
+            }),
+            'name': dict({
+              'maxLength': 100,
+              'minLength': 1,
+              'title': 'Name',
+              'type': 'string',
+            }),
+            'slug': dict({
+              'maxLength': 100,
+              'minLength': 1,
+              'pattern': '^[a-z0-9-]+$',
+              'title': 'Slug',
+              'type': 'string',
+            }),
+            'tenant_id': dict({
+              'anyOf': list([
+                dict({
+                  'type': 'integer',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Tenant Id',
+            }),
+          }),
+          'required': list([
+            'name',
+            'slug',
+            'id',
+          ]),
+          'title': 'CategoryRead',
+          'type': 'object',
+        }),
+        'CategoryUpdate': dict({
+          'properties': dict({
+            'description': dict({
+              'anyOf': list([
+                dict({
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Description',
+            }),
+            'name': dict({
+              'anyOf': list([
+                dict({
+                  'maxLength': 100,
+                  'minLength': 1,
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Name',
+            }),
+            'slug': dict({
+              'anyOf': list([
+                dict({
+                  'maxLength': 100,
+                  'minLength': 1,
+                  'pattern': '^[a-z0-9-]+$',
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Slug',
+            }),
+          }),
+          'title': 'CategoryUpdate',
+          'type': 'object',
+        }),
         'EmailTaskRequest': dict({
           'properties': dict({
             'body': dict({
@@ -477,6 +631,182 @@
             'event_type',
           ]),
           'title': 'EventPublishRequest',
+          'type': 'object',
+        }),
+        'FileListResponse': dict({
+          'description': 'Paginated list of files.',
+          'properties': dict({
+            'items': dict({
+              'items': dict({
+                '$ref': '#/components/schemas/FileResponse',
+              }),
+              'title': 'Items',
+              'type': 'array',
+            }),
+            'page': dict({
+              'title': 'Page',
+              'type': 'integer',
+            }),
+            'per_page': dict({
+              'title': 'Per Page',
+              'type': 'integer',
+            }),
+            'total': dict({
+              'title': 'Total',
+              'type': 'integer',
+            }),
+          }),
+          'required': list([
+            'items',
+            'total',
+            'page',
+            'per_page',
+          ]),
+          'title': 'FileListResponse',
+          'type': 'object',
+        }),
+        'FileResponse': dict({
+          'description': 'Schema for file metadata responses.',
+          'properties': dict({
+            'checksum_sha256': dict({
+              'title': 'Checksum Sha256',
+              'type': 'string',
+            }),
+            'created_at': dict({
+              'format': 'date-time',
+              'title': 'Created At',
+              'type': 'string',
+            }),
+            'filename': dict({
+              'title': 'Filename',
+              'type': 'string',
+            }),
+            'id': dict({
+              'title': 'Id',
+              'type': 'integer',
+            }),
+            'metadata': dict({
+              'anyOf': list([
+                dict({
+                  'additionalProperties': True,
+                  'type': 'object',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Metadata',
+            }),
+            'mime_type': dict({
+              'title': 'Mime Type',
+              'type': 'string',
+            }),
+            'original_filename': dict({
+              'title': 'Original Filename',
+              'type': 'string',
+            }),
+            'size_bytes': dict({
+              'title': 'Size Bytes',
+              'type': 'integer',
+            }),
+            'storage_path': dict({
+              'title': 'Storage Path',
+              'type': 'string',
+            }),
+            'thumbnail_path_large': dict({
+              'anyOf': list([
+                dict({
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Thumbnail Path Large',
+            }),
+            'thumbnail_path_medium': dict({
+              'anyOf': list([
+                dict({
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Thumbnail Path Medium',
+            }),
+            'thumbnail_path_small': dict({
+              'anyOf': list([
+                dict({
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Thumbnail Path Small',
+            }),
+            'thumbnail_urls': dict({
+              'anyOf': list([
+                dict({
+                  'additionalProperties': dict({
+                    'anyOf': list([
+                      dict({
+                        'type': 'string',
+                      }),
+                      dict({
+                        'type': 'null',
+                      }),
+                    ]),
+                  }),
+                  'type': 'object',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Thumbnail Urls',
+            }),
+            'updated_at': dict({
+              'format': 'date-time',
+              'title': 'Updated At',
+              'type': 'string',
+            }),
+            'uploader_id': dict({
+              'anyOf': list([
+                dict({
+                  'type': 'integer',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Uploader Id',
+            }),
+            'url': dict({
+              'anyOf': list([
+                dict({
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Url',
+            }),
+          }),
+          'required': list([
+            'id',
+            'filename',
+            'original_filename',
+            'mime_type',
+            'size_bytes',
+            'storage_path',
+            'checksum_sha256',
+            'created_at',
+            'updated_at',
+          ]),
+          'title': 'FileResponse',
           'type': 'object',
         }),
         'HTTPValidationError': dict({
@@ -781,6 +1111,18 @@
               'title': 'Created At',
               'type': 'string',
             }),
+            'deleted_at': dict({
+              'anyOf': list([
+                dict({
+                  'format': 'date-time',
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Deleted At',
+            }),
             'event_type': dict({
               'title': 'Event Type',
               'type': 'string',
@@ -865,6 +1207,357 @@
           'title': 'OAuthLoginResponse',
           'type': 'object',
         }),
+        'PageCreate': dict({
+          'properties': dict({
+            'body_md': dict({
+              'anyOf': list([
+                dict({
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Body Md',
+            }),
+            'category_ids': dict({
+              'default': list([
+              ]),
+              'items': dict({
+                'type': 'integer',
+              }),
+              'title': 'Category Ids',
+              'type': 'array',
+            }),
+            'is_published': dict({
+              'default': False,
+              'title': 'Is Published',
+              'type': 'boolean',
+            }),
+            'meta_description': dict({
+              'anyOf': list([
+                dict({
+                  'maxLength': 500,
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Meta Description',
+            }),
+            'meta_title': dict({
+              'anyOf': list([
+                dict({
+                  'maxLength': 255,
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Meta Title',
+            }),
+            'slug': dict({
+              'maxLength': 255,
+              'minLength': 1,
+              'pattern': '^[a-z0-9-]+$',
+              'title': 'Slug',
+              'type': 'string',
+            }),
+            'tag_ids': dict({
+              'default': list([
+              ]),
+              'items': dict({
+                'type': 'integer',
+              }),
+              'title': 'Tag Ids',
+              'type': 'array',
+            }),
+            'title': dict({
+              'maxLength': 255,
+              'minLength': 1,
+              'title': 'Title',
+              'type': 'string',
+            }),
+          }),
+          'required': list([
+            'title',
+            'slug',
+          ]),
+          'title': 'PageCreate',
+          'type': 'object',
+        }),
+        'PageListResponse': dict({
+          'properties': dict({
+            'items': dict({
+              'items': dict({
+                '$ref': '#/components/schemas/PageRead',
+              }),
+              'title': 'Items',
+              'type': 'array',
+            }),
+            'total': dict({
+              'title': 'Total',
+              'type': 'integer',
+            }),
+          }),
+          'required': list([
+            'items',
+            'total',
+          ]),
+          'title': 'PageListResponse',
+          'type': 'object',
+        }),
+        'PageRead': dict({
+          'properties': dict({
+            'author_id': dict({
+              'anyOf': list([
+                dict({
+                  'type': 'integer',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Author Id',
+            }),
+            'body_html': dict({
+              'anyOf': list([
+                dict({
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Body Html',
+            }),
+            'body_md': dict({
+              'anyOf': list([
+                dict({
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Body Md',
+            }),
+            'categories': dict({
+              'default': list([
+              ]),
+              'items': dict({
+                '$ref': '#/components/schemas/CategoryRead',
+              }),
+              'title': 'Categories',
+              'type': 'array',
+            }),
+            'created_at': dict({
+              'format': 'date-time',
+              'title': 'Created At',
+              'type': 'string',
+            }),
+            'id': dict({
+              'title': 'Id',
+              'type': 'integer',
+            }),
+            'is_published': dict({
+              'default': False,
+              'title': 'Is Published',
+              'type': 'boolean',
+            }),
+            'meta_description': dict({
+              'anyOf': list([
+                dict({
+                  'maxLength': 500,
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Meta Description',
+            }),
+            'meta_title': dict({
+              'anyOf': list([
+                dict({
+                  'maxLength': 255,
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Meta Title',
+            }),
+            'published_at': dict({
+              'anyOf': list([
+                dict({
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Published At',
+            }),
+            'slug': dict({
+              'maxLength': 255,
+              'minLength': 1,
+              'pattern': '^[a-z0-9-]+$',
+              'title': 'Slug',
+              'type': 'string',
+            }),
+            'tags': dict({
+              'default': list([
+              ]),
+              'items': dict({
+                '$ref': '#/components/schemas/TagRead',
+              }),
+              'title': 'Tags',
+              'type': 'array',
+            }),
+            'tenant_id': dict({
+              'anyOf': list([
+                dict({
+                  'type': 'integer',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Tenant Id',
+            }),
+            'title': dict({
+              'maxLength': 255,
+              'minLength': 1,
+              'title': 'Title',
+              'type': 'string',
+            }),
+            'updated_at': dict({
+              'format': 'date-time',
+              'title': 'Updated At',
+              'type': 'string',
+            }),
+          }),
+          'required': list([
+            'title',
+            'slug',
+            'id',
+            'created_at',
+            'updated_at',
+          ]),
+          'title': 'PageRead',
+          'type': 'object',
+        }),
+        'PageUpdate': dict({
+          'properties': dict({
+            'body_md': dict({
+              'anyOf': list([
+                dict({
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Body Md',
+            }),
+            'category_ids': dict({
+              'anyOf': list([
+                dict({
+                  'items': dict({
+                    'type': 'integer',
+                  }),
+                  'type': 'array',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Category Ids',
+            }),
+            'is_published': dict({
+              'anyOf': list([
+                dict({
+                  'type': 'boolean',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Is Published',
+            }),
+            'meta_description': dict({
+              'anyOf': list([
+                dict({
+                  'maxLength': 500,
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Meta Description',
+            }),
+            'meta_title': dict({
+              'anyOf': list([
+                dict({
+                  'maxLength': 255,
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Meta Title',
+            }),
+            'slug': dict({
+              'anyOf': list([
+                dict({
+                  'maxLength': 255,
+                  'minLength': 1,
+                  'pattern': '^[a-z0-9-]+$',
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Slug',
+            }),
+            'tag_ids': dict({
+              'anyOf': list([
+                dict({
+                  'items': dict({
+                    'type': 'integer',
+                  }),
+                  'type': 'array',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Tag Ids',
+            }),
+            'title': dict({
+              'anyOf': list([
+                dict({
+                  'maxLength': 255,
+                  'minLength': 1,
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Title',
+            }),
+          }),
+          'title': 'PageUpdate',
+          'type': 'object',
+        }),
         'PermissionRead': dict({
           'properties': dict({
             'description': dict({
@@ -892,6 +1585,443 @@
             'name',
           ]),
           'title': 'PermissionRead',
+          'type': 'object',
+        }),
+        'PostCreate': dict({
+          'properties': dict({
+            'body_md': dict({
+              'anyOf': list([
+                dict({
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Body Md',
+            }),
+            'category_ids': dict({
+              'default': list([
+              ]),
+              'items': dict({
+                'type': 'integer',
+              }),
+              'title': 'Category Ids',
+              'type': 'array',
+            }),
+            'cover_image_url': dict({
+              'anyOf': list([
+                dict({
+                  'maxLength': 500,
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Cover Image Url',
+            }),
+            'excerpt': dict({
+              'anyOf': list([
+                dict({
+                  'maxLength': 500,
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Excerpt',
+            }),
+            'is_published': dict({
+              'default': False,
+              'title': 'Is Published',
+              'type': 'boolean',
+            }),
+            'meta_description': dict({
+              'anyOf': list([
+                dict({
+                  'maxLength': 500,
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Meta Description',
+            }),
+            'meta_title': dict({
+              'anyOf': list([
+                dict({
+                  'maxLength': 255,
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Meta Title',
+            }),
+            'slug': dict({
+              'maxLength': 255,
+              'minLength': 1,
+              'pattern': '^[a-z0-9-]+$',
+              'title': 'Slug',
+              'type': 'string',
+            }),
+            'tag_ids': dict({
+              'default': list([
+              ]),
+              'items': dict({
+                'type': 'integer',
+              }),
+              'title': 'Tag Ids',
+              'type': 'array',
+            }),
+            'title': dict({
+              'maxLength': 255,
+              'minLength': 1,
+              'title': 'Title',
+              'type': 'string',
+            }),
+          }),
+          'required': list([
+            'title',
+            'slug',
+          ]),
+          'title': 'PostCreate',
+          'type': 'object',
+        }),
+        'PostListResponse': dict({
+          'properties': dict({
+            'items': dict({
+              'items': dict({
+                '$ref': '#/components/schemas/PostRead',
+              }),
+              'title': 'Items',
+              'type': 'array',
+            }),
+            'total': dict({
+              'title': 'Total',
+              'type': 'integer',
+            }),
+          }),
+          'required': list([
+            'items',
+            'total',
+          ]),
+          'title': 'PostListResponse',
+          'type': 'object',
+        }),
+        'PostRead': dict({
+          'properties': dict({
+            'author_id': dict({
+              'anyOf': list([
+                dict({
+                  'type': 'integer',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Author Id',
+            }),
+            'body_html': dict({
+              'anyOf': list([
+                dict({
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Body Html',
+            }),
+            'body_md': dict({
+              'anyOf': list([
+                dict({
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Body Md',
+            }),
+            'categories': dict({
+              'default': list([
+              ]),
+              'items': dict({
+                '$ref': '#/components/schemas/CategoryRead',
+              }),
+              'title': 'Categories',
+              'type': 'array',
+            }),
+            'cover_image_url': dict({
+              'anyOf': list([
+                dict({
+                  'maxLength': 500,
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Cover Image Url',
+            }),
+            'created_at': dict({
+              'format': 'date-time',
+              'title': 'Created At',
+              'type': 'string',
+            }),
+            'excerpt': dict({
+              'anyOf': list([
+                dict({
+                  'maxLength': 500,
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Excerpt',
+            }),
+            'id': dict({
+              'title': 'Id',
+              'type': 'integer',
+            }),
+            'is_published': dict({
+              'default': False,
+              'title': 'Is Published',
+              'type': 'boolean',
+            }),
+            'meta_description': dict({
+              'anyOf': list([
+                dict({
+                  'maxLength': 500,
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Meta Description',
+            }),
+            'meta_title': dict({
+              'anyOf': list([
+                dict({
+                  'maxLength': 255,
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Meta Title',
+            }),
+            'published_at': dict({
+              'anyOf': list([
+                dict({
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Published At',
+            }),
+            'slug': dict({
+              'maxLength': 255,
+              'minLength': 1,
+              'pattern': '^[a-z0-9-]+$',
+              'title': 'Slug',
+              'type': 'string',
+            }),
+            'tags': dict({
+              'default': list([
+              ]),
+              'items': dict({
+                '$ref': '#/components/schemas/TagRead',
+              }),
+              'title': 'Tags',
+              'type': 'array',
+            }),
+            'tenant_id': dict({
+              'anyOf': list([
+                dict({
+                  'type': 'integer',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Tenant Id',
+            }),
+            'title': dict({
+              'maxLength': 255,
+              'minLength': 1,
+              'title': 'Title',
+              'type': 'string',
+            }),
+            'updated_at': dict({
+              'format': 'date-time',
+              'title': 'Updated At',
+              'type': 'string',
+            }),
+          }),
+          'required': list([
+            'title',
+            'slug',
+            'id',
+            'created_at',
+            'updated_at',
+          ]),
+          'title': 'PostRead',
+          'type': 'object',
+        }),
+        'PostUpdate': dict({
+          'properties': dict({
+            'body_md': dict({
+              'anyOf': list([
+                dict({
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Body Md',
+            }),
+            'category_ids': dict({
+              'anyOf': list([
+                dict({
+                  'items': dict({
+                    'type': 'integer',
+                  }),
+                  'type': 'array',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Category Ids',
+            }),
+            'cover_image_url': dict({
+              'anyOf': list([
+                dict({
+                  'maxLength': 500,
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Cover Image Url',
+            }),
+            'excerpt': dict({
+              'anyOf': list([
+                dict({
+                  'maxLength': 500,
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Excerpt',
+            }),
+            'is_published': dict({
+              'anyOf': list([
+                dict({
+                  'type': 'boolean',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Is Published',
+            }),
+            'meta_description': dict({
+              'anyOf': list([
+                dict({
+                  'maxLength': 500,
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Meta Description',
+            }),
+            'meta_title': dict({
+              'anyOf': list([
+                dict({
+                  'maxLength': 255,
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Meta Title',
+            }),
+            'slug': dict({
+              'anyOf': list([
+                dict({
+                  'maxLength': 255,
+                  'minLength': 1,
+                  'pattern': '^[a-z0-9-]+$',
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Slug',
+            }),
+            'tag_ids': dict({
+              'anyOf': list([
+                dict({
+                  'items': dict({
+                    'type': 'integer',
+                  }),
+                  'type': 'array',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Tag Ids',
+            }),
+            'title': dict({
+              'anyOf': list([
+                dict({
+                  'maxLength': 255,
+                  'minLength': 1,
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Title',
+            }),
+          }),
+          'title': 'PostUpdate',
+          'type': 'object',
+        }),
+        'PurgeResponse': dict({
+          'description': 'Response for the purge endpoint.',
+          'properties': dict({
+            'purged_count': dict({
+              'title': 'Purged Count',
+              'type': 'integer',
+            }),
+          }),
+          'required': list([
+            'purged_count',
+          ]),
+          'title': 'PurgeResponse',
           'type': 'object',
         }),
         'RoleRead': dict({
@@ -1031,6 +2161,68 @@
           'title': 'TOTPVerifyEnableRequest',
           'type': 'object',
         }),
+        'TagCreate': dict({
+          'properties': dict({
+            'name': dict({
+              'maxLength': 100,
+              'minLength': 1,
+              'title': 'Name',
+              'type': 'string',
+            }),
+            'slug': dict({
+              'maxLength': 100,
+              'minLength': 1,
+              'pattern': '^[a-z0-9-]+$',
+              'title': 'Slug',
+              'type': 'string',
+            }),
+          }),
+          'required': list([
+            'name',
+            'slug',
+          ]),
+          'title': 'TagCreate',
+          'type': 'object',
+        }),
+        'TagRead': dict({
+          'properties': dict({
+            'id': dict({
+              'title': 'Id',
+              'type': 'integer',
+            }),
+            'name': dict({
+              'maxLength': 100,
+              'minLength': 1,
+              'title': 'Name',
+              'type': 'string',
+            }),
+            'slug': dict({
+              'maxLength': 100,
+              'minLength': 1,
+              'pattern': '^[a-z0-9-]+$',
+              'title': 'Slug',
+              'type': 'string',
+            }),
+            'tenant_id': dict({
+              'anyOf': list([
+                dict({
+                  'type': 'integer',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Tenant Id',
+            }),
+          }),
+          'required': list([
+            'name',
+            'slug',
+            'id',
+          ]),
+          'title': 'TagRead',
+          'type': 'object',
+        }),
         'TenantCreate': dict({
           'properties': dict({
             'name': dict({
@@ -1154,6 +2346,18 @@
               'title': 'Created At',
               'type': 'string',
             }),
+            'deleted_at': dict({
+              'anyOf': list([
+                dict({
+                  'format': 'date-time',
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Deleted At',
+            }),
             'email': dict({
               'format': 'email',
               'title': 'Email',
@@ -1239,6 +2443,18 @@
               'format': 'date-time',
               'title': 'Created At',
               'type': 'string',
+            }),
+            'deleted_at': dict({
+              'anyOf': list([
+                dict({
+                  'format': 'date-time',
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Deleted At',
             }),
             'email': dict({
               'format': 'email',
@@ -1444,6 +2660,18 @@
               'format': 'date-time',
               'title': 'Created At',
               'type': 'string',
+            }),
+            'deleted_at': dict({
+              'anyOf': list([
+                dict({
+                  'format': 'date-time',
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Deleted At',
             }),
             'event_types': dict({
               'anyOf': list([
@@ -1653,6 +2881,18 @@
               'title': 'Created At',
               'type': 'string',
             }),
+            'deleted_at': dict({
+              'anyOf': list([
+                dict({
+                  'format': 'date-time',
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Deleted At',
+            }),
             'event_types': dict({
               'anyOf': list([
                 dict({
@@ -1809,7 +3049,7 @@
       }),
     }),
     'info': dict({
-      'title': 'FastAPI Async Template',
+      'title': 'FastAPI Async Template (v1)',
       'version': '3.1.0',
     }),
     'openapi': '3.1.0',
@@ -2091,6 +3331,75 @@
           ]),
         }),
       }),
+      '/admin/{table_name}/trashed': dict({
+        'get': dict({
+          'description': 'List soft-deleted records for a model.',
+          'operationId': 'admin_list_trashed_admin__table_name__trashed_get',
+          'parameters': list([
+            dict({
+              'in': 'path',
+              'name': 'table_name',
+              'required': True,
+              'schema': dict({
+                'title': 'Table Name',
+                'type': 'string',
+              }),
+            }),
+            dict({
+              'in': 'query',
+              'name': 'q',
+              'required': False,
+              'schema': dict({
+                'default': '',
+                'title': 'Q',
+                'type': 'string',
+              }),
+            }),
+            dict({
+              'in': 'query',
+              'name': 'page',
+              'required': False,
+              'schema': dict({
+                'default': 1,
+                'title': 'Page',
+                'type': 'integer',
+              }),
+            }),
+          ]),
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'text/html': dict({
+                  'schema': dict({
+                    'type': 'string',
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+          ]),
+          'summary': 'Admin List Trashed',
+          'tags': list([
+            'admin',
+          ]),
+        }),
+      }),
       '/admin/{table_name}/{id}': dict({
         'get': dict({
           'description': 'View a single record.',
@@ -2321,6 +3630,64 @@
           ]),
         }),
       }),
+      '/admin/{table_name}/{id}/restore': dict({
+        'post': dict({
+          'description': 'Restore a soft-deleted record.',
+          'operationId': 'admin_restore_admin__table_name___id__restore_post',
+          'parameters': list([
+            dict({
+              'in': 'path',
+              'name': 'table_name',
+              'required': True,
+              'schema': dict({
+                'title': 'Table Name',
+                'type': 'string',
+              }),
+            }),
+            dict({
+              'in': 'path',
+              'name': 'id',
+              'required': True,
+              'schema': dict({
+                'title': 'Id',
+                'type': 'integer',
+              }),
+            }),
+          ]),
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    'title': 'Response Admin Restore Admin  Table Name   Id  Restore Post',
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+          ]),
+          'summary': 'Admin Restore',
+          'tags': list([
+            'admin',
+          ]),
+        }),
+      }),
       '/api/v1/auth/.well-known/jwks.json': dict({
         'get': dict({
           'description': 'Serve JWKS for RS256 key validation.',
@@ -2427,7 +3794,7 @@
       }),
       '/api/v1/auth/api-keys/{api_key_id}': dict({
         'delete': dict({
-          'description': 'Delete (revoke) an API key.',
+          'description': 'Delete (soft-delete) an API key.',
           'operationId': 'delete_api_key_api_v1_auth_api_keys__api_key_id__delete',
           'parameters': list([
             dict({
@@ -2519,6 +3886,55 @@
             }),
           ]),
           'summary': 'Update API key',
+          'tags': list([
+            'auth',
+          ]),
+        }),
+      }),
+      '/api/v1/auth/api-keys/{api_key_id}/restore': dict({
+        'post': dict({
+          'description': 'Restore a soft-deleted API key.',
+          'operationId': 'restore_api_key_api_v1_auth_api_keys__api_key_id__restore_post',
+          'parameters': list([
+            dict({
+              'in': 'path',
+              'name': 'api_key_id',
+              'required': True,
+              'schema': dict({
+                'title': 'Api Key Id',
+                'type': 'integer',
+              }),
+            }),
+          ]),
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/ApiKeyResponse',
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+          ]),
+          'summary': 'Restore API key',
           'tags': list([
             'auth',
           ]),
@@ -3454,6 +4870,770 @@
           ]),
         }),
       }),
+      '/api/v1/cms/categories': dict({
+        'get': dict({
+          'operationId': 'list_categories_api_v1_cms_categories_get',
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    'items': dict({
+                      '$ref': '#/components/schemas/CategoryRead',
+                    }),
+                    'title': 'Response List Categories Api V1 Cms Categories Get',
+                    'type': 'array',
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+          }),
+          'summary': 'List Categories',
+          'tags': list([
+            'cms',
+          ]),
+        }),
+        'post': dict({
+          'operationId': 'create_category_api_v1_cms_categories_post',
+          'requestBody': dict({
+            'content': dict({
+              'application/json': dict({
+                'schema': dict({
+                  '$ref': '#/components/schemas/CategoryCreate',
+                }),
+              }),
+            }),
+            'required': True,
+          }),
+          'responses': dict({
+            '201': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/CategoryRead',
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+          ]),
+          'summary': 'Create Category',
+          'tags': list([
+            'cms',
+          ]),
+        }),
+      }),
+      '/api/v1/cms/categories/{category_id}': dict({
+        'delete': dict({
+          'operationId': 'delete_category_api_v1_cms_categories__category_id__delete',
+          'parameters': list([
+            dict({
+              'in': 'path',
+              'name': 'category_id',
+              'required': True,
+              'schema': dict({
+                'title': 'Category Id',
+                'type': 'integer',
+              }),
+            }),
+          ]),
+          'responses': dict({
+            '204': dict({
+              'description': 'Successful Response',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+          ]),
+          'summary': 'Delete Category',
+          'tags': list([
+            'cms',
+          ]),
+        }),
+        'put': dict({
+          'operationId': 'update_category_api_v1_cms_categories__category_id__put',
+          'parameters': list([
+            dict({
+              'in': 'path',
+              'name': 'category_id',
+              'required': True,
+              'schema': dict({
+                'title': 'Category Id',
+                'type': 'integer',
+              }),
+            }),
+          ]),
+          'requestBody': dict({
+            'content': dict({
+              'application/json': dict({
+                'schema': dict({
+                  '$ref': '#/components/schemas/CategoryUpdate',
+                }),
+              }),
+            }),
+            'required': True,
+          }),
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/CategoryRead',
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+          ]),
+          'summary': 'Update Category',
+          'tags': list([
+            'cms',
+          ]),
+        }),
+      }),
+      '/api/v1/cms/pages': dict({
+        'get': dict({
+          'operationId': 'list_pages_api_v1_cms_pages_get',
+          'parameters': list([
+            dict({
+              'in': 'query',
+              'name': 'skip',
+              'required': False,
+              'schema': dict({
+                'default': 0,
+                'minimum': 0,
+                'title': 'Skip',
+                'type': 'integer',
+              }),
+            }),
+            dict({
+              'in': 'query',
+              'name': 'limit',
+              'required': False,
+              'schema': dict({
+                'default': 20,
+                'maximum': 100,
+                'minimum': 1,
+                'title': 'Limit',
+                'type': 'integer',
+              }),
+            }),
+          ]),
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/PageListResponse',
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+          }),
+          'summary': 'List Pages',
+          'tags': list([
+            'cms',
+          ]),
+        }),
+        'post': dict({
+          'operationId': 'create_page_api_v1_cms_pages_post',
+          'requestBody': dict({
+            'content': dict({
+              'application/json': dict({
+                'schema': dict({
+                  '$ref': '#/components/schemas/PageCreate',
+                }),
+              }),
+            }),
+            'required': True,
+          }),
+          'responses': dict({
+            '201': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/PageRead',
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+          ]),
+          'summary': 'Create Page',
+          'tags': list([
+            'cms',
+          ]),
+        }),
+      }),
+      '/api/v1/cms/pages/{slug}': dict({
+        'delete': dict({
+          'operationId': 'delete_page_api_v1_cms_pages__slug__delete',
+          'parameters': list([
+            dict({
+              'in': 'path',
+              'name': 'slug',
+              'required': True,
+              'schema': dict({
+                'title': 'Slug',
+                'type': 'string',
+              }),
+            }),
+          ]),
+          'responses': dict({
+            '204': dict({
+              'description': 'Successful Response',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+          ]),
+          'summary': 'Delete Page',
+          'tags': list([
+            'cms',
+          ]),
+        }),
+        'get': dict({
+          'operationId': 'get_page_api_v1_cms_pages__slug__get',
+          'parameters': list([
+            dict({
+              'in': 'path',
+              'name': 'slug',
+              'required': True,
+              'schema': dict({
+                'title': 'Slug',
+                'type': 'string',
+              }),
+            }),
+          ]),
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/PageRead',
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+          }),
+          'summary': 'Get Page',
+          'tags': list([
+            'cms',
+          ]),
+        }),
+        'put': dict({
+          'operationId': 'update_page_api_v1_cms_pages__slug__put',
+          'parameters': list([
+            dict({
+              'in': 'path',
+              'name': 'slug',
+              'required': True,
+              'schema': dict({
+                'title': 'Slug',
+                'type': 'string',
+              }),
+            }),
+          ]),
+          'requestBody': dict({
+            'content': dict({
+              'application/json': dict({
+                'schema': dict({
+                  '$ref': '#/components/schemas/PageUpdate',
+                }),
+              }),
+            }),
+            'required': True,
+          }),
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/PageRead',
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+          ]),
+          'summary': 'Update Page',
+          'tags': list([
+            'cms',
+          ]),
+        }),
+      }),
+      '/api/v1/cms/posts': dict({
+        'get': dict({
+          'operationId': 'list_posts_api_v1_cms_posts_get',
+          'parameters': list([
+            dict({
+              'in': 'query',
+              'name': 'skip',
+              'required': False,
+              'schema': dict({
+                'default': 0,
+                'minimum': 0,
+                'title': 'Skip',
+                'type': 'integer',
+              }),
+            }),
+            dict({
+              'in': 'query',
+              'name': 'limit',
+              'required': False,
+              'schema': dict({
+                'default': 20,
+                'maximum': 100,
+                'minimum': 1,
+                'title': 'Limit',
+                'type': 'integer',
+              }),
+            }),
+            dict({
+              'in': 'query',
+              'name': 'published_only',
+              'required': False,
+              'schema': dict({
+                'default': False,
+                'title': 'Published Only',
+                'type': 'boolean',
+              }),
+            }),
+          ]),
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/PostListResponse',
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+          }),
+          'summary': 'List Posts',
+          'tags': list([
+            'cms',
+          ]),
+        }),
+        'post': dict({
+          'operationId': 'create_post_api_v1_cms_posts_post',
+          'requestBody': dict({
+            'content': dict({
+              'application/json': dict({
+                'schema': dict({
+                  '$ref': '#/components/schemas/PostCreate',
+                }),
+              }),
+            }),
+            'required': True,
+          }),
+          'responses': dict({
+            '201': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/PostRead',
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+          ]),
+          'summary': 'Create Post',
+          'tags': list([
+            'cms',
+          ]),
+        }),
+      }),
+      '/api/v1/cms/posts/{slug}': dict({
+        'delete': dict({
+          'operationId': 'delete_post_api_v1_cms_posts__slug__delete',
+          'parameters': list([
+            dict({
+              'in': 'path',
+              'name': 'slug',
+              'required': True,
+              'schema': dict({
+                'title': 'Slug',
+                'type': 'string',
+              }),
+            }),
+          ]),
+          'responses': dict({
+            '204': dict({
+              'description': 'Successful Response',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+          ]),
+          'summary': 'Delete Post',
+          'tags': list([
+            'cms',
+          ]),
+        }),
+        'get': dict({
+          'operationId': 'get_post_api_v1_cms_posts__slug__get',
+          'parameters': list([
+            dict({
+              'in': 'path',
+              'name': 'slug',
+              'required': True,
+              'schema': dict({
+                'title': 'Slug',
+                'type': 'string',
+              }),
+            }),
+          ]),
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/PostRead',
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+          }),
+          'summary': 'Get Post',
+          'tags': list([
+            'cms',
+          ]),
+        }),
+        'put': dict({
+          'operationId': 'update_post_api_v1_cms_posts__slug__put',
+          'parameters': list([
+            dict({
+              'in': 'path',
+              'name': 'slug',
+              'required': True,
+              'schema': dict({
+                'title': 'Slug',
+                'type': 'string',
+              }),
+            }),
+          ]),
+          'requestBody': dict({
+            'content': dict({
+              'application/json': dict({
+                'schema': dict({
+                  '$ref': '#/components/schemas/PostUpdate',
+                }),
+              }),
+            }),
+            'required': True,
+          }),
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/PostRead',
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+          ]),
+          'summary': 'Update Post',
+          'tags': list([
+            'cms',
+          ]),
+        }),
+      }),
+      '/api/v1/cms/tags': dict({
+        'get': dict({
+          'operationId': 'list_tags_api_v1_cms_tags_get',
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    'items': dict({
+                      '$ref': '#/components/schemas/TagRead',
+                    }),
+                    'title': 'Response List Tags Api V1 Cms Tags Get',
+                    'type': 'array',
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+          }),
+          'summary': 'List Tags',
+          'tags': list([
+            'cms',
+          ]),
+        }),
+        'post': dict({
+          'operationId': 'create_tag_api_v1_cms_tags_post',
+          'requestBody': dict({
+            'content': dict({
+              'application/json': dict({
+                'schema': dict({
+                  '$ref': '#/components/schemas/TagCreate',
+                }),
+              }),
+            }),
+            'required': True,
+          }),
+          'responses': dict({
+            '201': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/TagRead',
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+          ]),
+          'summary': 'Create Tag',
+          'tags': list([
+            'cms',
+          ]),
+        }),
+      }),
+      '/api/v1/cms/tags/{tag_id}': dict({
+        'delete': dict({
+          'operationId': 'delete_tag_api_v1_cms_tags__tag_id__delete',
+          'parameters': list([
+            dict({
+              'in': 'path',
+              'name': 'tag_id',
+              'required': True,
+              'schema': dict({
+                'title': 'Tag Id',
+                'type': 'integer',
+              }),
+            }),
+          ]),
+          'responses': dict({
+            '204': dict({
+              'description': 'Successful Response',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+          ]),
+          'summary': 'Delete Tag',
+          'tags': list([
+            'cms',
+          ]),
+        }),
+      }),
       '/api/v1/events/publish': dict({
         'post': dict({
           'description': 'Publish an event to the event bus.',
@@ -3495,6 +5675,69 @@
           'summary': 'Publish Event',
           'tags': list([
             'events',
+          ]),
+        }),
+      }),
+      '/api/v1/files/': dict({
+        'get': dict({
+          'description': "List the authenticated user's uploaded files with pagination.",
+          'operationId': 'list_files_api_v1_files__get',
+          'parameters': list([
+            dict({
+              'in': 'query',
+              'name': 'page',
+              'required': False,
+              'schema': dict({
+                'default': 1,
+                'minimum': 1,
+                'title': 'Page',
+                'type': 'integer',
+              }),
+            }),
+            dict({
+              'in': 'query',
+              'name': 'per_page',
+              'required': False,
+              'schema': dict({
+                'default': 20,
+                'maximum': 100,
+                'minimum': 1,
+                'title': 'Per Page',
+                'type': 'integer',
+              }),
+            }),
+          ]),
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/FileListResponse',
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+          ]),
+          'summary': 'List uploaded files',
+          'tags': list([
+            'files',
           ]),
         }),
       }),
@@ -3556,7 +5799,7 @@
       }),
       '/api/v1/files/upload': dict({
         'post': dict({
-          'description': 'Upload a file (requires authentication). Returns the stored filename and path.',
+          'description': 'Upload a file (requires authentication). Creates metadata record and generates thumbnails for images.',
           'operationId': 'upload_file_api_v1_files_upload_post',
           'requestBody': dict({
             'content': dict({
@@ -3573,17 +5816,11 @@
               'content': dict({
                 'application/json': dict({
                   'schema': dict({
-                    'title': 'Response Upload File Api V1 Files Upload Post',
+                    '$ref': '#/components/schemas/FileResponse',
                   }),
                 }),
               }),
-              'description': 'File uploaded successfully',
-            }),
-            '400': dict({
-              'description': 'No file provided',
-            }),
-            '401': dict({
-              'description': 'Not authenticated',
+              'description': 'Successful Response',
             }),
             '422': dict({
               'content': dict({
@@ -3627,7 +5864,6 @@
               'content': dict({
                 'application/json': dict({
                   'schema': dict({
-                    'title': 'Response Upload File Stream Api V1 Files Upload Stream Post',
                   }),
                 }),
               }),
@@ -3651,6 +5887,95 @@
             }),
           ]),
           'summary': 'Upload File Stream',
+          'tags': list([
+            'files',
+          ]),
+        }),
+      }),
+      '/api/v1/files/{file_id}': dict({
+        'delete': dict({
+          'description': 'Soft-delete a file and remove from storage.',
+          'operationId': 'delete_file_api_v1_files__file_id__delete',
+          'parameters': list([
+            dict({
+              'in': 'path',
+              'name': 'file_id',
+              'required': True,
+              'schema': dict({
+                'title': 'File Id',
+                'type': 'integer',
+              }),
+            }),
+          ]),
+          'responses': dict({
+            '204': dict({
+              'description': 'Successful Response',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+          ]),
+          'summary': 'Delete a file',
+          'tags': list([
+            'files',
+          ]),
+        }),
+        'get': dict({
+          'description': 'Get metadata for a specific file.',
+          'operationId': 'get_file_api_v1_files__file_id__get',
+          'parameters': list([
+            dict({
+              'in': 'path',
+              'name': 'file_id',
+              'required': True,
+              'schema': dict({
+                'title': 'File Id',
+                'type': 'integer',
+              }),
+            }),
+          ]),
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/FileResponse',
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+          ]),
+          'summary': 'Get file metadata',
           'tags': list([
             'files',
           ]),
@@ -3892,7 +6217,7 @@
       }),
       '/api/v1/notifications/{notification_id}': dict({
         'delete': dict({
-          'description': 'Delete a single in-app notification.',
+          'description': 'Delete (soft-delete) a single in-app notification.',
           'operationId': 'delete_notification_api_v1_notifications__notification_id__delete',
           'parameters': list([
             dict({
@@ -3976,6 +6301,55 @@
             }),
           ]),
           'summary': 'Mark notification as read',
+          'tags': list([
+            'notifications',
+          ]),
+        }),
+      }),
+      '/api/v1/notifications/{notification_id}/restore': dict({
+        'post': dict({
+          'description': 'Restore a soft-deleted in-app notification.',
+          'operationId': 'restore_notification_api_v1_notifications__notification_id__restore_post',
+          'parameters': list([
+            dict({
+              'in': 'path',
+              'name': 'notification_id',
+              'required': True,
+              'schema': dict({
+                'title': 'Notification Id',
+                'type': 'integer',
+              }),
+            }),
+          ]),
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/NotificationResponse',
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+          ]),
+          'summary': 'Restore a deleted notification',
           'tags': list([
             'notifications',
           ]),
@@ -4747,6 +7121,143 @@
           ]),
         }),
       }),
+      '/api/v1/users/purge': dict({
+        'post': dict({
+          'description': 'Hard-delete users that have been soft-deleted for more than N days. Requires superuser permissions.',
+          'operationId': 'purge_deleted_users_api_v1_users_purge_post',
+          'parameters': list([
+            dict({
+              'description': 'Minimum age in days',
+              'in': 'query',
+              'name': 'older_than_days',
+              'required': False,
+              'schema': dict({
+                'default': 90,
+                'description': 'Minimum age in days',
+                'minimum': 1,
+                'title': 'Older Than Days',
+                'type': 'integer',
+              }),
+            }),
+          ]),
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/PurgeResponse',
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+            dict({
+              'APIKeyHeader': list([
+              ]),
+            }),
+          ]),
+          'summary': 'Purge old deleted users',
+          'tags': list([
+            'users',
+          ]),
+        }),
+      }),
+      '/api/v1/users/trashed': dict({
+        'get': dict({
+          'description': 'List soft-deleted users. Requires `user:read` permission.',
+          'operationId': 'list_trashed_users_api_v1_users_trashed_get',
+          'parameters': list([
+            dict({
+              'description': 'Cursor from previous page response',
+              'in': 'query',
+              'name': 'cursor',
+              'required': False,
+              'schema': dict({
+                'anyOf': list([
+                  dict({
+                    'type': 'string',
+                  }),
+                  dict({
+                    'type': 'null',
+                  }),
+                ]),
+                'description': 'Cursor from previous page response',
+                'title': 'Cursor',
+              }),
+            }),
+            dict({
+              'description': 'Page size',
+              'in': 'query',
+              'name': 'size',
+              'required': False,
+              'schema': dict({
+                'default': 50,
+                'description': 'Page size',
+                'maximum': 100,
+                'minimum': 1,
+                'title': 'Size',
+                'type': 'integer',
+              }),
+            }),
+          ]),
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    'items': dict({
+                      '$ref': '#/components/schemas/UserDetailResponse',
+                    }),
+                    'title': 'Response List Trashed Users Api V1 Users Trashed Get',
+                    'type': 'array',
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+            dict({
+              'APIKeyHeader': list([
+              ]),
+            }),
+          ]),
+          'summary': 'List deleted users',
+          'tags': list([
+            'users',
+          ]),
+        }),
+      }),
       '/api/v1/users/{user_id}': dict({
         'delete': dict({
           'description': 'Delete a user by ID. Requires `user:delete` permission.',
@@ -4934,6 +7445,68 @@
           ]),
         }),
       }),
+      '/api/v1/users/{user_id}/restore': dict({
+        'post': dict({
+          'description': 'Restore a soft-deleted user. Requires `user:delete` permission.',
+          'operationId': 'restore_user_api_v1_users__user_id__restore_post',
+          'parameters': list([
+            dict({
+              'in': 'path',
+              'name': 'user_id',
+              'required': True,
+              'schema': dict({
+                'title': 'User Id',
+                'type': 'integer',
+              }),
+            }),
+          ]),
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/UserDetailResponse',
+                  }),
+                }),
+              }),
+              'description': 'User restored',
+            }),
+            '401': dict({
+              'description': 'Not authenticated',
+            }),
+            '403': dict({
+              'description': 'Not enough permissions',
+            }),
+            '404': dict({
+              'description': 'Deleted user not found',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+            dict({
+              'APIKeyHeader': list([
+              ]),
+            }),
+          ]),
+          'summary': 'Restore a deleted user',
+          'tags': list([
+            'users',
+          ]),
+        }),
+      }),
       '/api/v1/webhooks': dict({
         'get': dict({
           'description': 'List webhooks for the current tenant (all when superuser).',
@@ -5018,7 +7591,7 @@
       }),
       '/api/v1/webhooks/{webhook_id}': dict({
         'delete': dict({
-          'description': 'Delete a webhook and its delivery history.',
+          'description': 'Delete (soft-delete) a webhook and its delivery history.',
           'operationId': 'delete_webhook_api_v1_webhooks__webhook_id__delete',
           'parameters': list([
             dict({
@@ -5276,6 +7849,59 @@
           ]),
         }),
       }),
+      '/api/v1/webhooks/{webhook_id}/restore': dict({
+        'post': dict({
+          'description': 'Restore a soft-deleted webhook.',
+          'operationId': 'restore_webhook_api_v1_webhooks__webhook_id__restore_post',
+          'parameters': list([
+            dict({
+              'in': 'path',
+              'name': 'webhook_id',
+              'required': True,
+              'schema': dict({
+                'title': 'Webhook Id',
+                'type': 'integer',
+              }),
+            }),
+          ]),
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/WebhookResponse',
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+            dict({
+              'APIKeyHeader': list([
+              ]),
+            }),
+          ]),
+          'summary': 'Restore webhook',
+          'tags': list([
+            'webhooks',
+          ]),
+        }),
+      }),
       '/gql/playground': dict({
         'get': dict({
           'description': 'HTMX-powered GraphQL playground.',
@@ -5410,7 +8036,7 @@
       }),
       '/health/ready': dict({
         'get': dict({
-          'description': 'Readiness check including database and Redis status.',
+          'description': 'Readiness check including database, Redis, and event bus status.',
           'operationId': 'readiness_check_health_ready_get',
           'responses': dict({
             '200': dict({
