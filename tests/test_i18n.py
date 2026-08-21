@@ -12,7 +12,7 @@ from app.api.error_handlers import configure_exception_handlers
 from app.core.exceptions import NotFoundException
 from app.i18n.middleware import LocaleMiddleware
 from app.i18n.translations import get_translations, translate
-from app.services.email import EmailService
+from app.notifications.services.email import EmailService
 
 # Error codes that must be present in every supported locale's catalog.
 # Derived from app/core/exceptions.py plus VALIDATION_ERROR / HTTP_ERROR from the handlers.

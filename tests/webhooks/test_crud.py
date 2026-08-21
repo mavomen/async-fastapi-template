@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 
 from app.events.base import Event
-from app.schemas.webhook import WebhookCreate
+from app.notifications.schemas.webhook import WebhookCreate
 
 
 class TestCRUDWebhook:
@@ -15,7 +15,7 @@ class TestCRUDWebhook:
         db = AsyncMock()
         obj_in = WebhookCreate(name="my webhook", url="https://example.com/hook")
 
-        from app.crud.webhook import webhook as crud
+        from app.notifications.crud.webhook import webhook as crud
 
         webhook_obj, secret = await crud.create_with_secret(db, obj_in=obj_in)
 
@@ -34,7 +34,7 @@ class TestCRUDWebhook:
             name="scoped", url="https://example.com/hook", event_types=["user.created"]
         )
 
-        from app.crud.webhook import webhook as crud
+        from app.notifications.crud.webhook import webhook as crud
 
         webhook_obj, _ = await crud.create_with_secret(db, obj_in=obj_in)
         assert webhook_obj.event_types == ["user.created"]
@@ -51,7 +51,7 @@ class TestCRUDWebhook:
         db = AsyncMock()
         db.execute.return_value = result
 
-        from app.crud.webhook import webhook as crud
+        from app.notifications.crud.webhook import webhook as crud
 
         matched = await crud.get_active_for_event_type(db, event_type="user.created")
         assert matched == [w1, w3, w4]
@@ -61,7 +61,7 @@ class TestCRUDWebhook:
         db = AsyncMock()
         event = Event(event_type="user.created", payload={"id": 1})
 
-        from app.crud.webhook import webhook as crud
+        from app.notifications.crud.webhook import webhook as crud
 
         delivery = await crud.create_delivery(db, webhook_id=3, event=event, max_attempts=6)
 
@@ -80,7 +80,7 @@ class TestCRUDWebhook:
         result.first.return_value = (object(), object())
         db.execute.return_value = result
 
-        from app.crud.webhook import webhook as crud
+        from app.notifications.crud.webhook import webhook as crud
 
         pair = await crud.get_delivery_with_webhook(db, delivery_id=1)
         assert pair is not None
@@ -93,7 +93,7 @@ class TestCRUDWebhook:
         result.first.return_value = None
         db.execute.return_value = result
 
-        from app.crud.webhook import webhook as crud
+        from app.notifications.crud.webhook import webhook as crud
 
         assert await crud.get_delivery_with_webhook(db, delivery_id=1) is None
 
@@ -104,7 +104,7 @@ class TestCRUDWebhook:
         db = AsyncMock()
         db.execute.return_value = result
 
-        from app.crud.webhook import webhook as crud
+        from app.notifications.crud.webhook import webhook as crud
 
         rows = await crud.list_deliveries(db, webhook_id=3)
         assert len(rows) == 1
@@ -116,7 +116,7 @@ class TestCRUDWebhook:
         db = AsyncMock()
         db.execute.return_value = result
 
-        from app.crud.webhook import webhook as crud
+        from app.notifications.crud.webhook import webhook as crud
 
         rows = await crud.list_for_tenant(db, tenant_id=5)
         assert len(rows) == 1

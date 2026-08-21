@@ -4,7 +4,7 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from app.services.auth_audit import log_auth_event
+from app.identity.services.auth_audit import log_auth_event
 
 
 class TestLogAuthEvent:

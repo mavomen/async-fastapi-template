@@ -6,9 +6,12 @@ from types import SimpleNamespace
 import pytest
 
 from app.events.base import Event
-from app.models.notification_preference import NotificationPreference
-from app.services.notifications import _channel_enabled_for_preference, channel_enabled
-from app.services.webhook import handle_event
+from app.notifications.models.notification_preference import NotificationPreference
+from app.notifications.services.notifications import (
+    _channel_enabled_for_preference,
+    channel_enabled,
+)
+from app.notifications.services.webhook import handle_event
 
 
 class TestChannelEnabledForPreference:
@@ -34,7 +37,7 @@ class TestChannelEnabled:
     async def test_defaults_enabled_without_row(self, mocker):
         db = mocker.AsyncMock()
         mocker.patch(
-            "app.crud.notification.notification_preference.get_for_user",
+            "app.notifications.crud.notification.notification_preference.get_for_user",
             new=mocker.AsyncMock(return_value=None),
         )
         assert await channel_enabled(db, user_id=1, channel="email") is True
@@ -44,7 +47,7 @@ class TestChannelEnabled:
     async def test_respects_row(self, mocker):
         db = mocker.AsyncMock()
         mocker.patch(
-            "app.crud.notification.notification_preference.get_for_user",
+            "app.notifications.crud.notification.notification_preference.get_for_user",
             new=mocker.AsyncMock(
                 return_value=NotificationPreference(
                     user_id=1, email_enabled=False, in_app_enabled=True, webhook_enabled=True
@@ -65,22 +68,24 @@ class TestWebhookChannelGate:
         async def fake_session():
             yield fake_db
 
-        mocker.patch("app.services.webhook._db_session", fake_session)
+        mocker.patch("app.notifications.services.webhook._db_session", fake_session)
         mocker.patch(
-            "app.services.notifications.channel_enabled",
+            "app.notifications.services.notifications.channel_enabled",
             new=mocker.AsyncMock(return_value=False),
         )
         mocker.patch(
-            "app.crud.webhook.webhook.get_active_for_event_type",
+            "app.notifications.crud.webhook.webhook.get_active_for_event_type",
             new=mocker.AsyncMock(),
         )
-        mocker.patch("app.crud.webhook.webhook.create_delivery", new=mocker.AsyncMock())
+        mocker.patch(
+            "app.notifications.crud.webhook.webhook.create_delivery", new=mocker.AsyncMock()
+        )
         mock_task = mocker.MagicMock()
-        mocker.patch("app.tasks.webhook.deliver_webhook", mock_task)
+        mocker.patch("app.notifications.tasks.webhook.deliver_webhook", mock_task)
 
         await handle_event(event)
 
-        from app.crud.webhook import webhook as webhook_crud
+        from app.notifications.crud.webhook import webhook as webhook_crud
 
         webhook_crud.get_active_for_event_type.assert_not_awaited()
         webhook_crud.create_delivery.assert_not_awaited()
@@ -95,21 +100,21 @@ class TestWebhookChannelGate:
         async def fake_session():
             yield fake_db
 
-        mocker.patch("app.services.webhook._db_session", fake_session)
+        mocker.patch("app.notifications.services.webhook._db_session", fake_session)
         mocker.patch(
-            "app.services.notifications.channel_enabled",
+            "app.notifications.services.notifications.channel_enabled",
             new=mocker.AsyncMock(return_value=True),
         )
         mocker.patch(
-            "app.crud.webhook.webhook.get_active_for_event_type",
+            "app.notifications.crud.webhook.webhook.get_active_for_event_type",
             new=mocker.AsyncMock(return_value=[SimpleNamespace(id=10)]),
         )
         mocker.patch(
-            "app.crud.webhook.webhook.create_delivery",
+            "app.notifications.crud.webhook.webhook.create_delivery",
             new=mocker.AsyncMock(return_value=SimpleNamespace(id=5)),
         )
         mock_task = mocker.MagicMock()
-        mocker.patch("app.tasks.webhook.deliver_webhook", mock_task)
+        mocker.patch("app.notifications.tasks.webhook.deliver_webhook", mock_task)
 
         await handle_event(event)
 
@@ -124,17 +129,17 @@ class TestWebhookChannelGate:
         async def fake_session():
             yield fake_db
 
-        mocker.patch("app.services.webhook._db_session", fake_session)
+        mocker.patch("app.notifications.services.webhook._db_session", fake_session)
         mocker.patch(
-            "app.crud.webhook.webhook.get_active_for_event_type",
+            "app.notifications.crud.webhook.webhook.get_active_for_event_type",
             new=mocker.AsyncMock(return_value=[SimpleNamespace(id=10)]),
         )
         mocker.patch(
-            "app.crud.webhook.webhook.create_delivery",
+            "app.notifications.crud.webhook.webhook.create_delivery",
             new=mocker.AsyncMock(return_value=SimpleNamespace(id=5)),
         )
         mock_task = mocker.MagicMock()
-        mocker.patch("app.tasks.webhook.deliver_webhook", mock_task)
+        mocker.patch("app.notifications.tasks.webhook.deliver_webhook", mock_task)
 
         await handle_event(event)
 

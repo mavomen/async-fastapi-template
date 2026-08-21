@@ -10,11 +10,11 @@ from app.core.config import settings
 from app.core.database import get_db, get_read_db
 from app.core.jwt_blacklist import is_token_blacklisted
 from app.core.security import decode_access_token
-from app.crud.api_key import api_key as crud_api_key
-from app.crud.user import user as crud_user
 from app.events.base import EventBus
-from app.models.user import User
-from app.services.email import EmailService, email_service
+from app.identity.crud.api_key import api_key as crud_api_key
+from app.identity.crud.user import user as crud_user
+from app.identity.models.user import User
+from app.notifications.services.email import EmailService, email_service
 from app.storage.base import StorageBackend
 from app.storage.local import LocalStorage
 from app.storage.s3 import S3Storage
@@ -145,7 +145,7 @@ async def get_gql_context(request: Request, db: AsyncSession = Depends(get_db)) 
     token = request.headers.get("Authorization", "").removeprefix("Bearer ").strip()
     if token:
         from app.core.security import decode_access_token
-        from app.crud.user import user as crud_user
+        from app.identity.crud.user import user as crud_user
 
         try:
             payload = decode_access_token(token)

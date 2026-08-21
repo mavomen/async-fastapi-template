@@ -7,8 +7,8 @@ from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.security import create_access_token
-from app.crud.user import user as crud_user
-from app.schemas.user import UserCreate
+from app.identity.crud.user import user as crud_user
+from app.identity.schemas.user import UserCreate
 
 
 @pytest.fixture
@@ -24,7 +24,7 @@ async def auth_headers(db_session: AsyncSession) -> dict:
 @pytest.mark.asyncio
 async def test_webauthn_register_begin(async_client: AsyncClient, auth_headers: dict):
     """Register begin returns public key options."""
-    with patch("app.api.endpoints.auth.begin_registration") as mock_begin:
+    with patch("app.identity.api.endpoints.auth.begin_registration") as mock_begin:
         mock_begin.return_value = {"rp": {"name": "Test"}, "challenge": "abc"}
         resp = await async_client.post("/api/v1/auth/webauthn/register/begin", headers=auth_headers)
     assert resp.status_code == 200
@@ -42,9 +42,9 @@ async def test_webauthn_login_begin(async_client: AsyncClient):
     mock_session.__aenter__.return_value = mock_session
 
     with (
-        patch("app.api.endpoints.auth.begin_authentication") as mock_begin_opt,
+        patch("app.identity.api.endpoints.auth.begin_authentication") as mock_begin_opt,
         patch("app.core.database.sessionmanager.session") as mock_sess,
-        patch("app.api.endpoints.auth.crud_user.get_by_email") as mock_get_user,
+        patch("app.identity.api.endpoints.auth.crud_user.get_by_email") as mock_get_user,
     ):
         mock_sess.return_value = mock_session
         mock_get_user.return_value = fake_user

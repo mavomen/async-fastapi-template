@@ -8,7 +8,7 @@ from unittest.mock import AsyncMock, MagicMock, Mock
 import httpx
 import pytest
 
-from app.tasks.webhook import deliver_webhook
+from app.notifications.tasks.webhook import deliver_webhook
 
 
 def _delivery(attempt=0, max_attempts=3, status="pending"):
@@ -43,14 +43,14 @@ class TestPerformDelivery:
         client = MagicMock()
         client.__enter__.return_value = client
         client.post.return_value = response
-        mocker.patch("app.tasks.webhook.httpx.Client", return_value=client)
-        mocker.patch("app.tasks.webhook._run_async", Mock(side_effect=run_coro))
+        mocker.patch("app.notifications.tasks.webhook.httpx.Client", return_value=client)
+        mocker.patch("app.notifications.tasks.webhook._run_async", Mock(side_effect=run_coro))
         record = AsyncMock()
-        mocker.patch("app.tasks.webhook._record_delivery_outcome", record)
+        mocker.patch("app.notifications.tasks.webhook._record_delivery_outcome", record)
         return client, record
 
     def test_success(self, mocker):
-        from app.tasks.webhook import _perform_delivery
+        from app.notifications.tasks.webhook import _perform_delivery
 
         response = Mock(status_code=200, text="ok")
         client, record = self._patch(mocker, response)
@@ -71,7 +71,7 @@ class TestPerformDelivery:
         assert outcome["response_status"] == 200
 
     def test_non_2xx_with_retries_left(self, mocker):
-        from app.tasks.webhook import _perform_delivery
+        from app.notifications.tasks.webhook import _perform_delivery
 
         response = Mock(status_code=500, text="boom")
         client, record = self._patch(mocker, response)
@@ -86,7 +86,7 @@ class TestPerformDelivery:
         assert outcome["next_retry_at"] > datetime.now(UTC)
 
     def test_non_2xx_final_failure(self, mocker):
-        from app.tasks.webhook import _perform_delivery
+        from app.notifications.tasks.webhook import _perform_delivery
 
         response = Mock(status_code=500, text="boom")
         self._patch(mocker, response)
@@ -95,15 +95,15 @@ class TestPerformDelivery:
         assert result == "failed"
 
     def test_http_error_retries(self, mocker):
-        from app.tasks.webhook import _perform_delivery
+        from app.notifications.tasks.webhook import _perform_delivery
 
         client = MagicMock()
         client.__enter__.return_value = client
         client.post.side_effect = httpx.ConnectError("connection refused")
-        mocker.patch("app.tasks.webhook.httpx.Client", return_value=client)
-        mocker.patch("app.tasks.webhook._run_async", Mock(side_effect=run_coro))
+        mocker.patch("app.notifications.tasks.webhook.httpx.Client", return_value=client)
+        mocker.patch("app.notifications.tasks.webhook._run_async", Mock(side_effect=run_coro))
         record = AsyncMock()
-        mocker.patch("app.tasks.webhook._record_delivery_outcome", record)
+        mocker.patch("app.notifications.tasks.webhook._record_delivery_outcome", record)
 
         result = _perform_delivery(_delivery(attempt=0, max_attempts=3), _webhook())
         assert result == "retry"
@@ -111,15 +111,15 @@ class TestPerformDelivery:
         assert "connection refused" in record.await_args.kwargs["outcome"]["error"]
 
     def test_http_error_final_failure(self, mocker):
-        from app.tasks.webhook import _perform_delivery
+        from app.notifications.tasks.webhook import _perform_delivery
 
         client = MagicMock()
         client.__enter__.return_value = client
         client.post.side_effect = httpx.ConnectError("connection refused")
-        mocker.patch("app.tasks.webhook.httpx.Client", return_value=client)
-        mocker.patch("app.tasks.webhook._run_async", Mock(side_effect=run_coro))
+        mocker.patch("app.notifications.tasks.webhook.httpx.Client", return_value=client)
+        mocker.patch("app.notifications.tasks.webhook._run_async", Mock(side_effect=run_coro))
         record = AsyncMock()
-        mocker.patch("app.tasks.webhook._record_delivery_outcome", record)
+        mocker.patch("app.notifications.tasks.webhook._record_delivery_outcome", record)
 
         result = _perform_delivery(_delivery(attempt=2, max_attempts=3), _webhook())
         assert result == "failed"
@@ -128,30 +128,32 @@ class TestPerformDelivery:
 
 class TestDeliverWebhookTask:
     def test_not_found(self, mocker):
-        mocker.patch("app.tasks.webhook._run_async", Mock(return_value=None))
+        mocker.patch("app.notifications.tasks.webhook._run_async", Mock(return_value=None))
         assert deliver_webhook.run(99) == "not-found"
 
     def test_already_delivered(self, mocker):
         mocker.patch(
-            "app.tasks.webhook._run_async",
+            "app.notifications.tasks.webhook._run_async",
             Mock(return_value=(_delivery(status="delivered"), _webhook())),
         )
         assert deliver_webhook.run(5) == "already-delivered"
 
     def test_webhook_disabled(self, mocker):
         mocker.patch(
-            "app.tasks.webhook._run_async",
+            "app.notifications.tasks.webhook._run_async",
             Mock(return_value=(_delivery(), _webhook(is_active=False))),
         )
-        mocker.patch("app.tasks.webhook._record_delivery_outcome", AsyncMock())
+        mocker.patch("app.notifications.tasks.webhook._record_delivery_outcome", AsyncMock())
         assert deliver_webhook.run(5) == "webhook-disabled"
 
     def test_retry_raises_celery_retry(self, mocker):
         mocker.patch(
-            "app.tasks.webhook._run_async",
+            "app.notifications.tasks.webhook._run_async",
             Mock(return_value=(_delivery(attempt=0, max_attempts=3), _webhook())),
         )
-        mocker.patch("app.tasks.webhook._perform_delivery", Mock(return_value="retry"))
+        mocker.patch(
+            "app.notifications.tasks.webhook._perform_delivery", Mock(return_value="retry")
+        )
 
         class RetrySentinel(Exception):
             pass
@@ -165,8 +167,10 @@ class TestDeliverWebhookTask:
 
     def test_perform_failure_propagates_status(self, mocker):
         mocker.patch(
-            "app.tasks.webhook._run_async",
+            "app.notifications.tasks.webhook._run_async",
             Mock(return_value=(_delivery(), _webhook())),
         )
-        mocker.patch("app.tasks.webhook._perform_delivery", Mock(return_value="failed"))
+        mocker.patch(
+            "app.notifications.tasks.webhook._perform_delivery", Mock(return_value="failed")
+        )
         assert deliver_webhook.run(5) == "failed"

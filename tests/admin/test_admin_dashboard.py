@@ -5,9 +5,9 @@ from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.security import create_access_token
-from app.crud.user import user as crud_user
-from app.models.role import Permission, Role
-from app.schemas.user import UserCreate
+from app.identity.crud.user import user as crud_user
+from app.identity.models.role import Permission, Role
+from app.identity.schemas.user import UserCreate
 
 
 @pytest.fixture
@@ -115,7 +115,7 @@ async def test_admin_role_delete(
     async_client: AsyncClient, admin_headers: dict, db_session: AsyncSession
 ):
     """Delete a role via the admin panel."""
-    from app.models.role import Role
+    from app.identity.models.role import Role
 
     role = Role(name="temp_role_to_delete", description="Temp role")
     db_session.add(role)
@@ -135,7 +135,7 @@ async def test_admin_permission_delete(
     async_client: AsyncClient, admin_headers: dict, db_session: AsyncSession
 ):
     """Delete a permission via the admin panel."""
-    from app.models.role import Permission
+    from app.identity.models.role import Permission
 
     perm = Permission(name="temp_perm_to_delete", description="Temp perm")
     db_session.add(perm)

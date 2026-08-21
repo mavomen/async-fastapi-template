@@ -6,7 +6,7 @@ from types import SimpleNamespace
 import pytest
 
 from app.events.base import Event
-from app.services.notifications import handle_notification_event
+from app.notifications.services.notifications import handle_notification_event
 
 
 def _patch_dispatch(mocker, *, in_app=True, email=True, user="exists", notification=None):
@@ -23,22 +23,22 @@ def _patch_dispatch(mocker, *, in_app=True, email=True, user="exists", notificat
             return email
         return True
 
-    mocker.patch("app.services.notifications._db_session", fake_session)
+    mocker.patch("app.notifications.services.notifications._db_session", fake_session)
     mocker.patch(
-        "app.services.notifications.channel_enabled",
+        "app.notifications.services.notifications.channel_enabled",
         new=_fake_channel_enabled,
     )
     mock_user = None if user == "missing" else SimpleNamespace(id=7, email="user@example.com")
-    mocker.patch("app.crud.user.user.get", new=mocker.AsyncMock(return_value=mock_user))
+    mocker.patch("app.identity.crud.user.user.get", new=mocker.AsyncMock(return_value=mock_user))
     if notification is None:
         notification = SimpleNamespace(id=11, title="Welcome", body="Hi")
     mocker.patch(
-        "app.crud.notification.notification.create_for_user",
+        "app.notifications.crud.notification.notification.create_for_user",
         new=mocker.AsyncMock(return_value=notification),
     )
-    mocker.patch("app.services.notifications._push_websocket", new=mocker.AsyncMock())
+    mocker.patch("app.notifications.services.notifications._push_websocket", new=mocker.AsyncMock())
     mock_email = mocker.MagicMock()
-    mocker.patch("app.services.email.send_email_with_retry", mock_email)
+    mocker.patch("app.notifications.services.email.send_email_with_retry", mock_email)
     return fake_db, mock_email
 
 
@@ -46,9 +46,9 @@ class TestHandleNotificationEvent:
     @pytest.mark.asyncio
     async def test_disabled_returns_early(self, mocker):
         mock_settings = mocker.MagicMock(NOTIFICATION_ENABLED=False)
-        mocker.patch("app.services.notifications.settings", mock_settings)
+        mocker.patch("app.notifications.services.notifications.settings", mock_settings)
         mock_email = mocker.MagicMock()
-        mocker.patch("app.services.email.send_email_with_retry", mock_email)
+        mocker.patch("app.notifications.services.email.send_email_with_retry", mock_email)
 
         await handle_notification_event(Event(event_type="user.created", payload={}, user_id=1))
 
@@ -60,7 +60,7 @@ class TestHandleNotificationEvent:
 
         await handle_notification_event(Event(event_type="user.created", payload={}))
 
-        from app.crud.notification import notification as notification_crud
+        from app.notifications.crud.notification import notification as notification_crud
 
         notification_crud.create_for_user.assert_not_awaited()
         mock_email.delay.assert_not_called()
@@ -76,7 +76,7 @@ class TestHandleNotificationEvent:
 
         await handle_notification_event(event)
 
-        from app.crud.notification import notification as notification_crud
+        from app.notifications.crud.notification import notification as notification_crud
 
         notification_crud.create_for_user.assert_awaited_once_with(
             fake_db, user_id=7, event_type="user.created", title="Welcome", body="Hi there"
@@ -96,7 +96,7 @@ class TestHandleNotificationEvent:
             Event(event_type="user.created", payload={"title": "Welcome"}, user_id=7)
         )
 
-        from app.crud.notification import notification as notification_crud
+        from app.notifications.crud.notification import notification as notification_crud
 
         notification_crud.create_for_user.assert_not_awaited()
         mock_email.delay.assert_called_once()
@@ -109,7 +109,7 @@ class TestHandleNotificationEvent:
             Event(event_type="user.created", payload={"title": "Welcome"}, user_id=7)
         )
 
-        from app.crud.notification import notification as notification_crud
+        from app.notifications.crud.notification import notification as notification_crud
 
         notification_crud.create_for_user.assert_awaited_once()
         mock_email.delay.assert_not_called()
@@ -122,7 +122,7 @@ class TestHandleNotificationEvent:
             Event(event_type="user.created", payload={"title": "Welcome"}, user_id=7)
         )
 
-        from app.crud.notification import notification as notification_crud
+        from app.notifications.crud.notification import notification as notification_crud
 
         notification_crud.create_for_user.assert_awaited_once()
         mock_email.delay.assert_not_called()
@@ -145,7 +145,7 @@ class TestHandleNotificationEvent:
             raise RuntimeError("db down")
             yield mocker.AsyncMock()
 
-        mocker.patch("app.services.notifications._db_session", fake_session)
+        mocker.patch("app.notifications.services.notifications._db_session", fake_session)
 
         await handle_notification_event(  # must not raise
             Event(event_type="user.created", payload={}, user_id=7)

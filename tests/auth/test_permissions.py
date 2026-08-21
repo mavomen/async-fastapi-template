@@ -1,8 +1,8 @@
 """Tests for permission checker."""
 
-from app.auth.permissions import has_permission
-from app.models.role import Permission, Role
-from app.models.user import User
+from app.identity.auth.permissions import has_permission
+from app.identity.models.role import Permission, Role
+from app.identity.models.user import User
 
 
 def create_mock_user(is_superuser=False):

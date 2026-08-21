@@ -217,8 +217,12 @@
 
 ## 🛠️ Developer Experience
 
-**`dx/domain-restructure`** ⏳ open — merged branch delivered schema extraction only, not the split
+**`dx/domain-restructure`** ✅
 - Split `app/` into bounded contexts: `identity/`, `billing/`, `notifications/`
+- `identity/` owns users, RBAC, tenants, API keys, TOTP, WebAuthn, OAuth2, auth audit, user GraphQL
+- `notifications/` owns inbox, preferences, email delivery, webhooks; templates stay in `app/templates/email/`
+- `billing/` reserved as documented scaffold; shared kernel (base models, CMS, files, task status, audit log) stays in `app/models|schemas|crud`
+- HTTP surface byte-identical (OpenAPI snapshot unchanged); seams documented in docs/ARCHITECTURE.md
 
 **`dx/local-dev`** ✅
 - `docker compose up` provisions everything in under 10 seconds

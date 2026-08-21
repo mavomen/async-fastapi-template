@@ -4,7 +4,7 @@ from fastapi import WebSocket, WebSocketDisconnect, status
 
 from app.core.database import sessionmanager
 from app.core.security import decode_access_token
-from app.crud.user import user as crud_user
+from app.identity.crud.user import user as crud_user
 
 
 async def get_current_user_ws(websocket: WebSocket) -> int:

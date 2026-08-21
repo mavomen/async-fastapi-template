@@ -2,16 +2,37 @@
 
 ## High‑Level Design
 
-The application follows a **modular monolith** pattern with clear separation of concerns:
+The application follows a **modular monolith** pattern organized into bounded contexts:
+
+## Bounded Contexts
+
+Domain logic lives in self-contained contexts under `app/`. Each context owns its models, Pydantic schemas, CRUD, services, Celery tasks, and HTTP endpoints:
+
+| Context | Path | Owns |
+|---------|------|------|
+| Identity | `app/identity/` | Users, roles/RBAC, tenants, API keys, TOTP, WebAuthn, OAuth2, auth audit log, user GraphQL schema |
+| Notifications | `app/notifications/` | In-app inbox, notification preferences, transactional email (Jinja2 templates in `app/templates/email/`), outgoing webhooks with HMAC signing |
+| Billing | `app/billing/` | Reserved scaffold — plans/subscriptions/invoices land here |
+
+**Shared kernel** (`app/models/`, `app/schemas/`, `app/crud/`): base classes and mixins (`BaseModel`, `TimestampMixin`, `SoftDeleteMixin`, `TenantBaseModel`), plus not-yet-contextualized models (audit log, task status, files, CMS pages/posts/categories/tags). Generic `CRUDBase` also lives here.
+
+**Cross-cutting layers**: `app/api/` (composition root mounting all routers — prefixes/tags there define the public HTTP surface), `app/core/`, `app/middleware/`, `app/events/`, `app/websocket/`, `app/admin/`, `app/utils/`.
+
+**Cross-context imports** are allowed only at documented seams:
+- *Notifications → Identity*: dispatcher resolves recipient email/preferences via the user model.
+- *Orchestrators* (`app/tasks/purge.py`, admin views): coordinate across contexts by importing context-owned modules.
+
+Everything else communicates through the event bus (`app/events/`) or Celery task boundaries.
+
+## Layer Map (pre-refactor names)
 
 - **API Layer** (`app/api/`) – FastAPI routes, dependencies, exception handlers, health checks.
 - **Core** (`app/core/`) – Configuration, database, security, cache, metrics, tracing.
-- **Models** (`app/models/`) – SQLAlchemy ORM models (User, Role, Permission, Tenant, TaskStatus).
-- **CRUD** (`app/crud/`) – Generic and model‑specific database operations.
-- **Schemas** (`app/schemas/`) – Pydantic models for request/response validation.
-- **Auth** (`app/auth/`) – RBAC permissions, password hashing, JWT management.
-- **Services** (`app/services/`) – Email service with Jinja2 templates.
-- **Tasks** (`app/tasks/`) – Celery background tasks.
+- **Models** (`app/models/` shared kernel + `app/<context>/models/`) – SQLAlchemy ORM models.
+- **CRUD** (`app/crud/` shared kernel + per-context) – Generic and model‑specific database operations.
+- **Schemas** (`app/schemas/` shared kernel + per-context) – Pydantic models for request/response validation.
+- **Auth** (`app/identity/auth/`) – RBAC permissions, password hashing, JWT management.
+- **Services / Tasks** – Per context (`app/identity/services/`, `app/notifications/tasks/`, …); generic tasks in `app/tasks/`.
 - **Events** (`app/events/`) – Pluggable event bus (Redis Streams / Kafka).
 - **WebSocket** (`app/websocket/`) – Chat with JWT auth.
 - **Admin** (`app/admin/`) – HTMX‑powered dashboard.

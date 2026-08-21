@@ -3,8 +3,8 @@
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.crud.user import user as user_crud
-from app.schemas.user import UserCreate, UserUpdate
+from app.identity.crud.user import user as user_crud
+from app.identity.schemas.user import UserCreate, UserUpdate
 
 
 @pytest.mark.asyncio

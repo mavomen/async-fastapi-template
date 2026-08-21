@@ -12,7 +12,7 @@ from jose import JWTError, jwt
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
-from app.models.user import User
+from app.identity.models.user import User
 
 # -------- RS256 key management --------
 _jwks_private_key = None
@@ -135,8 +135,8 @@ async def authenticate_user(
     from datetime import UTC, datetime
 
     from app.core.config import settings
-    from app.crud.user import user as crud_user
-    from app.services.auth_audit import log_auth_event
+    from app.identity.crud.user import user as crud_user
+    from app.identity.services.auth_audit import log_auth_event
 
     user = await crud_user.get_by_email(db, email=email)
     if not user:

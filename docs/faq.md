@@ -28,7 +28,7 @@ A: Run `make scaffold` to interactively generate a model, schema, CRUD, endpoint
 A: Follow the existing patterns in `tests/`. Use `pytest.mark.asyncio` for async tests and the `async_client` fixture. Run `make test` to execute the suite.
 
 **Q: How do I add a new GraphQL type?**
-A: Create a Strawberry type in `app/gql/types/`, add resolvers in `app/gql/queries/`, `app/gql/mutations/`, or `app/gql/subscriptions/`, and re‑export in `app/gql/schema.py`.
+A: Create a Strawberry type in `app/identity/gql/types/`, add resolvers in `app/identity/gql/queries/`, `app/identity/gql/mutations/`, or `app/identity/gql/subscriptions/`, and re‑export in `app/identity/gql/schema.py`.
 
 ## Production
 

@@ -23,7 +23,7 @@ class TenantMiddleware(BaseHTTPMiddleware):
         try:
             from sqlalchemy import select
 
-            from app.models.tenant import Tenant
+            from app.identity.models.tenant import Tenant
 
             async with sessionmanager.session() as db:
                 result = await db.execute(select(Tenant.id).where(Tenant.is_active).limit(1))

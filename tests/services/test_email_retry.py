@@ -3,11 +3,11 @@
 import contextlib
 from unittest.mock import patch
 
-from app.services.email import send_email_with_retry
+from app.notifications.services.email import send_email_with_retry
 
 
 def test_send_email_with_retry_calls_email_service():
-    with patch("app.services.email.email_service.send_email") as mock_send:
+    with patch("app.notifications.services.email.email_service.send_email") as mock_send:
         with contextlib.suppress(Exception):
             send_email_with_retry.apply(
                 args=["test@example.com", "Subject", "verification.html", {}]

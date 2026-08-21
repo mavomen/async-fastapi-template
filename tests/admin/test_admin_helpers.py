@@ -1,7 +1,7 @@
 """Unit tests for admin helper functions."""
 
 from app.admin import _coerce_value, _set_default_password_for_user, register_admin
-from app.models.user import User
+from app.identity.models.user import User
 
 
 def test_register_admin_stores_model():
@@ -33,7 +33,7 @@ def test_set_default_password_for_user_assigns_placeholder():
 
 def test_register_role_model():
     """register_admin() works for Role model."""
-    from app.models.role import Role
+    from app.identity.models.role import Role
 
     register_admin(Role, list_display=["name"], permission="role:admin")
     from app.admin import _registry
