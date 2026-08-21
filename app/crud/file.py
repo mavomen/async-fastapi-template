@@ -1,16 +1,13 @@
 """CRUD operations for File model."""
 
-import hashlib
 from typing import Any
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.config import settings
 from app.crud.base import CRUDBase
 from app.models.file import File
 from app.schemas.file import FileResponse
-from app.services.thumbnail import generate_all_thumbnails, is_image_mime
 from app.storage.base import StorageBackend
 
 
@@ -21,50 +18,40 @@ class CRUDFile(CRUDBase[File, Any, Any]):
         self,
         db: AsyncSession,
         *,
-        file_bytes: bytes,
+        filename: str,
         original_filename: str,
         mime_type: str,
+        size_bytes: int,
+        checksum: str,
         storage_path: str,
         uploader_id: int | None,
-        storage: StorageBackend,
+        thumbnail_paths: dict[str, str | None] | None = None,
     ) -> File:
-        """Create a File record, generate thumbnails for images, and store them."""
-        checksum = hashlib.sha256(file_bytes).hexdigest()
-        size_bytes = len(file_bytes)
+        """Create a File record from pre-processed upload data.
 
-        thumbnail_paths: dict[str, str | None] = {
-            "small": None,
-            "medium": None,
-            "large": None,
-        }
-
-        if is_image_mime(mime_type) and settings.THUMBNAIL_SIZES:
-            thumbs = await generate_all_thumbnails(file_bytes)
-            for size_name, thumb_bytes in thumbs.items():
-                thumb_filename = f"thumbnails/{storage_path.rsplit('/', 1)[-1].rsplit('.', 1)[0]}_{size_name}.{settings.THUMBNAIL_FORMAT.lower()}"
-                thumb_path = await storage.upload_bytes(thumb_bytes, thumb_filename)
-                thumbnail_paths[size_name] = thumb_path
+        Thumbnail generation is handled by the caller (endpoint/service layer)
+        to keep CRUD free of side-effecting service imports.
+        """
+        thumbs = thumbnail_paths or {"small": None, "medium": None, "large": None}
 
         obj = File(
-            filename=storage_path.split("/")[-1],
+            filename=filename,
             original_filename=original_filename,
             mime_type=mime_type,
             size_bytes=size_bytes,
             storage_path=storage_path,
             checksum_sha256=checksum,
             uploader_id=uploader_id,
-            thumbnail_path_small=thumbnail_paths["small"],
-            thumbnail_path_medium=thumbnail_paths["medium"],
-            thumbnail_path_large=thumbnail_paths["large"],
+            thumbnail_path_small=thumbs.get("small"),
+            thumbnail_path_medium=thumbs.get("medium"),
+            thumbnail_path_large=thumbs.get("large"),
         )
         db.add(obj)
         await db.commit()
         await db.refresh(obj)
         return obj
 
-    async def get_by_checksum(
-        self, db: AsyncSession, *, checksum: str
-    ) -> File | None:
+    async def get_by_checksum(self, db: AsyncSession, *, checksum: str) -> File | None:
         """Find a file by its SHA-256 checksum."""
         result = await db.execute(select(File).where(File.checksum_sha256 == checksum))
         return result.scalar_one_or_none()

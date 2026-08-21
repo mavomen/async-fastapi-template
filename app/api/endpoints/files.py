@@ -1,5 +1,7 @@
 """File upload and download endpoints."""
 
+import asyncio
+import hashlib
 from collections.abc import AsyncGenerator
 
 from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, status
@@ -9,9 +11,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.responses import StreamingResponse
 
 from app.api.deps import get_current_user, get_db, get_read_db, get_storage
+from app.core.config import settings
 from app.crud.file import file as crud_file
 from app.models.user import User
 from app.schemas.file import FileListResponse, FileResponse
+from app.services.thumbnail import generate_all_thumbnails, is_image_mime
 from app.storage.base import StorageBackend
 
 router = APIRouter()
@@ -19,12 +23,33 @@ router = APIRouter()
 _MAX_FILE_SIZE_MB = 50
 
 
+async def _generate_thumbnails(
+    file_bytes: bytes,
+    mime_type: str,
+    storage_path: str,
+    storage: StorageBackend,
+) -> dict[str, str | None]:
+    """Generate and upload thumbnails for image files. Returns thumbnail storage paths."""
+    thumbnail_paths: dict[str, str | None] = {
+        "small": None,
+        "medium": None,
+        "large": None,
+    }
+    if is_image_mime(mime_type) and settings.THUMBNAIL_SIZES:
+        thumbs = await generate_all_thumbnails(file_bytes)
+        for size_name, thumb_bytes in thumbs.items():
+            stem = storage_path.rsplit("/", 1)[-1].rsplit(".", 1)[0]
+            fmt = settings.THUMBNAIL_FORMAT.lower()
+            thumb_filename = f"thumbnails/{stem}_{size_name}.{fmt}"
+            thumb_path = await storage.upload_bytes(thumb_bytes, thumb_filename)
+            thumbnail_paths[size_name] = thumb_path
+    return thumbnail_paths
+
+
 async def _stream_file_upload(
     file: UploadFile, filename: str, storage: StorageBackend
 ) -> AsyncGenerator[str, None]:
-    """Emit SSE events for file upload progress (extracted for testing)."""
-    import asyncio
-
+    """Emit SSE events for file upload progress."""
     total_size = file.size or 0
     chunk_size = 1024 * 256  # 256 KB
     uploaded = 0
@@ -39,7 +64,7 @@ async def _stream_file_upload(
     content = b"".join(chunks)
     path = await storage.upload_bytes(content, filename)
     url = storage.get_url(path)
-    data = {"path": path}
+    data: dict[str, str | dict[str, str]] = {"path": path}
     if url:
         data["url"] = url
     yield f"event: complete\ndata: {data}\n\n"
@@ -68,20 +93,29 @@ async def upload_file(
 
     mime_type = file.content_type or "application/octet-stream"
     path = await storage.upload_bytes(content, file.filename)
+    checksum = hashlib.sha256(content).hexdigest()
+
+    thumbnail_paths = await _generate_thumbnails(content, mime_type, path, storage)
 
     file_obj = await crud_file.create_from_upload(
         db,
-        file_bytes=content,
+        filename=path.split("/")[-1],
         original_filename=file.filename,
         mime_type=mime_type,
+        size_bytes=len(content),
+        checksum=checksum,
         storage_path=path,
         uploader_id=current_user.id,
-        storage=storage,
+        thumbnail_paths=thumbnail_paths,
     )
     return crud_file.to_response(file_obj, storage)
 
 
-@router.post("/upload/stream", status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/upload/stream",
+    status_code=status.HTTP_201_CREATED,
+    summary="Upload a file with SSE progress",
+)
 async def upload_file_stream(
     file: UploadFile = FastAPIFile(...),
     current_user: User = Depends(get_current_user),
