@@ -103,7 +103,9 @@ class TestEndpointFuzz:
         username=st.from_regex(r"[a-zA-Z0-9_-]{3,50}", fullmatch=True),
         password=st.text(min_size=8, max_size=100).filter(lambda p: len(p) >= 8),
     )
-    @settings(max_examples=50, suppress_health_check=list(hypothesis.settings().suppress_health_check))
+    @settings(
+        max_examples=50, suppress_health_check=list(hypothesis.settings().suppress_health_check)
+    )
     def test_user_create_payloads(self, email: str, username: str, password: str) -> None:
         """Generate valid user creation payloads."""
         from app.schemas.user import UserCreate
@@ -120,7 +122,9 @@ class TestEndpointFuzz:
         is_active=st.booleans() | st.none(),
     )
     @settings(max_examples=50)
-    def test_user_update_payloads(self, email: str | None, full_name: str | None, is_active: bool | None) -> None:
+    def test_user_update_payloads(
+        self, email: str | None, full_name: str | None, is_active: bool | None
+    ) -> None:
         """Generate valid user update payloads."""
         from app.schemas.user import UserUpdate
 
@@ -129,9 +133,14 @@ class TestEndpointFuzz:
         assert len(data) > 0 or (email is None and full_name is None and is_active is None)
 
     @given(
-        path_suffix=st.sampled_from([
-            "users", "tenants", "webhooks", "notifications",
-        ])
+        path_suffix=st.sampled_from(
+            [
+                "users",
+                "tenants",
+                "webhooks",
+                "notifications",
+            ]
+        )
     )
     @settings(max_examples=5)
     def test_api_v1_endpoints_exist(self, path_suffix: str) -> None:

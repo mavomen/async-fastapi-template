@@ -125,14 +125,14 @@ def main() -> None:
             pct_change = ((p95_value / old_p95) - 1) * 100
             if pct_change > args.threshold:
                 print(
-                    f"REGRESSION: {metric} p95={p95_value*1000:.1f}ms vs "
-                    f"baseline {old_p95*1000:.1f}ms (+{pct_change:.1f}% > {args.threshold}%)"
+                    f"REGRESSION: {metric} p95={p95_value * 1000:.1f}ms vs "
+                    f"baseline {old_p95 * 1000:.1f}ms (+{pct_change:.1f}% > {args.threshold}%)"
                 )
                 failed = True
             else:
                 print(
-                    f"OK: {metric} p95={p95_value*1000:.1f}ms vs "
-                    f"baseline {old_p95*1000:.1f}ms ({pct_change:+.1f}%)"
+                    f"OK: {metric} p95={p95_value * 1000:.1f}ms vs "
+                    f"baseline {old_p95 * 1000:.1f}ms ({pct_change:+.1f}%)"
                 )
 
     if failed:

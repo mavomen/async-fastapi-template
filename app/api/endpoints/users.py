@@ -280,8 +280,12 @@ async def import_users_csv(
     content = await file.read()
     reader = csv.DictReader(io.StringIO(content.decode()))
     raw_rows = [
-        {"email": r["email"], "username": r["username"], "password": r["password"],
-         "full_name": r.get("full_name")}
+        {
+            "email": r["email"],
+            "username": r["username"],
+            "password": r["password"],
+            "full_name": r.get("full_name"),
+        }
         for r in reader
     ]
     if not raw_rows:
@@ -303,7 +307,9 @@ async def import_users_csv(
             full_name=row.get("full_name"),
         )
 
-    orm_objs = [obj for obj in (await asyncio.gather(*[_prepare(r) for r in raw_rows])) if obj is not None]
+    orm_objs = [
+        obj for obj in (await asyncio.gather(*[_prepare(r) for r in raw_rows])) if obj is not None
+    ]
     if not orm_objs:
         return []
 

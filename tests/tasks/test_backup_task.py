@@ -111,8 +111,12 @@ class TestBackupDatabase:
     @patch("app.tasks.backup._make_s3_client")
     @patch("app.tasks.backup.subprocess.run")
     @patch("app.tasks.backup.settings")
-    def test_successful_backup(self, mock_settings: MagicMock, mock_run: MagicMock, mock_s3: MagicMock) -> None:
-        mock_settings.DATABASE_URL = "postgresql+asyncpg://postgres:postgres@localhost:5432/fastapi_db"
+    def test_successful_backup(
+        self, mock_settings: MagicMock, mock_run: MagicMock, mock_s3: MagicMock
+    ) -> None:
+        mock_settings.DATABASE_URL = (
+            "postgresql+asyncpg://postgres:postgres@localhost:5432/fastapi_db"
+        )
         mock_settings.S3_BUCKET = "test-bucket"
         mock_settings.S3_ACCESS_KEY = "key"
         mock_settings.S3_SECRET_KEY = "secret"
@@ -142,11 +146,11 @@ class TestBackupDatabase:
     @patch("app.tasks.backup.subprocess.run")
     @patch("app.tasks.backup.settings")
     def test_pg_dump_failure_raises(self, mock_settings: MagicMock, mock_run: MagicMock) -> None:
-        mock_settings.DATABASE_URL = "postgresql+asyncpg://postgres:postgres@localhost:5432/fastapi_db"
-
-        mock_run.return_value = MagicMock(
-            returncode=1, stdout=b"", stderr=b"connection refused"
+        mock_settings.DATABASE_URL = (
+            "postgresql+asyncpg://postgres:postgres@localhost:5432/fastapi_db"
         )
+
+        mock_run.return_value = MagicMock(returncode=1, stdout=b"", stderr=b"connection refused")
 
         with pytest.raises(RuntimeError, match="pg_dump failed"):
             backup_database()
@@ -154,8 +158,12 @@ class TestBackupDatabase:
     @patch("app.tasks.backup._make_s3_client")
     @patch("app.tasks.backup.subprocess.run")
     @patch("app.tasks.backup.settings")
-    def test_compression_reduces_size(self, mock_settings: MagicMock, mock_run: MagicMock, _mock_s3: MagicMock) -> None:
-        mock_settings.DATABASE_URL = "postgresql+asyncpg://postgres:postgres@localhost:5432/fastapi_db"
+    def test_compression_reduces_size(
+        self, mock_settings: MagicMock, mock_run: MagicMock, _mock_s3: MagicMock
+    ) -> None:
+        mock_settings.DATABASE_URL = (
+            "postgresql+asyncpg://postgres:postgres@localhost:5432/fastapi_db"
+        )
         mock_settings.S3_BUCKET = "test-bucket"
         mock_settings.S3_ACCESS_KEY = "key"
         mock_settings.S3_SECRET_KEY = "secret"
@@ -181,7 +189,9 @@ class TestCleanupOldBackups:
     @patch("app.tasks.backup._make_s3_client")
     @patch("app.tasks.backup.settings")
     def test_deletes_old_backups(self, mock_settings: MagicMock, mock_s3: MagicMock) -> None:
-        mock_settings.DATABASE_URL = "postgresql+asyncpg://postgres:postgres@localhost:5432/fastapi_db"
+        mock_settings.DATABASE_URL = (
+            "postgresql+asyncpg://postgres:postgres@localhost:5432/fastapi_db"
+        )
         mock_settings.S3_BUCKET = "test-bucket"
         mock_settings.S3_ACCESS_KEY = "key"
         mock_settings.S3_SECRET_KEY = "secret"
@@ -191,8 +201,16 @@ class TestCleanupOldBackups:
         mock_settings.BACKUP_RETENTION_DAYS = 7
 
         now = datetime.now(UTC)
-        old_key = "backups/fastapi_db/" + (now - timedelta(days=10)).strftime("%Y-%m-%dT%H-%M-%S") + ".dump.gz"
-        new_key = "backups/fastapi_db/" + (now - timedelta(days=2)).strftime("%Y-%m-%dT%H-%M-%S") + ".dump.gz"
+        old_key = (
+            "backups/fastapi_db/"
+            + (now - timedelta(days=10)).strftime("%Y-%m-%dT%H-%M-%S")
+            + ".dump.gz"
+        )
+        new_key = (
+            "backups/fastapi_db/"
+            + (now - timedelta(days=2)).strftime("%Y-%m-%dT%H-%M-%S")
+            + ".dump.gz"
+        )
 
         client = mock_s3.return_value
         paginator_mock = MagicMock()
@@ -211,7 +229,9 @@ class TestCleanupOldBackups:
     @patch("app.tasks.backup._make_s3_client")
     @patch("app.tasks.backup.settings")
     def test_no_backups_to_delete(self, mock_settings: MagicMock, mock_s3: MagicMock) -> None:
-        mock_settings.DATABASE_URL = "postgresql+asyncpg://postgres:postgres@localhost:5432/fastapi_db"
+        mock_settings.DATABASE_URL = (
+            "postgresql+asyncpg://postgres:postgres@localhost:5432/fastapi_db"
+        )
         mock_settings.S3_BUCKET = "test-bucket"
         mock_settings.S3_ACCESS_KEY = "key"
         mock_settings.S3_SECRET_KEY = "secret"
@@ -241,8 +261,12 @@ class TestRestoreBackup:
     @patch("app.tasks.backup._make_s3_client")
     @patch("app.tasks.backup.subprocess.run")
     @patch("app.tasks.backup.settings")
-    def test_restore_with_explicit_key(self, mock_settings: MagicMock, mock_run: MagicMock, mock_s3: MagicMock) -> None:
-        mock_settings.DATABASE_URL = "postgresql+asyncpg://postgres:postgres@localhost:5432/fastapi_db"
+    def test_restore_with_explicit_key(
+        self, mock_settings: MagicMock, mock_run: MagicMock, mock_s3: MagicMock
+    ) -> None:
+        mock_settings.DATABASE_URL = (
+            "postgresql+asyncpg://postgres:postgres@localhost:5432/fastapi_db"
+        )
         mock_settings.S3_BUCKET = "test-bucket"
         mock_settings.S3_ACCESS_KEY = "key"
         mock_settings.S3_SECRET_KEY = "secret"
@@ -274,8 +298,12 @@ class TestRestoreBackup:
     @patch("app.tasks.backup._make_s3_client")
     @patch("app.tasks.backup.subprocess.run")
     @patch("app.tasks.backup.settings")
-    def test_restore_latest_when_no_key(self, mock_settings: MagicMock, mock_run: MagicMock, mock_s3: MagicMock) -> None:
-        mock_settings.DATABASE_URL = "postgresql+asyncpg://postgres:postgres@localhost:5432/fastapi_db"
+    def test_restore_latest_when_no_key(
+        self, mock_settings: MagicMock, mock_run: MagicMock, mock_s3: MagicMock
+    ) -> None:
+        mock_settings.DATABASE_URL = (
+            "postgresql+asyncpg://postgres:postgres@localhost:5432/fastapi_db"
+        )
         mock_settings.S3_BUCKET = "test-bucket"
         mock_settings.S3_ACCESS_KEY = "key"
         mock_settings.S3_SECRET_KEY = "secret"
@@ -284,8 +312,16 @@ class TestRestoreBackup:
         mock_settings.BACKUP_S3_PREFIX = "backups/"
 
         now = datetime.now(UTC)
-        key1 = "backups/fastapi_db/" + (now - timedelta(days=2)).strftime("%Y-%m-%dT%H-%M-%S") + ".dump.gz"
-        key2 = "backups/fastapi_db/" + (now - timedelta(days=1)).strftime("%Y-%m-%dT%H-%M-%S") + ".dump.gz"
+        key1 = (
+            "backups/fastapi_db/"
+            + (now - timedelta(days=2)).strftime("%Y-%m-%dT%H-%M-%S")
+            + ".dump.gz"
+        )
+        key2 = (
+            "backups/fastapi_db/"
+            + (now - timedelta(days=1)).strftime("%Y-%m-%dT%H-%M-%S")
+            + ".dump.gz"
+        )
 
         client = mock_s3.return_value
         paginator_mock = MagicMock()
@@ -307,7 +343,9 @@ class TestRestoreBackup:
     @patch("app.tasks.backup._make_s3_client")
     @patch("app.tasks.backup.settings")
     def test_restore_no_backups_raises(self, mock_settings: MagicMock, mock_s3: MagicMock) -> None:
-        mock_settings.DATABASE_URL = "postgresql+asyncpg://postgres:postgres@localhost:5432/fastapi_db"
+        mock_settings.DATABASE_URL = (
+            "postgresql+asyncpg://postgres:postgres@localhost:5432/fastapi_db"
+        )
         mock_settings.S3_BUCKET = "test-bucket"
         mock_settings.S3_ACCESS_KEY = "key"
         mock_settings.S3_SECRET_KEY = "secret"
@@ -326,8 +364,12 @@ class TestRestoreBackup:
     @patch("app.tasks.backup._make_s3_client")
     @patch("app.tasks.backup.subprocess.run")
     @patch("app.tasks.backup.settings")
-    def test_restore_pg_restore_warning_accepted(self, mock_settings: MagicMock, mock_run: MagicMock, mock_s3: MagicMock) -> None:
-        mock_settings.DATABASE_URL = "postgresql+asyncpg://postgres:postgres@localhost:5432/fastapi_db"
+    def test_restore_pg_restore_warning_accepted(
+        self, mock_settings: MagicMock, mock_run: MagicMock, mock_s3: MagicMock
+    ) -> None:
+        mock_settings.DATABASE_URL = (
+            "postgresql+asyncpg://postgres:postgres@localhost:5432/fastapi_db"
+        )
         mock_settings.S3_BUCKET = "test-bucket"
         mock_settings.S3_ACCESS_KEY = "key"
         mock_settings.S3_SECRET_KEY = "secret"

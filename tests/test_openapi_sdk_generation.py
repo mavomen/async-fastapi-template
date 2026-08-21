@@ -38,6 +38,7 @@ class TestPythonSDKGeneration:
 
     def test_generate_python_sdk_function_exists(self) -> None:
         from scripts.generate_sdks import generate_python_sdk
+
         assert callable(generate_python_sdk)
 
 
@@ -49,12 +50,14 @@ class TestTypeScriptSDKGeneration:
 
     def test_generate_typescript_sdk_function_exists(self) -> None:
         from scripts.generate_sdks import generate_typescript_sdk
+
         assert callable(generate_typescript_sdk)
 
 
 class TestCLIGenerateSDKs:
     def test_generate_sdks_command_exists(self) -> None:
         from app.cli import app as cli_app
+
         commands = [cmd.name for cmd in cli_app.registered_commands]
         assert "generate-sdks" in commands
 

@@ -1,8 +1,6 @@
 """Tests for the post-deploy smoke test script."""
 
 
-
-
 class TestSmokeScript:
     def test_step_result_dataclass(self):
         from scripts.post_deploy_smoke import StepResult

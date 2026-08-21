@@ -85,7 +85,5 @@ async def test_cursor_scoped_to_user(db_session):
         await notification_crud.create_for_user(
             db_session, user_id=uid, event_type="e", title="n", body=None
         )
-    items_a = await notification_crud.list_for_user_cursor(
-        db_session, user_id=user_a.id, size=10
-    )
+    items_a = await notification_crud.list_for_user_cursor(db_session, user_id=user_a.id, size=10)
     assert len(items_a) == 1

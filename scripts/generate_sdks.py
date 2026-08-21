@@ -63,24 +63,33 @@ def generate_python_sdk() -> None:
     # Run openapi-python-client using its config
     result = subprocess.run(
         [
-            sys.executable, "-m", "openapi_python_client",
+            sys.executable,
+            "-m",
+            "openapi_python_client",
             "generate",
             f"--config-path={OPENAPI_CONFIG}",
         ],
         capture_output=True,
         text=True,
-        cwd=str(ROOT), check=False,
+        cwd=str(ROOT),
+        check=False,
     )
 
     if result.returncode != 0:
         print(f"openapi-python-client failed:\n{result.stderr}", file=sys.stderr)
         # Try fallback: direct CLI invocation
         result2 = subprocess.run(
-            ["poetry", "run", "openapi-python-client", "generate",
-             f"--config-path={OPENAPI_CONFIG}"],
+            [
+                "poetry",
+                "run",
+                "openapi-python-client",
+                "generate",
+                f"--config-path={OPENAPI_CONFIG}",
+            ],
             capture_output=True,
             text=True,
-            cwd=str(ROOT), check=False,
+            cwd=str(ROOT),
+            check=False,
         )
         if result2.returncode != 0:
             print(f"Fallback also failed:\n{result2.stderr}", file=sys.stderr)
@@ -136,13 +145,17 @@ def generate_typescript_sdk() -> None:
 
     result = subprocess.run(
         [
-            npx, "--yes", "openapi-typescript",
+            npx,
+            "--yes",
+            "openapi-typescript",
             str(SCHEMA_PATH),
-            "-o", str(TS_SDK_DIR / "api.d.ts"),
+            "-o",
+            str(TS_SDK_DIR / "api.d.ts"),
         ],
         capture_output=True,
         text=True,
-        cwd=str(ROOT), check=False,
+        cwd=str(ROOT),
+        check=False,
     )
 
     if result.returncode != 0:

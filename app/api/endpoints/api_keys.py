@@ -108,5 +108,7 @@ async def restore_api_key(
 ) -> Any:
     api_key_obj = await crud_api_key.restore(db, id=api_key_id)
     if api_key_obj is None or api_key_obj.user_id != current_user.id:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Deleted API key not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Deleted API key not found"
+        )
     return api_key_obj

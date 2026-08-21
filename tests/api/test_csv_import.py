@@ -44,10 +44,12 @@ def _csv_bytes(rows: list[str]) -> bytes:
 @pytest.mark.asyncio
 async def test_csv_import(async_client: AsyncClient, admin_headers: dict, db_session: AsyncSession):
     """Import two users from a CSV file in a single commit."""
-    csv_content = _csv_bytes([
-        "csv1@example.com,csvuser1,Pass1234!,CSV One",
-        "csv2@example.com,csvuser2,Pass5678!,CSV Two",
-    ])
+    csv_content = _csv_bytes(
+        [
+            "csv1@example.com,csvuser1,Pass1234!,CSV One",
+            "csv2@example.com,csvuser2,Pass5678!,CSV Two",
+        ]
+    )
     resp = await async_client.post(
         "/api/v1/users/import/csv",
         files={"file": ("users.csv", io.BytesIO(csv_content), "text/csv")},
@@ -65,10 +67,12 @@ async def test_csv_import_skips_duplicates(
     async_client: AsyncClient, admin_headers: dict, db_session: AsyncSession
 ):
     """Duplicate emails in the CSV are skipped (pre-filtered)."""
-    csv_content = _csv_bytes([
-        "dup@example.com,dupuser,Pass1234!,Dup User",
-        "dup@example.com,dupuser2,Pass5678!,Dup User 2",
-    ])
+    csv_content = _csv_bytes(
+        [
+            "dup@example.com,dupuser,Pass1234!,Dup User",
+            "dup@example.com,dupuser2,Pass5678!,Dup User 2",
+        ]
+    )
     resp = await async_client.post(
         "/api/v1/users/import/csv",
         files={"file": ("users.csv", io.BytesIO(csv_content), "text/csv")},
@@ -78,9 +82,11 @@ async def test_csv_import_skips_duplicates(
     assert len(resp.json()) == 1
 
     # Also skip emails that already exist in the database
-    csv_content2 = _csv_bytes([
-        "dup@example.com,existing,Pass9999!,Existing",
-    ])
+    csv_content2 = _csv_bytes(
+        [
+            "dup@example.com,existing,Pass9999!,Existing",
+        ]
+    )
     resp2 = await async_client.post(
         "/api/v1/users/import/csv",
         files={"file": ("users.csv", io.BytesIO(csv_content2), "text/csv")},
@@ -108,9 +114,11 @@ async def test_csv_import_passwords_are_hashed(
     async_client: AsyncClient, admin_headers: dict, db_session: AsyncSession
 ):
     """Imported passwords must be bcrypt hashes, not plaintext."""
-    csv_content = _csv_bytes([
-        "hash@example.com,hashuser,MyPassword1!,Hashed",
-    ])
+    csv_content = _csv_bytes(
+        [
+            "hash@example.com,hashuser,MyPassword1!,Hashed",
+        ]
+    )
     await async_client.post(
         "/api/v1/users/import/csv",
         files={"file": ("users.csv", io.BytesIO(csv_content), "text/csv")},

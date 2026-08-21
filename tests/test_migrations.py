@@ -13,7 +13,8 @@ class TestMigrations:
             ["poetry", "run", "alembic", "upgrade", "head"],
             capture_output=True,
             text=True,
-            timeout=60, check=False,
+            timeout=60,
+            check=False,
         )
         assert result.returncode == 0, f"alembic upgrade failed:\n{result.stderr}"
 
@@ -24,7 +25,8 @@ class TestMigrations:
             ["poetry", "run", "alembic", "downgrade", "-1"],
             capture_output=True,
             text=True,
-            timeout=30, check=False,
+            timeout=30,
+            check=False,
         )
         assert result.returncode == 0, f"alembic downgrade failed:\n{result.stderr}"
 
@@ -33,7 +35,8 @@ class TestMigrations:
             ["poetry", "run", "alembic", "upgrade", "head"],
             capture_output=True,
             text=True,
-            timeout=60, check=False,
+            timeout=60,
+            check=False,
         )
         assert result.returncode == 0, f"alembic re-upgrade failed:\n{result.stderr}"
 
@@ -43,7 +46,8 @@ class TestMigrations:
             ["poetry", "run", "alembic", "current"],
             capture_output=True,
             text=True,
-            timeout=30, check=False,
+            timeout=30,
+            check=False,
         )
         assert result.returncode == 0
         assert "(head)" in result.stdout or len(result.stdout.strip()) > 0, (
@@ -57,6 +61,7 @@ class TestMigrations:
                 ["poetry", "run", "alembic", "upgrade", "head"],
                 capture_output=True,
                 text=True,
-                timeout=60, check=False,
+                timeout=60,
+                check=False,
             )
             assert result.returncode == 0, f"Second alembic upgrade failed:\n{result.stderr}"

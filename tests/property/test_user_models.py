@@ -56,11 +56,7 @@ class TestUserCreateSchema:
                 password=password,
             )
 
-    @given(
-        username=st.text(min_size=3, max_size=50).filter(
-            lambda u: not USERNAME_RE.match(u)
-        )
-    )
+    @given(username=st.text(min_size=3, max_size=50).filter(lambda u: not USERNAME_RE.match(u)))
     @settings(max_examples=50)
     def test_invalid_username_rejected(self, username: str) -> None:
         with pytest.raises(Exception):
@@ -102,8 +98,6 @@ class TestUserEmailNormalization:
     @settings(max_examples=50)
     def test_email_preserved(self, local: str, domain: str) -> None:
         email = f"{local}@{domain}"
-        user = UserCreate(
-            email=email, username="testuser1", password="validpassword123"
-        )
+        user = UserCreate(email=email, username="testuser1", password="validpassword123")
         assert "@" in user.email
         assert user.email.split("@")[1].lower() == domain.lower()

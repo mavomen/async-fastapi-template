@@ -164,9 +164,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         await db.refresh(obj)
         return obj
 
-    async def purge(
-        self, db: AsyncSession, *, older_than_days: int = 90
-    ) -> int:
+    async def purge(self, db: AsyncSession, *, older_than_days: int = 90) -> int:
         """Hard-delete records that have been soft-deleted for longer than N days."""
         if not _has_soft_delete(self.model):
             return 0

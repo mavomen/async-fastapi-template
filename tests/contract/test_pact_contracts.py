@@ -43,8 +43,7 @@ class TestUserAPIConsumerContract:
     def test_get_users_contract(self, pact: pact.Pact, pact_dir: pathlib.Path) -> None:
         """Contract: GET /api/v1/users returns a paginated user list."""
         (
-            pact
-            .upon_receiving("a request for the user list")
+            pact.upon_receiving("a request for the user list")
             .given("users exist")
             .with_request("get", "/api/v1/users")
             .will_respond_with(200)
@@ -55,8 +54,7 @@ class TestUserAPIConsumerContract:
     def test_health_contract(self, pact: pact.Pact, pact_dir: pathlib.Path) -> None:
         """Contract: GET /health/live returns 200."""
         (
-            pact
-            .upon_receiving("a health check request")
+            pact.upon_receiving("a health check request")
             .with_request("get", "/health/live")
             .will_respond_with(200)
         )
@@ -66,8 +64,7 @@ class TestUserAPIConsumerContract:
     def test_readiness_contract(self, pact: pact.Pact, pact_dir: pathlib.Path) -> None:
         """Contract: GET /health/ready returns 200 when dependencies are up."""
         (
-            pact
-            .upon_receiving("a readiness check request")
+            pact.upon_receiving("a readiness check request")
             .given("database is connected")
             .with_request("get", "/health/ready")
             .will_respond_with(200)
@@ -78,8 +75,7 @@ class TestUserAPIConsumerContract:
     def test_user_detail_contract(self, pact: pact.Pact, pact_dir: pathlib.Path) -> None:
         """Contract: GET /api/v1/users/{id} returns a single user."""
         (
-            pact
-            .upon_receiving("a request for user 1")
+            pact.upon_receiving("a request for user 1")
             .given("user with id 1 exists")
             .with_request("get", "/api/v1/users/1")
             .will_respond_with(200)
@@ -90,8 +86,7 @@ class TestUserAPIConsumerContract:
     def test_notifications_contract(self, pact: pact.Pact, pact_dir: pathlib.Path) -> None:
         """Contract: GET /api/v1/notifications returns a notification list."""
         (
-            pact
-            .upon_receiving("a request for notifications")
+            pact.upon_receiving("a request for notifications")
             .given("user has notifications")
             .with_request("get", "/api/v1/notifications")
             .will_respond_with(200)

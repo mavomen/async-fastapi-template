@@ -86,10 +86,20 @@ class TestFileModel:
 
         columns = {c.name for c in File.__table__.columns}
         expected = {
-            "id", "filename", "original_filename", "mime_type", "size_bytes",
-            "storage_path", "checksum_sha256", "uploader_id",
-            "thumbnail_path_small", "thumbnail_path_medium", "thumbnail_path_large",
-            "metadata", "created_at", "updated_at",
+            "id",
+            "filename",
+            "original_filename",
+            "mime_type",
+            "size_bytes",
+            "storage_path",
+            "checksum_sha256",
+            "uploader_id",
+            "thumbnail_path_small",
+            "thumbnail_path_medium",
+            "thumbnail_path_large",
+            "metadata",
+            "created_at",
+            "updated_at",
         }
         assert expected.issubset(columns)
 
