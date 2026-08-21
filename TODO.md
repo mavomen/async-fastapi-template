@@ -193,7 +193,7 @@
 - emptyDir volumes for /tmp and /data/uploads with readOnlyRootFilesystem
 - 21 tests validating all K8s manifests and Helm templates
 
-**`ops/terraform-module`**
+**`ops/terraform-module`** ✅
 - Reusable Terraform module for the full stack (DB, Redis, Kafka, app)
 - Cost allocation tags propagated to all cloud resources
 

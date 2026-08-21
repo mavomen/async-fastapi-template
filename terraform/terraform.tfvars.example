@@ -1,0 +1,15 @@
+environment     = "development"
+project_name    = "fastapi-template"
+aws_region      = "us-east-1"
+vpc_cidr        = "10.0.0.0/16"
+db_instance_class = "db.t3.micro"
+db_name         = "fastapi_db"
+db_username     = "app_user"
+db_password     = "CHANGE_ME"
+redis_node_type = "cache.t3.micro"
+container_image = "ghcr.io/yourorg/async-fastapi-template:latest"
+container_port  = 8000
+desired_count   = 2
+log_retention_days = 30
+backup_retention_period = 7
+single_nat_gateway = true
