@@ -6,6 +6,20 @@ from sqlalchemy import pool
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from alembic import context
+from app.identity.models import (  # noqa: F401
+    api_key,
+    auth_audit_log,
+    role,
+    tenant,
+    tenant_ip_rule,
+    user,
+    webauthn_credential,
+)
+
+# Import every model module so Base.metadata knows all tables when
+# autogenerating migrations. Models are split across the shared kernel
+# and bounded contexts; keep this list in sync with new model modules.
+from app.models import audit_log, category, file, page, post, task_status, tenant_base  # noqa: F401
 from app.models.base import Base
 
 # Alembic Config object

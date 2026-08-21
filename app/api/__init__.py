@@ -1,22 +1,14 @@
-"""API package."""
+"""API package.
+
+Composition root for the v1 API. Domain routers are imported from their
+bounded contexts (app.identity.api.endpoints, app.notifications...);
+prefixes/tags/order here define the public HTTP surface — keep stable.
+"""
 
 from fastapi import APIRouter
 
-from app.api.endpoints import (
-    api_keys,
-    auth,
-    cms,
-    csp,
-    events,
-    files,
-    notifications,
-    tasks,
-    tenant_ip_rules,
-    tenants,
-    totp,
-    users,
-    webhooks,
-)
+from app.api.endpoints import cms, csp, events, files, notifications, tasks, webhooks
+from app.identity.api.endpoints import api_keys, auth, tenant_ip_rules, tenants, totp, users
 
 api_router = APIRouter()
 

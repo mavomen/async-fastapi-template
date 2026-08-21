@@ -10,7 +10,7 @@ from httpx import AsyncClient
 async def test_webauthn_register_begin(async_client: AsyncClient, auth_headers: dict):
     """WebAuthn registration begin returns public key options."""
     with patch(
-        "app.auth.webauthn.generate_registration_options_for_user",
+        "app.identity.auth.webauthn.generate_registration_options_for_user",
         return_value={"rp": {"name": "Test"}, "user": {"id": "42"}},
     ):
         resp = await async_client.post(
@@ -25,7 +25,7 @@ async def test_webauthn_register_begin(async_client: AsyncClient, auth_headers: 
 async def test_webauthn_login_begin(async_client: AsyncClient):
     """WebAuthn login begin returns authentication options."""
     with patch(
-        "app.auth.webauthn.generate_authentication_options",
+        "app.identity.auth.webauthn.generate_authentication_options",
         return_value={"challenge": "abc", "allowCredentials": []},
     ):
         resp = await async_client.post(

@@ -5,15 +5,15 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from app.models.api_key import ApiKey
+from app.identity.models.api_key import ApiKey
+from app.identity.models.tenant import Tenant
+from app.identity.models.user import User
+from app.identity.schemas.api_key import ApiKeyResponse
+from app.identity.schemas.user import PurgeResponse, UserResponse
 from app.models.base import SoftDeleteMixin
 from app.models.notification import Notification
-from app.models.tenant import Tenant
-from app.models.user import User
 from app.models.webhook import Webhook
-from app.schemas.api_key import ApiKeyResponse
 from app.schemas.notification import NotificationResponse
-from app.schemas.user import PurgeResponse, UserResponse
 from app.schemas.webhook import WebhookResponse
 
 

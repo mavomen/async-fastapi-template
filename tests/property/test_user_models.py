@@ -26,7 +26,7 @@ os.environ.setdefault(
     "postgresql+asyncpg://postgres:postgres@localhost:5432/fastapi_test",
 )
 
-from app.schemas.user import UserCreate, UserUpdate
+from app.identity.schemas.user import UserCreate, UserUpdate
 
 USERNAME_RE = re.compile(r"^[a-zA-Z0-9_-]+$")
 

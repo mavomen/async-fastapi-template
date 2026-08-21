@@ -21,7 +21,7 @@ class TestAuthenticateUser:
         mock_user.locked_until = None
         mock_user.last_login_at = None
 
-        mocker.patch("app.crud.user.user.get_by_email", return_value=mock_user)
+        mocker.patch("app.identity.crud.user.user.get_by_email", return_value=mock_user)
         mocker.patch("app.core.security.verify_password", return_value=True)
 
         result = await authenticate_user(AsyncMock(), email="test@test.com", password="pass")
@@ -39,7 +39,7 @@ class TestAuthenticateUser:
         mock_user.failed_login_attempts = 0
         mock_user.locked_until = None
 
-        mocker.patch("app.crud.user.user.get_by_email", return_value=mock_user)
+        mocker.patch("app.identity.crud.user.user.get_by_email", return_value=mock_user)
         mocker.patch("app.core.security.verify_password", return_value=False)
 
         result = await authenticate_user(AsyncMock(), email="test@test.com", password="wrong")
@@ -55,7 +55,7 @@ class TestAuthenticateUser:
         mock_user.failed_login_attempts = 4
         mock_user.locked_until = None
 
-        mocker.patch("app.crud.user.user.get_by_email", return_value=mock_user)
+        mocker.patch("app.identity.crud.user.user.get_by_email", return_value=mock_user)
         mocker.patch("app.core.security.verify_password", return_value=False)
 
         result = await authenticate_user(AsyncMock(), email="test@test.com", password="wrong")
@@ -74,7 +74,7 @@ class TestAuthenticateUser:
         mock_user.failed_login_attempts = 5
         mock_user.locked_until = future
 
-        mocker.patch("app.crud.user.user.get_by_email", return_value=mock_user)
+        mocker.patch("app.identity.crud.user.user.get_by_email", return_value=mock_user)
 
         with pytest.raises(LockedOutException):
             await authenticate_user(AsyncMock(), email="test@test.com", password="any")
@@ -89,7 +89,7 @@ class TestAuthenticateUser:
         mock_user.failed_login_attempts = 5
         mock_user.locked_until = past
 
-        mocker.patch("app.crud.user.user.get_by_email", return_value=mock_user)
+        mocker.patch("app.identity.crud.user.user.get_by_email", return_value=mock_user)
         mocker.patch("app.core.security.verify_password", return_value=True)
 
         result = await authenticate_user(AsyncMock(), email="test@test.com", password="pass")
@@ -100,7 +100,7 @@ class TestAuthenticateUser:
 
     @pytest.mark.asyncio
     async def test_nonexistent_user_returns_none(self, mocker):
-        mocker.patch("app.crud.user.user.get_by_email", return_value=None)
+        mocker.patch("app.identity.crud.user.user.get_by_email", return_value=None)
 
         result = await authenticate_user(AsyncMock(), email="nobody@test.com", password="anything")
         assert result is None

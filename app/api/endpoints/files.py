@@ -13,7 +13,7 @@ from starlette.responses import StreamingResponse
 from app.api.deps import get_current_user, get_db, get_read_db, get_storage
 from app.core.config import settings
 from app.crud.file import file as crud_file
-from app.models.user import User
+from app.identity.models.user import User
 from app.schemas.file import FileListResponse, FileResponse
 from app.services.thumbnail import generate_all_thumbnails, is_image_mime
 from app.storage.base import StorageBackend

@@ -4,7 +4,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from app.auth.webauthn import (
+from app.identity.auth.webauthn import (
     _pending_registrations,
     begin_authentication,
     begin_registration,
@@ -16,8 +16,8 @@ from app.auth.webauthn import (
 @pytest.mark.asyncio
 async def test_begin_registration():
     with (
-        patch("app.auth.webauthn.generate_registration_options"),
-        patch("app.auth.webauthn._options_to_dict") as mock_opt,
+        patch("app.identity.auth.webauthn.generate_registration_options"),
+        patch("app.identity.auth.webauthn._options_to_dict") as mock_opt,
     ):
         mock_opt.return_value = {"rp": {"name": "Test"}}
         result = await begin_registration("1", "test@test.com", "Test User")

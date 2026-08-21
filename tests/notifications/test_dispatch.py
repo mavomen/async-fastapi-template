@@ -29,7 +29,7 @@ def _patch_dispatch(mocker, *, in_app=True, email=True, user="exists", notificat
         new=_fake_channel_enabled,
     )
     mock_user = None if user == "missing" else SimpleNamespace(id=7, email="user@example.com")
-    mocker.patch("app.crud.user.user.get", new=mocker.AsyncMock(return_value=mock_user))
+    mocker.patch("app.identity.crud.user.user.get", new=mocker.AsyncMock(return_value=mock_user))
     if notification is None:
         notification = SimpleNamespace(id=11, title="Welcome", body="Hi")
     mocker.patch(

@@ -25,7 +25,7 @@ os.environ.setdefault(
     "postgresql+asyncpg://postgres:postgres@localhost:5432/fastapi_test",
 )
 
-from app.schemas.user import UserCreate
+from app.identity.schemas.user import UserCreate
 
 
 class TestSchemaRobustness:

@@ -17,16 +17,16 @@ from app.api.deps import get_gql_context
 from app.api.error_handlers import configure_exception_handlers
 from app.api.health import k8s_router
 from app.api.health import router as health_router
-from app.auth.profile import router as profile_router
 from app.core.cache import cache
 from app.core.config import settings
 from app.core.database import sessionmanager
 from app.core.http_client import http_client
 from app.core.logging import setup_logging
 from app.core.tracing import setup_tracing
-from app.gql import router as gql_playground_router
-from app.gql.schema import schema
 from app.i18n.middleware import LocaleMiddleware
+from app.identity.auth.profile import router as profile_router
+from app.identity.gql import router as gql_playground_router
+from app.identity.gql.schema import schema
 from app.middleware.api_versioning import APIVersioningMiddleware
 from app.middleware.compression import CompressionMiddleware
 from app.middleware.correlation import CorrelationIDMiddleware
@@ -63,8 +63,8 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     await cache.connect()
     await http_client.connect()
     if settings.ENVIRONMENT != "test":
+        from app.identity.models.user import User
         from app.models.audit_log import install_audit_log_listener
-        from app.models.user import User
 
         install_audit_log_listener(User)
         await TenantMiddleware.warm_default_tenant()

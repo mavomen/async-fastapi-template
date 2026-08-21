@@ -4,8 +4,8 @@ import pytest
 from sqlalchemy import func, select
 
 from app.crud.notification import notification_preference as pref_crud
+from app.identity.models.user import User
 from app.models.notification_preference import NotificationPreference
-from app.models.user import User
 from app.schemas.notification import NotificationPreferenceUpdate
 
 

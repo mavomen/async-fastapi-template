@@ -14,23 +14,23 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.admin.deps import require_admin
 from app.api.deps import get_db, get_read_db
-from app.auth.permissions import has_permission
 from app.core.cache import cache as redis_cache
 from app.core.jwt_blacklist import (
     get_session,
     list_active_sessions,
     revoke_session,
 )
-from app.crud.user import user as crud_user
 from app.decorators.rate_limit import rate_limit
-from app.models import Permission, Role, User
-from app.models.api_key import ApiKey
+from app.identity.auth.permissions import has_permission
+from app.identity.crud.user import user as crud_user
+from app.identity.models import Permission, Role, User
+from app.identity.models.api_key import ApiKey
+from app.identity.models.tenant import Tenant
 from app.models.audit_log import AuditLog
 from app.models.base import BaseModel, SoftDeleteMixin
 from app.models.file import File
 from app.models.notification import Notification
 from app.models.notification_preference import NotificationPreference
-from app.models.tenant import Tenant
 
 logger = logging.getLogger("app.admin")
 

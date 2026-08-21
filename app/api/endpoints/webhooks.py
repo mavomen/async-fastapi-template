@@ -6,11 +6,11 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_user, get_db
-from app.auth.permissions import PermissionChecker
 from app.core.config import settings
 from app.crud.webhook import webhook as crud_webhook
 from app.events.base import Event
-from app.models.user import User
+from app.identity.auth.permissions import PermissionChecker
+from app.identity.models.user import User
 from app.models.webhook import Webhook
 from app.schemas.webhook import (
     WebhookCreate,

@@ -11,8 +11,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.config import settings
 from app.crud.notification import notification as notification_crud
 from app.crud.notification import notification_preference as preference_crud
-from app.crud.user import user as user_crud
 from app.events.base import Event
+from app.identity.crud.user import user as user_crud
 from app.models.notification_preference import NotificationPreference
 
 logger = logging.getLogger("app.notifications")

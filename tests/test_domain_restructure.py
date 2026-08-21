@@ -13,29 +13,29 @@ from pydantic import ValidationError
 
 
 class TestTenantSchemaExtracted:
-    """TenantCreate moved from inline to app.schemas.tenant."""
+    """TenantCreate moved from inline to app.identity.schemas.tenant."""
 
     def test_import_from_schemas(self) -> None:
-        from app.schemas.tenant import TenantCreate
+        from app.identity.schemas.tenant import TenantCreate
 
         obj = TenantCreate(name="Acme", slug="acme")
         assert obj.name == "Acme"
         assert obj.slug == "acme"
 
     def test_slug_optional(self) -> None:
-        from app.schemas.tenant import TenantCreate
+        from app.identity.schemas.tenant import TenantCreate
 
         obj = TenantCreate(name="Acme")
         assert obj.slug is None
 
     def test_re_import_from_endpoint_still_works(self) -> None:
-        from app.api.endpoints.tenants import TenantCreate
+        from app.identity.api.endpoints.tenants import TenantCreate
 
         obj = TenantCreate(name="X")
         assert obj.name == "X"
 
     def test_available_in_schemas_init(self) -> None:
-        from app.schemas import TenantCreate
+        from app.identity.schemas import TenantCreate
 
         assert TenantCreate is not None
 
@@ -46,10 +46,10 @@ class TestTenantSchemaExtracted:
 
 
 class TestIPRuleSchemasExtracted:
-    """IPRuleCreate/Update/Response moved from inline to app.schemas.tenant_ip_rule."""
+    """IPRuleCreate/Update/Response moved from inline to app.identity.schemas.tenant_ip_rule."""
 
     def test_import_create(self) -> None:
-        from app.schemas.tenant_ip_rule import IPRuleCreate
+        from app.identity.schemas.tenant_ip_rule import IPRuleCreate
 
         obj = IPRuleCreate(tenant_id=1, ip_or_cidr="10.0.0.0/8", action="allow")
         assert obj.tenant_id == 1
@@ -57,14 +57,14 @@ class TestIPRuleSchemasExtracted:
         assert obj.priority == 0
 
     def test_import_update(self) -> None:
-        from app.schemas.tenant_ip_rule import IPRuleUpdate
+        from app.identity.schemas.tenant_ip_rule import IPRuleUpdate
 
         obj = IPRuleUpdate(action="deny")
         assert obj.action == "deny"
         assert obj.ip_or_cidr is None
 
     def test_import_response(self) -> None:
-        from app.schemas.tenant_ip_rule import IPRuleResponse
+        from app.identity.schemas.tenant_ip_rule import IPRuleResponse
 
         obj = IPRuleResponse(
             id=1, tenant_id=1, ip_or_cidr="::1", action="allow", priority=0, description=None
@@ -72,21 +72,21 @@ class TestIPRuleSchemasExtracted:
         assert obj.id == 1
 
     def test_create_invalid_action_rejected(self) -> None:
-        from app.schemas.tenant_ip_rule import IPRuleCreate
+        from app.identity.schemas.tenant_ip_rule import IPRuleCreate
 
         with pytest.raises(ValidationError):
             IPRuleCreate(tenant_id=1, ip_or_cidr="10.0.0.0/8", action="invalid")
 
     def test_available_in_schemas_init(self) -> None:
-        from app.schemas import IPRuleCreate, IPRuleResponse, IPRuleUpdate
+        from app.identity.schemas import IPRuleCreate, IPRuleResponse, IPRuleUpdate
 
         assert IPRuleCreate is not None
         assert IPRuleUpdate is not None
         assert IPRuleResponse is not None
 
     def test_endpoint_imports_from_schemas(self) -> None:
-        from app.api.endpoints.tenant_ip_rules import IPRuleCreate as EpCreate
-        from app.schemas.tenant_ip_rule import IPRuleCreate as SchemaCreate
+        from app.identity.api.endpoints.tenant_ip_rules import IPRuleCreate as EpCreate
+        from app.identity.schemas.tenant_ip_rule import IPRuleCreate as SchemaCreate
 
         assert EpCreate is SchemaCreate
 
@@ -174,14 +174,14 @@ class TestTenantEndpointPreserved:
 
     @pytest.mark.asyncio
     async def test_create_tenant_schema_validates(self) -> None:
-        from app.schemas.tenant import TenantCreate
+        from app.identity.schemas.tenant import TenantCreate
 
         tc = TenantCreate(name="Test Org", slug="test-org")
         assert tc.model_dump() == {"name": "Test Org", "slug": "test-org"}
 
     @pytest.mark.asyncio
     async def test_list_tenants_endpoint_exists(self) -> None:
-        from app.api.endpoints.tenants import list_tenants
+        from app.identity.api.endpoints.tenants import list_tenants
 
         assert callable(list_tenants)
 
@@ -190,27 +190,27 @@ class TestIPRuleEndpointPreserved:
     """IP rule endpoints still work with extracted schemas."""
 
     def test_create_ip_rule_endpoint_exists(self) -> None:
-        from app.api.endpoints.tenant_ip_rules import create_ip_rule
+        from app.identity.api.endpoints.tenant_ip_rules import create_ip_rule
 
         assert callable(create_ip_rule)
 
     def test_list_ip_rules_endpoint_exists(self) -> None:
-        from app.api.endpoints.tenant_ip_rules import list_ip_rules
+        from app.identity.api.endpoints.tenant_ip_rules import list_ip_rules
 
         assert callable(list_ip_rules)
 
     def test_get_ip_rule_endpoint_exists(self) -> None:
-        from app.api.endpoints.tenant_ip_rules import get_ip_rule
+        from app.identity.api.endpoints.tenant_ip_rules import get_ip_rule
 
         assert callable(get_ip_rule)
 
     def test_update_ip_rule_endpoint_exists(self) -> None:
-        from app.api.endpoints.tenant_ip_rules import update_ip_rule
+        from app.identity.api.endpoints.tenant_ip_rules import update_ip_rule
 
         assert callable(update_ip_rule)
 
     def test_delete_ip_rule_endpoint_exists(self) -> None:
-        from app.api.endpoints.tenant_ip_rules import delete_ip_rule
+        from app.identity.api.endpoints.tenant_ip_rules import delete_ip_rule
 
         assert callable(delete_ip_rule)
 
@@ -226,13 +226,13 @@ class TestModelDocstrings:
     @pytest.mark.parametrize(
         "module_path,class_name",
         [
-            ("app.models.api_key", "ApiKey"),
+            ("app.identity.models.api_key", "ApiKey"),
             ("app.models.file", "File"),
-            ("app.models.tenant", "Tenant"),
-            ("app.models.tenant_ip_rule", "TenantIPRule"),
-            ("app.models.user", "User"),
-            ("app.models.role", "Role"),
-            ("app.models.role", "Permission"),
+            ("app.identity.models.tenant", "Tenant"),
+            ("app.identity.models.tenant_ip_rule", "TenantIPRule"),
+            ("app.identity.models.user", "User"),
+            ("app.identity.models.role", "Role"),
+            ("app.identity.models.role", "Permission"),
             ("app.models.notification", "Notification"),
             ("app.models.webhook", "Webhook"),
         ],
@@ -254,18 +254,18 @@ class TestSchemaBackwardCompatibility:
     """Existing code importing from endpoints still works; new canonical path also works."""
 
     def test_tenant_create_both_paths_same_class(self) -> None:
-        from app.api.endpoints.tenants import TenantCreate as Ep
-        from app.schemas.tenant import TenantCreate as Schema
+        from app.identity.api.endpoints.tenants import TenantCreate as Ep
+        from app.identity.schemas.tenant import TenantCreate as Schema
 
         assert Ep is Schema
 
     def test_ip_rule_schemas_both_paths_same_class(self) -> None:
-        from app.api.endpoints.tenant_ip_rules import IPRuleCreate as EpCreate
-        from app.api.endpoints.tenant_ip_rules import IPRuleResponse as EpResp
-        from app.api.endpoints.tenant_ip_rules import IPRuleUpdate as EpUpdate
-        from app.schemas.tenant_ip_rule import IPRuleCreate as SchemaCreate
-        from app.schemas.tenant_ip_rule import IPRuleResponse as SchemaResp
-        from app.schemas.tenant_ip_rule import IPRuleUpdate as SchemaUpdate
+        from app.identity.api.endpoints.tenant_ip_rules import IPRuleCreate as EpCreate
+        from app.identity.api.endpoints.tenant_ip_rules import IPRuleResponse as EpResp
+        from app.identity.api.endpoints.tenant_ip_rules import IPRuleUpdate as EpUpdate
+        from app.identity.schemas.tenant_ip_rule import IPRuleCreate as SchemaCreate
+        from app.identity.schemas.tenant_ip_rule import IPRuleResponse as SchemaResp
+        from app.identity.schemas.tenant_ip_rule import IPRuleUpdate as SchemaUpdate
 
         assert EpCreate is SchemaCreate
         assert EpUpdate is SchemaUpdate

@@ -10,7 +10,7 @@ from starlette.responses import Response
 
 from app.core.config import settings
 from app.core.tenant import get_current_tenant
-from app.models.tenant_ip_rule import TenantIPRule
+from app.identity.models.tenant_ip_rule import TenantIPRule
 
 
 def _parse_forwarded_for(request: Request) -> str | None:

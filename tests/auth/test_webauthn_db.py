@@ -8,9 +8,9 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.security import create_access_token
-from app.crud.user import user as crud_user
-from app.models.webauthn_credential import WebAuthnCredential
-from app.schemas.user import UserCreate
+from app.identity.crud.user import user as crud_user
+from app.identity.models.webauthn_credential import WebAuthnCredential
+from app.identity.schemas.user import UserCreate
 
 
 def _mock_db_execute(return_creds: list) -> AsyncMock:
@@ -36,14 +36,14 @@ async def test_complete_registration_stores_credential(
     token = create_access_token(subject=user.id)
     headers = {"Authorization": f"Bearer {token}"}
 
-    with patch("app.auth.webauthn.generate_registration_options") as mock_gen:
+    with patch("app.identity.auth.webauthn.generate_registration_options") as mock_gen:
         mock_gen.return_value.model_dump_json.return_value = (
             '{"rp":{"name":"Test"},"challenge":"abc"}'
         )
         mock_gen.return_value.challenge = b"abc"
         await async_client.post("/api/v1/auth/webauthn/register/begin", headers=headers)
 
-    with patch("app.auth.webauthn.verify_registration_response") as mock_verify:
+    with patch("app.identity.auth.webauthn.verify_registration_response") as mock_verify:
         mock_verify.return_value = MagicMock(
             credential_id="cred-1", credential_public_key="pubkey", sign_count=0
         )

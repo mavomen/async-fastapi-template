@@ -11,7 +11,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.models.base import BaseModel, SoftDeleteMixin
 
 if TYPE_CHECKING:
-    from app.models.user import User
+    from app.identity.models.user import User
 
 
 class Notification(SoftDeleteMixin, BaseModel):

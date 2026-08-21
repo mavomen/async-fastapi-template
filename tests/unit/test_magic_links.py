@@ -76,10 +76,10 @@ class TestMagicLinkVerify:
         mock_user.is_verified = True
         mock_user.email = "user@example.com"
 
-        mocker.patch("app.crud.user.user.get_by_email", return_value=mock_user)
+        mocker.patch("app.identity.crud.user.user.get_by_email", return_value=mock_user)
 
         db = AsyncMock()
-        from app.api.endpoints.auth import verify_magic_link
+        from app.identity.api.endpoints.auth import verify_magic_link
 
         request = AsyncMock()
         request.client = None
@@ -94,12 +94,12 @@ class TestMagicLinkVerify:
 
     @pytest.mark.asyncio
     async def test_verify_auto_registers_new_user(self, mocker):
-        mocker.patch("app.crud.user.user.get_by_email", return_value=None)
+        mocker.patch("app.identity.crud.user.user.get_by_email", return_value=None)
 
         db = AsyncMock()
         db.refresh = AsyncMock()
 
-        from app.api.endpoints.auth import verify_magic_link
+        from app.identity.api.endpoints.auth import verify_magic_link
 
         request = AsyncMock()
         request.client = None
@@ -121,11 +121,11 @@ class TestMagicLinkVerify:
         mock_user.is_verified = False
         mock_user.email = "unverified@example.com"
 
-        mocker.patch("app.crud.user.user.get_by_email", return_value=mock_user)
+        mocker.patch("app.identity.crud.user.user.get_by_email", return_value=mock_user)
 
         db = AsyncMock()
 
-        from app.api.endpoints.auth import verify_magic_link
+        from app.identity.api.endpoints.auth import verify_magic_link
 
         request = AsyncMock()
         request.client = None
@@ -147,7 +147,7 @@ class TestMagicLinkVerify:
 
     @pytest.mark.asyncio
     async def test_verify_with_registration_disabled_raises(self, mocker):
-        mocker.patch("app.crud.user.user.get_by_email", return_value=None)
+        mocker.patch("app.identity.crud.user.user.get_by_email", return_value=None)
 
         fake_settings = mocker.MagicMock()
         fake_settings.MAGIC_LINK_ALLOW_REGISTRATION = False
@@ -158,7 +158,7 @@ class TestMagicLinkVerify:
         fake_settings.JWT_BLACKLIST_ENABLED = settings.JWT_BLACKLIST_ENABLED
         mocker.patch("app.core.config.settings", fake_settings)
 
-        from app.api.endpoints.auth import verify_magic_link
+        from app.identity.api.endpoints.auth import verify_magic_link
 
         request = AsyncMock()
         request.client = None

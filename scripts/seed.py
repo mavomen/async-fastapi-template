@@ -11,9 +11,9 @@ from sqlalchemy import select
 
 from app.core.config import settings
 from app.core.database import sessionmanager
-from app.crud.user import user as crud_user
-from app.models.role import Permission, Role
-from app.schemas.user import UserCreate
+from app.identity.crud.user import user as crud_user
+from app.identity.models.role import Permission, Role
+from app.identity.schemas.user import UserCreate
 
 SEED_USERS = [
     {

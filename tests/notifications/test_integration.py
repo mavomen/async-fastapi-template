@@ -4,9 +4,9 @@ import pytest
 from sqlalchemy import select
 
 from app.events.base import Event
+from app.identity.models.user import User
 from app.models.notification import Notification
 from app.models.notification_preference import NotificationPreference
-from app.models.user import User
 from app.services.notifications import handle_notification_event
 
 

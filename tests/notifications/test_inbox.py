@@ -6,11 +6,11 @@ from sqlalchemy import select
 
 from app.core.security import create_access_token
 from app.crud.notification import notification as notification_crud
-from app.crud.user import user as crud_user
+from app.identity.crud.user import user as crud_user
+from app.identity.models.user import User
+from app.identity.schemas.user import UserCreate
 from app.main import app
 from app.models.notification import Notification
-from app.models.user import User
-from app.schemas.user import UserCreate
 
 
 @pytest.mark.asyncio
