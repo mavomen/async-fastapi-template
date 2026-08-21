@@ -1,0 +1,28 @@
+# Chaos Mesh DNSChaos: DNS Error
+#
+# Simulates intermittent DNS resolution failures for app pods, validating retry
+# logic and connection pooling resilience.
+#
+# Usage:
+#   kubectl apply -f k8s/chaos/dns-error.yaml
+#   kubectl delete -f k8s/chaos/dns-error.yaml
+#
+apiVersion: chaos-mesh.org/v1alpha1
+kind: DNSChaos
+metadata:
+  name: fastapi-dns-error
+  namespace: default
+  labels:
+    experiment: chaos
+    type: dns-error
+spec:
+  action: error
+  mode: all
+  selector:
+    namespaces:
+      - default
+    labelSelectors:
+      app: fastapi-template
+  patterns:
+    - "*.internal.svc.cluster.local"
+  duration: "30s"
