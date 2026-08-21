@@ -154,7 +154,7 @@
 **`feat/file-thumbnailing`** ✅
 - Automatic thumbnail generation for uploaded images
 
-**`feat/i18n`**
+**`feat/i18n`** ✅
 - Locale support for API error messages and email templates
 
 **`feat/notification-preferences`** ✅

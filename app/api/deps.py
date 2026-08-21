@@ -33,6 +33,7 @@ __all__ = [
     "get_email_service",
     "get_event_bus",
     "get_gql_context",
+    "get_locale",
     "get_read_db",
     "get_storage",
     "require_2fa",
@@ -183,3 +184,8 @@ async def require_2fa(
             detail="2FA is required for this endpoint. Enable TOTP first.",
         )
     return current_user
+
+
+async def get_locale(request: Request) -> str:
+    """Extract locale from request state (set by LocaleMiddleware)."""
+    return getattr(request.state, "locale", settings.DEFAULT_LOCALE)

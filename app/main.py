@@ -26,6 +26,7 @@ from app.core.logging import setup_logging
 from app.core.tracing import setup_tracing
 from app.gql import router as gql_playground_router
 from app.gql.schema import schema
+from app.i18n.middleware import LocaleMiddleware
 from app.middleware.api_versioning import APIVersioningMiddleware
 from app.middleware.compression import CompressionMiddleware
 from app.middleware.correlation import CorrelationIDMiddleware
@@ -207,6 +208,9 @@ def create_app() -> FastAPI:
 
     # Request ID injection into logs and traces
     app.add_middleware(RequestIDMiddleware)
+
+    # Locale resolution (Accept-Language / ?lang= override)
+    app.add_middleware(LocaleMiddleware)
 
     # Redis-backed sliding-window rate limiting (supports per-endpoint tiers)
     app.add_middleware(RedisRateLimitMiddleware)
