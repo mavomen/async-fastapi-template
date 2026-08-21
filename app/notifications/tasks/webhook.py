@@ -12,8 +12,8 @@ from celery.utils.log import get_task_logger
 from app.core.celery_app import celery_app
 from app.core.config import settings
 from app.events.base import Event
-from app.models.webhook import Webhook, WebhookDelivery
-from app.services.webhook import (
+from app.notifications.models.webhook import Webhook, WebhookDelivery
+from app.notifications.services.webhook import (
     build_delivery_payload,
     build_signature_header,
     compute_backoff,
@@ -38,7 +38,7 @@ def _run_async(coro: Any) -> Any:
 
 async def _load_delivery_and_webhook(delivery_id: int) -> tuple[WebhookDelivery, Webhook] | None:
     from app.core.database import sessionmanager
-    from app.crud.webhook import webhook as webhook_crud
+    from app.notifications.crud.webhook import webhook as webhook_crud
 
     if sessionmanager._writer_engine is None:
         sessionmanager.init(settings.DATABASE_URL)
@@ -54,7 +54,7 @@ async def _record_delivery_outcome(
 ) -> None:
     """Persist a delivery attempt outcome and roll up the webhook summary."""
     from app.core.database import sessionmanager
-    from app.crud.webhook import webhook as webhook_crud
+    from app.notifications.crud.webhook import webhook as webhook_crud
 
     status = outcome["status"]
     if sessionmanager._writer_engine is None:

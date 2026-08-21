@@ -9,11 +9,11 @@ from typing import Any, Literal
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
-from app.crud.notification import notification as notification_crud
-from app.crud.notification import notification_preference as preference_crud
 from app.events.base import Event
 from app.identity.crud.user import user as user_crud
-from app.models.notification_preference import NotificationPreference
+from app.notifications.crud.notification import notification as notification_crud
+from app.notifications.crud.notification import notification_preference as preference_crud
+from app.notifications.models.notification_preference import NotificationPreference
 
 logger = logging.getLogger("app.notifications")
 
@@ -105,7 +105,7 @@ async def _dispatch_email(db: AsyncSession, *, user_id: int, event: Event) -> No
     if isinstance(body_value, str):
         context["body"] = body_value
     try:
-        from app.services.email import send_email_with_retry
+        from app.notifications.services.email import send_email_with_retry
 
         send_email_with_retry.delay(
             user.email,

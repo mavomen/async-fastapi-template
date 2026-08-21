@@ -10,8 +10,8 @@ from contextlib import asynccontextmanager
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
-from app.crud.webhook import webhook as webhook_crud
 from app.events.base import Event
+from app.notifications.crud.webhook import webhook as webhook_crud
 
 logger = logging.getLogger("app.webhooks")
 
@@ -108,7 +108,7 @@ async def handle_event(event: Event) -> None:
     try:
         async with _db_session() as db:
             if event.user_id is not None:
-                from app.services.notifications import channel_enabled
+                from app.notifications.services.notifications import channel_enabled
 
                 if not await channel_enabled(db, user_id=event.user_id, channel="webhook"):
                     logger.debug(
@@ -125,7 +125,7 @@ async def handle_event(event: Event) -> None:
                     max_attempts=settings.WEBHOOK_MAX_RETRIES + 1,
                 )
                 try:
-                    from app.tasks.webhook import deliver_webhook
+                    from app.notifications.tasks.webhook import deliver_webhook
 
                     deliver_webhook.delay(delivery.id)
                 except Exception:

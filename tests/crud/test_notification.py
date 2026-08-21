@@ -2,8 +2,8 @@
 
 import pytest
 
-from app.crud.notification import notification as notification_crud
 from app.identity.models.user import User
+from app.notifications.crud.notification import notification as notification_crud
 
 
 @pytest.mark.asyncio

@@ -21,6 +21,7 @@ from app.identity.models import (  # noqa: F401
 # and bounded contexts; keep this list in sync with new model modules.
 from app.models import audit_log, category, file, page, post, task_status, tenant_base  # noqa: F401
 from app.models.base import Base
+from app.notifications.models import notification, webhook  # noqa: F401
 
 # Alembic Config object
 config = context.config

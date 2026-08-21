@@ -233,8 +233,8 @@ class TestModelDocstrings:
             ("app.identity.models.user", "User"),
             ("app.identity.models.role", "Role"),
             ("app.identity.models.role", "Permission"),
-            ("app.models.notification", "Notification"),
-            ("app.models.webhook", "Webhook"),
+            ("app.notifications.models.notification", "Notification"),
+            ("app.notifications.models.webhook", "Webhook"),
         ],
     )
     def test_class_has_docstring(self, module_path: str, class_name: str) -> None:

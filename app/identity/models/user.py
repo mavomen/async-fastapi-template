@@ -16,8 +16,8 @@ from app.models.tenant_base import TenantBaseModel
 if TYPE_CHECKING:
     from app.identity.models.api_key import ApiKey
     from app.identity.models.role import Role
-    from app.models.notification import Notification
-    from app.models.notification_preference import NotificationPreference
+    from app.notifications.models.notification import Notification
+    from app.notifications.models.notification_preference import NotificationPreference
 
 
 class User(SoftDeleteMixin, SearchMixin, TenantBaseModel):

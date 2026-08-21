@@ -13,7 +13,9 @@ from app.i18n import translate
 
 logger = logging.getLogger("app.email")
 
-TEMPLATES_DIR = Path(__file__).resolve().parent.parent / "templates" / "email"
+# Email templates live in the shared app/templates/email directory,
+# independent of this module's location inside the notifications context.
+TEMPLATES_DIR = Path(__file__).resolve().parents[2] / "templates" / "email"
 _auto_reload = os.environ.get("ENVIRONMENT", "production") == "development"
 env = Environment(
     loader=FileSystemLoader(str(TEMPLATES_DIR)),

@@ -8,7 +8,7 @@ from httpx import AsyncClient
 
 @pytest.mark.asyncio
 async def test_trigger_email_task(async_client: AsyncClient):
-    with patch("app.tasks.email.send_email_notification.delay") as mock_delay:
+    with patch("app.notifications.tasks.email.send_email_notification.delay") as mock_delay:
         mock_delay.return_value.id = "fake-id"
         resp = await async_client.post(
             "/api/v1/tasks/email/send",

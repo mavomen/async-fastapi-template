@@ -7,12 +7,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_user, get_db
 from app.core.config import settings
-from app.crud.webhook import webhook as crud_webhook
 from app.events.base import Event
 from app.identity.auth.permissions import PermissionChecker
 from app.identity.models.user import User
-from app.models.webhook import Webhook
-from app.schemas.webhook import (
+from app.notifications.crud.webhook import webhook as crud_webhook
+from app.notifications.models.webhook import Webhook
+from app.notifications.schemas.webhook import (
     WebhookCreate,
     WebhookCreated,
     WebhookDeliveryResponse,
@@ -168,7 +168,7 @@ async def ping_webhook(
         event=event,
         max_attempts=settings.WEBHOOK_MAX_RETRIES + 1,
     )
-    from app.tasks.webhook import deliver_webhook
+    from app.notifications.tasks.webhook import deliver_webhook
 
     deliver_webhook.delay(delivery.id)
     return delivery

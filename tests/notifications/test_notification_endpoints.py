@@ -105,7 +105,7 @@ class TestPreferenceEndpoints:
         override_user(make_user())
         mocker.patch("app.api.deps.get_db", lambda: AsyncMock())
         mocker.patch(
-            "app.crud.notification.notification_preference.get_or_create",
+            "app.notifications.crud.notification.notification_preference.get_or_create",
             new=AsyncMock(return_value=make_pref()),
         )
         try:
@@ -121,7 +121,7 @@ class TestPreferenceEndpoints:
         override_user(make_user())
         mocker.patch("app.api.deps.get_db", lambda: AsyncMock())
         mocker.patch(
-            "app.crud.notification.notification_preference.update_for_user",
+            "app.notifications.crud.notification.notification_preference.update_for_user",
             new=AsyncMock(return_value=make_pref(email_enabled=False)),
         )
         try:
@@ -137,15 +137,15 @@ class TestInboxEndpoints:
         override_user(make_user())
         mocker.patch("app.api.deps.get_db", lambda: AsyncMock())
         mocker.patch(
-            "app.crud.notification.notification.list_for_user",
+            "app.notifications.crud.notification.notification.list_for_user",
             new=AsyncMock(return_value=[make_notification()]),
         )
         mocker.patch(
-            "app.crud.notification.notification.count_for_user",
+            "app.notifications.crud.notification.notification.count_for_user",
             new=AsyncMock(return_value=1),
         )
         mocker.patch(
-            "app.crud.notification.notification.count_unread",
+            "app.notifications.crud.notification.notification.count_unread",
             new=AsyncMock(return_value=1),
         )
         try:
@@ -162,11 +162,11 @@ class TestInboxEndpoints:
         override_user(make_user())
         mocker.patch("app.api.deps.get_db", lambda: AsyncMock())
         mocker.patch(
-            "app.crud.notification.notification.get_for_user",
+            "app.notifications.crud.notification.notification.get_for_user",
             new=AsyncMock(return_value=make_notification()),
         )
         mocker.patch(
-            "app.crud.notification.notification.mark_read",
+            "app.notifications.crud.notification.notification.mark_read",
             new=AsyncMock(return_value=make_notification(is_read=True)),
         )
         try:
@@ -180,7 +180,7 @@ class TestInboxEndpoints:
         override_user(make_user())
         mocker.patch("app.api.deps.get_db", lambda: AsyncMock())
         mocker.patch(
-            "app.crud.notification.notification.get_for_user",
+            "app.notifications.crud.notification.notification.get_for_user",
             new=AsyncMock(return_value=None),
         )
         try:
@@ -192,7 +192,7 @@ class TestInboxEndpoints:
         override_user(make_user())
         mocker.patch("app.api.deps.get_db", lambda: AsyncMock())
         mocker.patch(
-            "app.crud.notification.notification.mark_all_read",
+            "app.notifications.crud.notification.notification.mark_all_read",
             new=AsyncMock(return_value=3),
         )
         try:
@@ -206,11 +206,11 @@ class TestInboxEndpoints:
         override_user(make_user())
         mocker.patch("app.api.deps.get_db", lambda: AsyncMock())
         mocker.patch(
-            "app.crud.notification.notification.get_for_user",
+            "app.notifications.crud.notification.notification.get_for_user",
             new=AsyncMock(return_value=make_notification()),
         )
         mocker.patch(
-            "app.crud.notification.notification.delete",
+            "app.notifications.crud.notification.notification.delete",
             new=AsyncMock(return_value=make_notification()),
         )
         try:
@@ -222,7 +222,7 @@ class TestInboxEndpoints:
         override_user(make_user())
         mocker.patch("app.api.deps.get_db", lambda: AsyncMock())
         mocker.patch(
-            "app.crud.notification.notification.get_for_user",
+            "app.notifications.crud.notification.notification.get_for_user",
             new=AsyncMock(return_value=None),
         )
         try:

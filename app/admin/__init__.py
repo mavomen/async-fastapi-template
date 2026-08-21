@@ -29,8 +29,8 @@ from app.identity.models.tenant import Tenant
 from app.models.audit_log import AuditLog
 from app.models.base import BaseModel, SoftDeleteMixin
 from app.models.file import File
-from app.models.notification import Notification
-from app.models.notification_preference import NotificationPreference
+from app.notifications.models.notification import Notification
+from app.notifications.models.notification_preference import NotificationPreference
 
 logger = logging.getLogger("app.admin")
 

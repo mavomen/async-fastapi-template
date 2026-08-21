@@ -97,7 +97,7 @@ async def _subscribe_webhook_dispatcher() -> None:
     import logging
 
     from app.events import get_event_bus
-    from app.services.webhook import handle_event
+    from app.notifications.services.webhook import handle_event
 
     logger = logging.getLogger("app.main")
     try:
@@ -115,7 +115,7 @@ async def _subscribe_notification_dispatcher() -> None:
     import logging
 
     from app.events import get_event_bus
-    from app.services.notifications import handle_notification_event
+    from app.notifications.services.notifications import handle_notification_event
 
     logger = logging.getLogger("app.main")
     try:

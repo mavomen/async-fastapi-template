@@ -5,7 +5,7 @@ import json
 import pytest
 
 from app.events.base import Event
-from app.services.notifications import _payload_str, _push_websocket
+from app.notifications.services.notifications import _payload_str, _push_websocket
 
 
 class TestPayloadStr:

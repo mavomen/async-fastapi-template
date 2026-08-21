@@ -14,7 +14,7 @@ from app.events.base import EventBus
 from app.identity.crud.api_key import api_key as crud_api_key
 from app.identity.crud.user import user as crud_user
 from app.identity.models.user import User
-from app.services.email import EmailService, email_service
+from app.notifications.services.email import EmailService, email_service
 from app.storage.base import StorageBackend
 from app.storage.local import LocalStorage
 from app.storage.s3 import S3Storage

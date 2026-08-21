@@ -6,12 +6,12 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_user, get_db, get_event_bus
-from app.crud.notification import notification as crud_notification
-from app.crud.notification import notification_preference as crud_preference
 from app.events.base import Event, EventBus
 from app.identity.models.user import User
-from app.models.notification import Notification
-from app.schemas.notification import (
+from app.notifications.crud.notification import notification as crud_notification
+from app.notifications.crud.notification import notification_preference as crud_preference
+from app.notifications.models.notification import Notification
+from app.notifications.schemas.notification import (
     NotificationCursorResponse,
     NotificationPreferenceResponse,
     NotificationPreferenceUpdate,

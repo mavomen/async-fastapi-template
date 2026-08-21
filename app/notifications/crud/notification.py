@@ -7,9 +7,9 @@ from sqlalchemy import CursorResult, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.crud.base import CRUDBase
-from app.models.notification import Notification
-from app.models.notification_preference import NotificationPreference
-from app.schemas.notification import (
+from app.notifications.models.notification import Notification
+from app.notifications.models.notification_preference import NotificationPreference
+from app.notifications.schemas.notification import (
     NotificationCreate,
     NotificationPreferenceUpdate,
     NotificationUpdate,

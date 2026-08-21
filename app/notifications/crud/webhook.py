@@ -7,8 +7,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.crud.base import CRUDBase
 from app.events.base import Event
-from app.models.webhook import Webhook, WebhookDelivery
-from app.schemas.webhook import WebhookCreate, WebhookUpdate
+from app.notifications.models.webhook import Webhook, WebhookDelivery
+from app.notifications.schemas.webhook import WebhookCreate, WebhookUpdate
 
 
 class CRUDWebhook(CRUDBase[Webhook, WebhookCreate, WebhookUpdate]):

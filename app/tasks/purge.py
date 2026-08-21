@@ -25,8 +25,8 @@ def purge_soft_deleted() -> dict[str, int]:
 async def _purge_soft_deleted_async() -> dict[str, int]:
     from app.identity.models.api_key import ApiKey
     from app.identity.models.user import User
-    from app.models.notification import Notification
-    from app.models.webhook import Webhook
+    from app.notifications.models.notification import Notification
+    from app.notifications.models.webhook import Webhook
 
     models = [User, Notification, Webhook, ApiKey]
     results: dict[str, int] = {}

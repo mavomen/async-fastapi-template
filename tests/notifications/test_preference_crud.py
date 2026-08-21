@@ -3,10 +3,10 @@
 import pytest
 from sqlalchemy import func, select
 
-from app.crud.notification import notification_preference as pref_crud
 from app.identity.models.user import User
-from app.models.notification_preference import NotificationPreference
-from app.schemas.notification import NotificationPreferenceUpdate
+from app.notifications.crud.notification import notification_preference as pref_crud
+from app.notifications.models.notification_preference import NotificationPreference
+from app.notifications.schemas.notification import NotificationPreferenceUpdate
 
 
 @pytest.mark.asyncio

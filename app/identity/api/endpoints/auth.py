@@ -60,7 +60,7 @@ from app.identity.schemas import OAuthLoginResponse, Token, UserCreate, UserResp
 from app.identity.schemas.totp import TOTPLoginVerifyRequest
 from app.identity.services.auth_audit import log_auth_event
 from app.identity.services.oauth2 import consume_oauth_state
-from app.services.email import EmailService
+from app.notifications.services.email import EmailService
 
 router = APIRouter()
 
