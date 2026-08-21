@@ -15,6 +15,12 @@ if TYPE_CHECKING:
 
 
 class ApiKey(SoftDeleteMixin, BaseModel):
+    """Scoped API key for service-to-service authentication.
+
+    Only the hashed key is stored; the plaintext is returned once at creation.
+    Supports optional expiry and per-key scope restrictions.
+    """
+
     __tablename__ = "api_keys"
 
     user_id: Mapped[int] = mapped_column(

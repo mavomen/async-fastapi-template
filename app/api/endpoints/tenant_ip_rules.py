@@ -3,37 +3,12 @@
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_user, get_db
 from app.crud.tenant_ip_rule import tenant_ip_rule as crud_ip_rule
 from app.models.user import User
-
-
-class IPRuleCreate(BaseModel):
-    tenant_id: int
-    ip_or_cidr: str = Field(..., max_length=45)
-    action: str = Field(..., pattern="^(allow|deny)$")
-    priority: int = 0
-    description: str | None = None
-
-
-class IPRuleUpdate(BaseModel):
-    ip_or_cidr: str | None = Field(None, max_length=45)
-    action: str | None = Field(None, pattern="^(allow|deny)$")
-    priority: int | None = None
-    description: str | None = None
-
-
-class IPRuleResponse(BaseModel):
-    id: int
-    tenant_id: int
-    ip_or_cidr: str
-    action: str
-    priority: int
-    description: str | None
-
+from app.schemas.tenant_ip_rule import IPRuleCreate, IPRuleResponse, IPRuleUpdate
 
 router = APIRouter()
 
