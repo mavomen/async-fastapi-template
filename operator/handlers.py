@@ -232,8 +232,9 @@ def _delete_if_exists(
             raise
 
 
-@kopf.on.create("fastapiapps")
-@kopf.on.update("fastapiapps")
+@kopf.on.resume("app.example.com", "v1", "fastapiapps")
+@kopf.on.create("app.example.com", "v1", "fastapiapps")
+@kopf.on.update("app.example.com", "v1", "fastapiapps")
 async def reconcile(
     spec: dict, name: str, namespace: str, logger: kopf.types.Logger, **_: object
 ) -> None:
@@ -295,7 +296,7 @@ async def reconcile(
         _delete_if_exists(pdb_ops, name, namespace, logger)
 
 
-@kopf.on.delete("fastapiapps")
+@kopf.on.delete("app.example.com", "v1", "fastapiapps")
 async def on_delete(
     spec: dict, name: str, namespace: str, logger: kopf.types.Logger, **_: object
 ) -> None:

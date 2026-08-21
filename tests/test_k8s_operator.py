@@ -335,3 +335,216 @@ class TestModuleFiles:
     def test_requirements_has_kubernetes(self) -> None:
         content = (OPERATOR_DIR / "requirements.txt").read_text()
         assert "kubernetes" in content
+
+
+# ─── Handler registration ────────────────────────────
+
+
+class TestHandlerRegistration:
+    """Handlers register against the explicit CRD group/version/plural."""
+
+    @staticmethod
+    def _source() -> str:
+        return (OPERATOR_DIR / "handlers.py").read_text()
+
+    def test_explicit_group_used(self) -> None:
+        assert '"app.example.com", "v1", "fastapiapps"' in self._source()
+
+    def test_no_single_arg_registration(self) -> None:
+        source = self._source()
+        for decorator in ["@kopf.on.create(", "@kopf.on.update(", "@kopf.on.delete("]:
+            start = source.index(decorator)
+            line = source[start : source.index("\n", start)]
+            args = line[len(decorator) :].rstrip(")")
+            assert args.count(",") >= 2, f"{decorator} must pass group+version+plural, got {args}"
+
+    def test_resume_handler_registered(self) -> None:
+        source = self._source()
+        assert "@kopf.on.resume" in source
+        # resume must be stacked on the same function as create/update
+        resume_idx = source.index("@kopf.on.resume")
+        reconcile_idx = source.index("async def reconcile")
+        between = source[resume_idx:reconcile_idx]
+        assert "@kopf.on.create" in between
+        assert "@kopf.on.update" in between
+
+    def test_delete_handler_registered(self) -> None:
+        source = self._source()
+        assert '@kopf.on.delete("app.example.com", "v1", "fastapiapps")' in source
+
+
+# ─── RBAC manifest ───────────────────────────────────
+
+RBAC_PATH = OPERATOR_DIR / "rbac.yaml"
+DEPLOYMENT_PATH = OPERATOR_DIR / "deployment.yaml"
+DOCKERFILE_PATH = OPERATOR_DIR / "Dockerfile"
+EXAMPLE_CR_PATH = OPERATOR_DIR / "examples" / "fastapiapp-sample.yaml"
+
+
+def _load_docs(path: pathlib.Path) -> list[dict]:  # type: ignore[type-arg]
+    docs = list(yaml.safe_load_all(path.read_text()))
+    return [d for d in docs if d is not None]
+
+
+class TestOperatorRBAC:
+    @pytest.fixture(autouse=True)
+    def _load(self) -> None:
+        self.docs = _load_docs(RBAC_PATH)
+
+    def _by_kind(self, kind: str) -> dict:  # type: ignore[type-arg]
+        return next(d for d in self.docs if d["kind"] == kind)
+
+    def test_service_account_exists(self) -> None:
+        sa = self._by_kind("ServiceAccount")
+        assert sa["metadata"]["name"] == "fastapi-operator"
+
+    def test_service_account_automounts_token(self) -> None:
+        sa = self._by_kind("ServiceAccount")
+        assert sa["automountServiceAccountToken"] is True
+
+    def test_cluster_role_covers_all_managed_resources(self) -> None:
+        role = self._by_kind("ClusterRole")
+        covered: dict[str, set[str]] = {}
+        for rule in role["rules"]:
+            for group in rule["apiGroups"]:
+                for resource in rule["resources"]:
+                    covered[f"{group}/{resource}"] = set(rule["verbs"])
+        for expected in [
+            "app.example.com/fastapiapps",
+            "apps/deployments",
+            "/services",
+            "/events",
+            "autoscaling/horizontalpodautoscalers",
+            "policy/poddisruptionbudgets",
+        ]:
+            assert expected in covered, f"missing RBAC rule for {expected}"
+
+    def test_full_lifecycle_verbs_on_children(self) -> None:
+        role = self._by_kind("ClusterRole")
+        verbs_by_resource: dict[str, set[str]] = {}
+        for rule in role["rules"]:
+            for resource in rule["resources"]:
+                if resource != "events":
+                    verbs_by_resource[resource] = set(rule["verbs"])
+        required = {"get", "list", "watch", "create", "update", "patch", "delete"}
+        for resource, verbs in verbs_by_resource.items():
+            assert required <= verbs, f"{resource} missing verbs: {required - verbs}"
+
+    def test_events_minimal_verbs(self) -> None:
+        role = self._by_kind("ClusterRole")
+        events_rule = next(r for r in role["rules"] if "events" in r.get("resources", []))
+        assert set(events_rule["verbs"]) == {"create", "patch"}
+
+    def test_binding_links_role_and_sa(self) -> None:
+        binding = self._by_kind("ClusterRoleBinding")
+        assert binding["roleRef"]["name"] == "fastapi-operator"
+        subject = binding["subjects"][0]
+        assert subject["kind"] == "ServiceAccount"
+        assert subject["name"] == "fastapi-operator"
+
+
+class TestOperatorDeployment:
+    @pytest.fixture(autouse=True)
+    def _load(self) -> None:
+        docs = _load_docs(DEPLOYMENT_PATH)
+        self.deployment = docs[0]
+        self.pod_spec = self.deployment["spec"]["template"]["spec"]
+        self.container = self.pod_spec["containers"][0]
+
+    def test_uses_operator_service_account(self) -> None:
+        assert self.pod_spec["serviceAccountName"] == "fastapi-operator"
+
+    def test_pod_security_context(self) -> None:
+        psc = self.pod_spec["securityContext"]
+        assert psc["runAsNonRoot"] is True
+        assert psc["runAsUser"] == 1000
+        assert psc["seccompProfile"]["type"] == "RuntimeDefault"
+
+    def test_container_security_context(self) -> None:
+        csc = self.container["securityContext"]
+        assert csc["allowPrivilegeEscalation"] is False
+        assert csc["readOnlyRootFilesystem"] is True
+        assert csc["runAsNonRoot"] is True
+        assert csc["capabilities"]["drop"] == ["ALL"]
+
+    def test_runs_kopf_with_liveness(self) -> None:
+        assert self.container["command"][:2] == ["kopf", "run"]
+        assert "--all-namespaces" in self.container["args"]
+        assert any(a.startswith("--liveness=http://") for a in self.container["args"])
+
+    def test_liveness_probe(self) -> None:
+        probe = self.container["livenessProbe"]
+        assert probe["httpGet"]["path"] == "/healthz"
+        assert probe["httpGet"]["port"] == "liveness"
+
+    def test_tmp_empty_dir_mounted(self) -> None:
+        volumes = self.pod_spec["volumes"]
+        vol_names = [v["name"] for v in volumes]
+        assert "tmp" in vol_names
+        tmp_vol = next(v for v in volumes if v["name"] == "tmp")
+        assert "emptyDir" in tmp_vol
+        mount_paths = [m["mountPath"] for m in self.container["volumeMounts"]]
+        assert "/tmp" in mount_paths
+
+    def test_resources_bounded(self) -> None:
+        resources = self.container["resources"]
+        assert "requests" in resources
+        assert "limits" in resources
+
+
+class TestOperatorDockerfile:
+    def test_dockerfile_exists(self) -> None:
+        assert DOCKERFILE_PATH.exists()
+
+    def test_slim_base_image(self) -> None:
+        content = DOCKERFILE_PATH.read_text()
+        assert "FROM python:3.12-slim" in content
+
+    def test_runs_as_non_root(self) -> None:
+        content = DOCKERFILE_PATH.read_text()
+        assert "USER 1000:1000" in content
+
+    def test_has_healthcheck(self) -> None:
+        content = DOCKERFILE_PATH.read_text()
+        assert "HEALTHCHECK" in content
+        assert "27020/healthz" in content
+
+    def test_installs_pinned_requirements(self) -> None:
+        content = DOCKERFILE_PATH.read_text()
+        assert "COPY requirements.txt" in content
+        assert "pip install --no-cache-dir -r requirements.txt" in content
+
+
+class TestExampleCR:
+    def _load_cr(self) -> dict:  # type: ignore[type-arg]
+        return yaml.safe_load(EXAMPLE_CR_PATH.read_text())  # type: ignore[no-any-return]
+
+    def test_example_file_exists(self) -> None:
+        assert EXAMPLE_CR_PATH.exists()
+
+    def test_api_version_matches_crd(self) -> None:
+        cr = self._load_cr()
+        assert cr["apiVersion"] == "app.example.com/v1"
+
+    def test_kind_matches_crd(self) -> None:
+        cr = self._load_cr()
+        assert cr["kind"] == "FastAPIApp"
+
+    def test_required_image_field_present(self) -> None:
+        cr = self._load_cr()
+        assert isinstance(cr["spec"]["image"], str)
+        assert cr["spec"]["image"]
+
+    def test_exercises_optional_fields(self) -> None:
+        spec = self._load_cr()["spec"]
+        assert isinstance(spec["replicas"], int)
+        assert spec["autoscaling"]["enabled"] is True
+        assert "minAvailable" in spec["pdb"]
+
+    def test_conforms_to_crd_schema_properties(self) -> None:
+        cr = self._load_cr()
+        doc = yaml.safe_load((CRD_DIR / "fastapiapp-crd.yaml").read_text())
+        v1 = next(v for v in doc["spec"]["versions"] if v["name"] == "v1")
+        allowed = set(v1["schema"]["openAPIV3Schema"]["properties"]["spec"]["properties"])
+        unknown = set(cr["spec"]) - allowed
+        assert not unknown, f"example uses fields absent from CRD schema: {unknown}"

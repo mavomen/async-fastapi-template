@@ -1,0 +1,28 @@
+# Example FastAPIApp custom resource.
+# Apply after installing the CRD and operator:
+#   kubectl apply -f operator/examples/fastapiapp-sample.yaml
+apiVersion: app.example.com/v1
+kind: FastAPIApp
+metadata:
+  name: demo-app
+spec:
+  image: ghcr.io/mavomen/async-fastapi-template:latest
+  replicas: 2
+  port: 8000
+  env:
+    - name: ENVIRONMENT
+      value: production
+  resources:
+    requests:
+      cpu: 250m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 80
+  pdb:
+    minAvailable: 1

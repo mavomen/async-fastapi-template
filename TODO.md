@@ -180,8 +180,11 @@
 - Secrets template uses Helm placeholders — no plaintext credentials
 - 29 tests (probe endpoints, drain flag, YAML structure, Helm templates)
 
-**`ops/k8s-operator`**
-- Kubernetes operator to manage the app stack via CRDs
+**`ops/k8s-operator`** ✅
+- Kopf-based operator managing Deployment/Service/HPA/PDB via the FastAPIApp CRD (`operator/`)
+- Hardened: explicit `app.example.com/v1` handler registration, resume-on-restart reconcile,
+  RBAC manifests, non-root Dockerfile with HEALTHCHECK, in-cluster Deployment manifest,
+  example CR, docs (docs/operator.md), CI build/sign/scan for the operator image
 
 **`ops/k8s-hardening`** ✅
 - Pod/container securityContext (runAsNonRoot, readOnlyRootFilesystem, drop ALL caps, seccomp RuntimeDefault)
@@ -200,18 +203,19 @@
 **`ops/canary-deployments`** ✅
 - Flagger or Argo Rollouts with metric-based promotion gates
 
-**`ops/multi-region-failover`**
+**`ops/multi-region-failover`** ✅
 - Active-passive region configuration with DNS failover
+- Route53 health checks + failover routing policies, cross-region Aurora replica (terraform/modules/multi_region)
 
-**`ops/chaos-engineering`**
-- Chaos Mesh / Litmus scenarios for resilience testing on staging
-- Weekly automated chaos experiments as a CI job
+**`ops/chaos-engineering`** ⏳ partial — scenarios shipped, CI job missing
+- ✅ Chaos Mesh scenarios with safety defaults in k8s/chaos/ (cpu-stress, dns-error, http-timeout, network-latency, pod-kill)
+- ❌ Weekly automated chaos experiments as a CI job
 
 ---
 
 ## 🛠️ Developer Experience
 
-**`dx/domain-restructure`**
+**`dx/domain-restructure`** ⏳ open — merged branch delivered schema extraction only, not the split
 - Split `app/` into bounded contexts: `identity/`, `billing/`, `notifications/`
 
 **`dx/local-dev`** ✅

@@ -1,0 +1,53 @@
+# RBAC for the FastAPIApp operator.
+# The operator watches all namespaces, so a ClusterRole is used.
+# ServiceAccount token automount is REQUIRED here — the operator talks
+# to the Kubernetes API in-cluster (unlike the hardened app SA).
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: fastapi-operator
+  namespace: fastapi-operator-system
+  labels:
+    app: fastapi-operator
+    app.kubernetes.io/name: fastapi-operator
+    app.kubernetes.io/component: operator
+automountServiceAccountToken: true
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: fastapi-operator
+rules:
+  - apiGroups: ["app.example.com"]
+    resources: ["fastapiapps"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  - apiGroups: [""]
+    resources: ["services"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["create", "patch"]
+  - apiGroups: ["autoscaling"]
+    resources: ["horizontalpodautoscalers"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  - apiGroups: ["policy"]
+    resources: ["poddisruptionbudgets"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: fastapi-operator
+  labels:
+    app: fastapi-operator
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: fastapi-operator
+subjects:
+  - kind: ServiceAccount
+    name: fastapi-operator
+    namespace: fastapi-operator-system
