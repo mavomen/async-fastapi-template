@@ -197,7 +197,7 @@
 - Reusable Terraform module for the full stack (DB, Redis, Kafka, app)
 - Cost allocation tags propagated to all cloud resources
 
-**`ops/canary-deployments`**
+**`ops/canary-deployments`** ✅
 - Flagger or Argo Rollouts with metric-based promotion gates
 
 **`ops/multi-region-failover`**
