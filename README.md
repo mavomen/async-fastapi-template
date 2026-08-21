@@ -79,6 +79,7 @@ Visit **http://localhost:8000/docs** for the interactive API docs, **http://loca
 - [Code Quality](docs/code_quality.md)
 - [CI/CD](docs/ci_cd.md)
 - [Deployment](docs/deployment.md)
+- [Kubernetes Operator](docs/operator.md)
 - [Developer Experience](docs/developer_experience.md)
 - [FAQ](docs/faq.md)
 - [Security](SECURITY.md)

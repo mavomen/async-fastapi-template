@@ -1,0 +1,69 @@
+# In-cluster Deployment for the FastAPIApp operator.
+# Hardened per repo conventions: non-root, read-only rootfs, dropped caps,
+# seccomp RuntimeDefault, emptyDir scratch volume, resource bounds.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fastapi-operator
+  namespace: fastapi-operator-system
+  labels:
+    app: fastapi-operator
+    app.kubernetes.io/name: fastapi-operator
+    app.kubernetes.io/component: operator
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: fastapi-operator
+  template:
+    metadata:
+      labels:
+        app: fastapi-operator
+        app.kubernetes.io/name: fastapi-operator
+        app.kubernetes.io/component: operator
+    spec:
+      serviceAccountName: fastapi-operator
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: operator
+          image: ghcr.io/mavomen/async-fastapi-template/fastapi-operator:latest
+          imagePullPolicy: IfNotPresent
+          command: ["kopf", "run", "/operator/handlers.py"]
+          args:
+            - --all-namespaces
+            - --liveness=http://0.0.0.0:27020/healthz
+          ports:
+            - name: liveness
+              containerPort: 27020
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            capabilities:
+              drop: ["ALL"]
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: liveness
+            initialDelaySeconds: 10
+            periodSeconds: 15
+            timeoutSeconds: 5
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir: {}
