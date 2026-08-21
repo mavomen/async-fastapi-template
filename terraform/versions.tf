@@ -8,3 +8,18 @@ terraform {
     }
   }
 }
+
+# Secondary provider for DR region
+provider "aws" {
+  alias  = "secondary"
+  region = var.secondary_region
+
+  default_tags {
+    tags = {
+      Project     = var.project_name
+      Environment = var.environment
+      ManagedBy   = "terraform"
+      Region      = "secondary"
+    }
+  }
+}
