@@ -1,0 +1,56 @@
+# Ephemeral Postgres for the weekly chaos-engineering CI environment.
+# Service name "postgres" matches the app chart's DATABASE_URL default host.
+# Data lives in emptyDir — this environment is disposable by design.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+  namespace: default
+  labels:
+    app: fastapi-postgres
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fastapi-postgres
+  template:
+    metadata:
+      labels:
+        app: fastapi-postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:16-alpine
+          env:
+            - name: POSTGRES_USER
+              value: postgres
+            - name: POSTGRES_PASSWORD
+              value: postgres
+            - name: POSTGRES_DB
+              value: fastapi_db
+          ports:
+            - containerPort: 5432
+          readinessProbe:
+            exec:
+              command: ["pg_isready", "-U", "postgres", "-d", "fastapi_db"]
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  namespace: default
+spec:
+  selector:
+    app: fastapi-postgres
+  ports:
+    - port: 5432
+      targetPort: 5432
