@@ -17,10 +17,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.billing.crud.invoice import invoice as crud_invoice
 from app.billing.models.invoice import Invoice, InvoiceLine, InvoiceStatus
 from app.billing.models.plan import Plan
-from app.billing.models.subscription import Subscription
+from app.billing.models.subscription import Subscription, SubscriptionStatus
+from app.billing.services import dunning as dunning_service
 from app.billing.services import usage as usage_service
 from app.core.exceptions import ConflictException, NotFoundException
-from app.events.base import Event
+from app.events.base import Event, EventBus
 
 ALLOWED_TRANSITIONS: dict[InvoiceStatus, frozenset[InvoiceStatus]] = {
     InvoiceStatus.DRAFT: frozenset({InvoiceStatus.OPEN, InvoiceStatus.VOID}),
@@ -187,8 +188,13 @@ async def issue(db: AsyncSession, invoice_id: int, user_id: int | None = None) -
     return inv
 
 
-async def mark_paid(db: AsyncSession, invoice_id: int) -> Invoice:
-    """open -> paid; stamps paid_at. Payment capture stays external for now."""
+async def mark_paid(db: AsyncSession, invoice_id: int, bus: EventBus | None = None) -> Invoice:
+    """open -> paid; stamps paid_at. Payment capture stays external for now.
+
+    When the underlying subscription was in dunning, a successful payment
+    recovers it (past_due -> active, counters reset) and publishes
+    ``billing.dunning.recovered``.
+    """
     inv = await crud_invoice.get(db, invoice_id)
     if inv is None:
         raise NotFoundException(detail="Invoice not found")
@@ -196,6 +202,16 @@ async def mark_paid(db: AsyncSession, invoice_id: int) -> Invoice:
     inv.status = InvoiceStatus.PAID
     inv.paid_at = datetime.now(UTC)
     db.add(inv)
+
+    if inv.subscription_id is not None:
+        sub = await db.get(Subscription, inv.subscription_id)
+        if (
+            sub is not None
+            and dunning_service.is_dunning(sub)
+            and sub.status == SubscriptionStatus.PAST_DUE
+        ):
+            await dunning_service.recover_subscription(db, bus, sub)
+
     await db.commit()
     await db.refresh(inv)
     return inv

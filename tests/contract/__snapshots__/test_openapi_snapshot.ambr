@@ -2851,14 +2851,16 @@
             
                 trialing  -> active | past_due | canceled
                 active    -> past_due | canceled
-                past_due  -> active | canceled
+                past_due  -> active | canceled | suspended
                 canceled  -> (terminal)
+                suspended -> (terminal, system-set after final payment failure)
           ''',
           'enum': list([
             'trialing',
             'active',
             'past_due',
             'canceled',
+            'suspended',
           ]),
           'title': 'SubscriptionStatus',
           'type': 'string',

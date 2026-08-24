@@ -109,12 +109,7 @@ async def enforce_api_quota(
         ent = await resolve_entitlements(db, tenant_id)
         cfg = ent.config.get(usage_service.DEFAULT_DIMENSION) if ent else None
         period_end = ent.period_end if ent else None
-        if (
-            ent is None
-            or cfg is None
-            or ent.period_start is None
-            or period_end is None
-        ):
+        if ent is None or cfg is None or ent.period_start is None or period_end is None:
             return
 
         used = await usage_service.increment(

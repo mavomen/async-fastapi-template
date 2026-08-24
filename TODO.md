@@ -55,10 +55,10 @@ context; routers mount via `app/api/__init__.py`; model modules register in
 - Metered line items rolled into invoices — overage-only billing (`max(0, used - included)` × unit price)
 - Quota enforcement as a router-level dependency on authenticated v1 routes (429 over quota), gated behind `BILLING_QUOTA_ENABLED`; `GET /billing/subscriptions/usage` endpoint
 
-**`feat/billing-dunning`** ⏳ open
-- Payment retry schedule with exponential backoff
-- Grace periods and automated account suspension on final failure
-- Dunning emails through the notifications context (existing channel gating applies)
+**`feat/billing-dunning`** ✅ done
+- Payment retry schedule with exponential backoff — position counter advanced by real failures (Stripe webhooks) and due sweep ticks alike; delay = base * 2**(N-1), capped at 7 days
+- Grace periods and automated account suspension — sweep runs every 15 min; suspension is a new terminal `suspended` status (distinct from user-initiated cancel)
+- Dunning emails through the notifications context — `billing.dunning.payment_failed/payment_reminder/suspended/recovered` events fan out to all active tenant users; channel gating applies
 
 **`feat/billing-admin-ui`** ⏳ open
 - HTMX admin views: subscriptions, invoices, payment history

@@ -37,6 +37,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   fail-open on internal errors) behind `BILLING_QUOTA_ENABLED` (default off). Invoices
   append overage-only lines (`max(0, used - included)` × unit price); new
   `GET /api/v1/billing/subscriptions/usage` reports current-period usage
+- Dunning (`app/billing/services/dunning.py`, `app/tasks/dunning.py`): payment-failure
+  retry schedule with exponential backoff (`base * 2**(N-1)`, 7-day cap), reminder and
+  suspension sweeps every 15 minutes behind `BILLING_DUNNING_ENABLED` (default off), new
+  terminal `suspended` subscription status, recovery on successful payment (past_due ->
+  active via invoice capture or Stripe sync), and `billing.dunning.*` events fanned out
+  to active tenant users through the notifications pipeline; migration `022_add_dunning`
 
 ## [3.5.0] - 2026-08-21
 

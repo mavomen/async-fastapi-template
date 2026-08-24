@@ -274,4 +274,6 @@ async def get_usage(
                 unit_amount_cents=cfg["unit_amount_cents"],
             )
         )
-    return UsageResponse(period_start=sub.current_period_start, period_end=sub.current_period_end, dimensions=items)
+    return UsageResponse(
+        period_start=sub.current_period_start, period_end=sub.current_period_end, dimensions=items
+    )

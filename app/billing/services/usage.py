@@ -50,8 +50,9 @@ async def increment(
         results = await pipe.execute()
         return int(results[0])
     except Exception:
-        logger.exception("usage increment failed (fail-open): tenant=%s dim=%s",
-                         tenant_id, dimension)
+        logger.exception(
+            "usage increment failed (fail-open): tenant=%s dim=%s", tenant_id, dimension
+        )
         return None
 
 
@@ -62,8 +63,7 @@ async def get_usage(tenant_id: int, dimension: str, period_start: datetime) -> i
         value = await redis.get(counter_key(tenant_id, dimension, period_start))
         return int(value) if value is not None else 0
     except Exception:
-        logger.exception("usage read failed (fail-open): tenant=%s dim=%s",
-                         tenant_id, dimension)
+        logger.exception("usage read failed (fail-open): tenant=%s dim=%s", tenant_id, dimension)
         return 0
 
 
