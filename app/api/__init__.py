@@ -9,6 +9,7 @@ from fastapi import APIRouter
 
 from app.api.endpoints import cms, csp, events, files, tasks
 from app.billing.api.endpoints import plans as billing_plans
+from app.billing.api.endpoints import stripe as billing_stripe
 from app.billing.api.endpoints import subscriptions as billing_subscriptions
 from app.identity.api.endpoints import api_keys, auth, tenant_ip_rules, tenants, totp, users
 from app.notifications.api.endpoints import notifications, webhooks
@@ -32,3 +33,4 @@ api_router.include_router(billing_plans.router, prefix="/billing/plans", tags=["
 api_router.include_router(
     billing_subscriptions.router, prefix="/billing/subscriptions", tags=["billing"]
 )
+api_router.include_router(billing_stripe.router, prefix="/billing/stripe", tags=["billing"])

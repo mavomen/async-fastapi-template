@@ -220,6 +220,18 @@ class Settings(BaseSettings):
 
     # Outgoing Webhooks
     WEBHOOK_ENABLED: bool = True
+    STRIPE_SECRET_KEY: str = Field(
+        default="",
+        description="Stripe API secret key (sk_...). Empty disables the Stripe integration.",
+    )
+    STRIPE_WEBHOOK_SECRET: str = Field(
+        default="",
+        description="Stripe webhook signing secret (whsec_...). Empty disables webhook intake.",
+    )
+    STRIPE_API_BASE_URL: str = Field(
+        default="https://api.stripe.com/v1",
+        description="Stripe API base URL (override for tests)",
+    )
     WEBHOOK_MAX_RETRIES: int = Field(
         default=5, ge=0, description="Max delivery retries per webhook after the initial attempt"
     )

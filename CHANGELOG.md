@@ -16,6 +16,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   events on the event bus. REST surface: `/api/v1/billing/plans`,
   `/api/v1/billing/subscriptions`; `billing:read` / `billing:write` permissions;
   migration `018_add_billing_tables`
+- Stripe integration (`app/billing/services/stripe_*`, `/api/v1/billing/stripe/*`):
+  dependency-free async Stripe REST client over httpx (customer provisioning, hosted
+  checkout sessions with inline `price_data`, subscription fetch), signature-verified
+  inbound webhooks (`Stripe-Signature` via shared `app/core/signing.py`), and idempotent
+  event processing backed by a `stripe_events` ledger — `checkout.session.completed`,
+  `customer.subscription.updated/deleted`, and `invoice.payment_failed` drive the local
+  subscription lifecycle. Disabled (503) until `STRIPE_SECRET_KEY` /
+  `STRIPE_WEBHOOK_SECRET` are set; migration `019_add_stripe_integration`
 
 ## [3.5.0] - 2026-08-21
 

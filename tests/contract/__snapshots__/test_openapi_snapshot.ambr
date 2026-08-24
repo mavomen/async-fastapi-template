@@ -620,6 +620,36 @@
           'title': 'ChangePlanRequest',
           'type': 'object',
         }),
+        'CheckoutSessionRequest': dict({
+          'properties': dict({
+            'cancel_url': dict({
+              'format': 'uri',
+              'maxLength': 2083,
+              'minLength': 1,
+              'title': 'Cancel Url',
+              'type': 'string',
+            }),
+            'plan_id': dict({
+              'exclusiveMinimum': 0.0,
+              'title': 'Plan Id',
+              'type': 'integer',
+            }),
+            'success_url': dict({
+              'format': 'uri',
+              'maxLength': 2083,
+              'minLength': 1,
+              'title': 'Success Url',
+              'type': 'string',
+            }),
+          }),
+          'required': list([
+            'plan_id',
+            'success_url',
+            'cancel_url',
+          ]),
+          'title': 'CheckoutSessionRequest',
+          'type': 'object',
+        }),
         'EmailTaskRequest': dict({
           'properties': dict({
             'body': dict({
@@ -5516,6 +5546,77 @@
             }),
           ]),
           'summary': 'Update a plan (price/name/trial/active only)',
+          'tags': list([
+            'billing',
+          ]),
+        }),
+      }),
+      '/api/v1/billing/stripe/checkout-session': dict({
+        'post': dict({
+          'operationId': 'create_checkout_api_v1_billing_stripe_checkout_session_post',
+          'requestBody': dict({
+            'content': dict({
+              'application/json': dict({
+                'schema': dict({
+                  '$ref': '#/components/schemas/CheckoutSessionRequest',
+                }),
+              }),
+            }),
+            'required': True,
+          }),
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    'additionalProperties': dict({
+                      'type': 'string',
+                    }),
+                    'title': 'Response Create Checkout Api V1 Billing Stripe Checkout Session Post',
+                    'type': 'object',
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+          ]),
+          'summary': 'Create a Stripe checkout session for a plan',
+          'tags': list([
+            'billing',
+          ]),
+        }),
+      }),
+      '/api/v1/billing/stripe/webhook': dict({
+        'post': dict({
+          'operationId': 'stripe_webhook_api_v1_billing_stripe_webhook_post',
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+          }),
+          'summary': 'Stripe webhook intake (signature-verified, idempotent)',
           'tags': list([
             'billing',
           ]),
