@@ -39,4 +39,8 @@ celery_app.conf.beat_schedule = {
         "task": "app.tasks.invoicing.generate_due_invoices",
         "schedule": crontab(hour=5, minute=0),
     },
+    "process-dunning-quarter-hour": {
+        "task": "app.tasks.dunning.process_dunning",
+        "schedule": crontab(minute="*/15"),
+    },
 }

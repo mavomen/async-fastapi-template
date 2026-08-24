@@ -32,9 +32,10 @@ ALLOWED_TRANSITIONS: dict[SubscriptionStatus, frozenset[SubscriptionStatus]] = {
         {SubscriptionStatus.PAST_DUE, SubscriptionStatus.CANCELED}
     ),
     SubscriptionStatus.PAST_DUE: frozenset(
-        {SubscriptionStatus.ACTIVE, SubscriptionStatus.CANCELED}
+        {SubscriptionStatus.ACTIVE, SubscriptionStatus.CANCELED, SubscriptionStatus.SUSPENDED}
     ),
     SubscriptionStatus.CANCELED: frozenset(),
+    SubscriptionStatus.SUSPENDED: frozenset(),
 }
 
 

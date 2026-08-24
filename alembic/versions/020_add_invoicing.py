@@ -40,9 +40,7 @@ def upgrade() -> None:
         sa.Column("issued_at", sa.DateTime(timezone=True), nullable=True),
         sa.Column("paid_at", sa.DateTime(timezone=True), nullable=True),
         sa.ForeignKeyConstraint(["tenant_id"], ["tenants.id"], ondelete="CASCADE"),
-        sa.ForeignKeyConstraint(
-            ["subscription_id"], ["subscriptions.id"], ondelete="RESTRICT"
-        ),
+        sa.ForeignKeyConstraint(["subscription_id"], ["subscriptions.id"], ondelete="RESTRICT"),
         sa.PrimaryKeyConstraint("id"),
         sa.CheckConstraint(
             "status IN ('draft', 'open', 'paid', 'void')",
@@ -83,9 +81,7 @@ def upgrade() -> None:
 def downgrade() -> None:
     op.drop_index(op.f("ix_invoice_lines_invoice_id"), table_name="invoice_lines")
     op.drop_table("invoice_lines")
-    op.drop_index(
-        "uq_invoice_per_subscription_period", table_name="invoices"
-    )
+    op.drop_index("uq_invoice_per_subscription_period", table_name="invoices")
     op.drop_index(op.f("ix_invoices_status"), table_name="invoices")
     op.drop_index(op.f("ix_invoices_subscription_id"), table_name="invoices")
     op.drop_table("invoices")

@@ -223,6 +223,12 @@ class Settings(BaseSettings):
     #: Master switch for plan quota enforcement (app/billing/api/deps.py).
     #: Off by default — enabling changes API behavior for metered plans.
     BILLING_QUOTA_ENABLED: bool = False
+    #: Master switch for the dunning sweep (app/tasks/dunning.py). When off,
+    #: payment-failure recording still works but no retries/suspensions run.
+    BILLING_DUNNING_ENABLED: bool = False
+    DUNNING_MAX_ATTEMPTS: int = Field(default=4, ge=1, le=20)
+    #: Backoff for retry N is base * 2**(N - 1) minutes, capped at 7 days.
+    DUNNING_BASE_DELAY_MINUTES: int = Field(default=60, ge=1, le=60 * 24 * 30)
     STRIPE_SECRET_KEY: str = Field(
         default="",
         description="Stripe API secret key (sk_...). Empty disables the Stripe integration.",

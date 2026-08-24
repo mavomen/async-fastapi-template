@@ -283,19 +283,24 @@ class TestPaymentFailed:
     @pytest.mark.asyncio
     async def test_drives_to_past_due(self):
         sub = live_active_sub()
+        sub.failed_payment_count = 0
         db = make_db(sub)
         outcome = await stripe_events.handle_payment_failed(db, {"subscription": "sub_123"})
         assert outcome == "past_due"
         assert sub.status == SubscriptionStatus.PAST_DUE
+        assert sub.failed_payment_count == 1
+        assert sub.next_retry_at is not None
 
     @pytest.mark.asyncio
-    async def test_already_past_due_is_noop(self):
+    async def test_repeated_failure_advances_schedule(self):
         sub = live_active_sub()
         sub.status = SubscriptionStatus.PAST_DUE
+        sub.failed_payment_count = 1
         db = make_db(sub)
         assert await stripe_events.handle_payment_failed(db, {"subscription": "sub_123"}) == (
-            "unchanged"
+            "past_due"
         )
+        assert sub.failed_payment_count == 2
 
 
 # ---------------------------------------------------------------------------

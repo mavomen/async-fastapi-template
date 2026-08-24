@@ -382,9 +382,7 @@ def test_usage_endpoint_reports_dimensions(mocker, client):
     from tests.billing.test_subscription_endpoints import clear_overrides, make_user
 
     sub = make_sub({"api_requests": {"included_quantity": 100, "unit_amount_cents": 3}})
-    plan = MagicMock(
-        metering={"api_requests": {"included_quantity": 100, "unit_amount_cents": 3}}
-    )
+    plan = MagicMock(metering={"api_requests": {"included_quantity": 100, "unit_amount_cents": 3}})
 
     mocker.patch(
         "app.billing.crud.subscription.subscription.get_live_for_tenant",

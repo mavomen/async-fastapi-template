@@ -17,7 +17,9 @@ from app.billing.crud.subscription import subscription as crud_subscription
 from app.billing.models.stripe_event import StripeEvent
 from app.billing.models.subscription import Subscription, SubscriptionStatus
 from app.billing.services import billing as billing_service
+from app.billing.services import dunning as dunning_service
 from app.core.exceptions import ConflictException
+from app.events.base import EventBus
 
 logger = logging.getLogger("app.billing.stripe")
 
@@ -180,6 +182,8 @@ async def handle_subscription_sync(db: AsyncSession, stripe_sub: dict[str, objec
         billing_service.assert_transition(sub.status, SubscriptionStatus.PAST_DUE)
     elif target_status == SubscriptionStatus.ACTIVE:
         billing_service.assert_transition(sub.status, SubscriptionStatus.ACTIVE)
+        if sub.status == SubscriptionStatus.PAST_DUE:
+            dunning_service.reset_dunning(sub)
     sub.status = target_status
 
     period_start, period_end = _period_from_stripe(stripe_sub)
@@ -196,23 +200,34 @@ async def handle_subscription_sync(db: AsyncSession, stripe_sub: dict[str, objec
     return "synced"
 
 
-async def handle_payment_failed(db: AsyncSession, invoice_obj: dict[str, object]) -> str:
-    """invoice.payment_failed — drive the subscription into past_due."""
+async def handle_payment_failed(
+    db: AsyncSession,
+    invoice_obj: dict[str, object],
+    bus: EventBus | None = None,
+) -> str:
+    """invoice.payment_failed — record a failure on the dunning schedule.
+
+    Every distinct verified failure advances the schedule (repeated
+    failures while already past_due are new attempts, not replays — the
+    event ledger deduplicates replays upstream).
+    """
     raw = invoice_obj.get("subscription")
     if not isinstance(raw, str):
         return "skipped"
     sub = await get_subscription_by_stripe_id(db, raw)
-    if sub is None or sub.status == SubscriptionStatus.PAST_DUE:
-        return "unchanged" if sub is not None else "unknown"
-    billing_service.assert_transition(sub.status, SubscriptionStatus.PAST_DUE)
-    sub.status = SubscriptionStatus.PAST_DUE
-    db.add(sub)
+    if sub is None:
+        return "unknown"
+    await dunning_service.record_payment_failure(db, bus, sub)
     await db.commit()
     await db.refresh(sub)
     return "past_due"
 
 
-async def process_event(db: AsyncSession, event: dict[str, object]) -> str:
+async def process_event(
+    db: AsyncSession,
+    event: dict[str, object],
+    bus: EventBus | None = None,
+) -> str:
     """Dispatch one verified Stripe event. Returns an outcome label.
 
     Owns the full pipeline: idempotency ledger -> domain handling ->
@@ -237,7 +252,7 @@ async def process_event(db: AsyncSession, event: dict[str, object]) -> str:
         deleted = {**inner, "status": "canceled"}
         outcome = await handle_subscription_sync(db, deleted)
     elif event_type == "invoice.payment_failed":
-        outcome = await handle_payment_failed(db, inner)
+        outcome = await handle_payment_failed(db, inner, bus)
     else:
         outcome = "ignored"
 

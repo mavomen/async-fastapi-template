@@ -19,14 +19,16 @@ class SubscriptionStatus(enum.StrEnum):
 
         trialing  -> active | past_due | canceled
         active    -> past_due | canceled
-        past_due  -> active | canceled
+        past_due  -> active | canceled | suspended
         canceled  -> (terminal)
+        suspended -> (terminal, system-set after final payment failure)
     """
 
     TRIALING = "trialing"
     ACTIVE = "active"
     PAST_DUE = "past_due"
     CANCELED = "canceled"
+    SUSPENDED = "suspended"
 
 
 #: Statuses that count as "live" — a tenant may hold at most one live subscription.
@@ -70,6 +72,14 @@ class Subscription(TenantBaseModel):
     stripe_subscription_id: Mapped[str | None] = mapped_column(
         String(255), nullable=True, unique=True, doc="Stripe subscription object id (sub_...)"
     )
+
+    # Dunning state (app/billing/services/dunning.py)
+    failed_payment_count: Mapped[int] = mapped_column(nullable=False, default=0)
+    last_payment_failure_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    next_retry_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    suspended_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     plan: Mapped[Plan] = relationship(foreign_keys=[plan_id])
     pending_plan: Mapped[Plan | None] = relationship(foreign_keys=[pending_plan_id])

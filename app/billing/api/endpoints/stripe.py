@@ -21,7 +21,7 @@ from pydantic import BaseModel, Field, HttpUrl
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import get_current_user, get_db
+from app.api.deps import get_current_user, get_db, get_event_bus
 from app.billing.crud.plan import plan as crud_plan
 from app.billing.crud.subscription import subscription as crud_subscription
 from app.billing.services import billing as billing_service
@@ -34,6 +34,7 @@ from app.billing.services.stripe_client import (
 from app.core.config import settings
 from app.core.exceptions import BadRequestException, ConflictException, NotFoundException
 from app.core.signing import verify_signature_header
+from app.events.base import EventBus
 from app.identity.models.tenant import Tenant
 from app.identity.models.user import User
 
@@ -57,6 +58,7 @@ class CheckoutSessionRequest(BaseModel):
 async def stripe_webhook(
     request: Request,
     db: AsyncSession = Depends(get_db),
+    bus: EventBus = Depends(get_event_bus),
 ) -> Response:
     if not stripe_configured():
         raise HTTPException(status_code=503, detail="Billing provider not configured")
@@ -82,7 +84,7 @@ async def stripe_webhook(
         return ORJSONResponse(status_code=400, content={"detail": "Missing id/type"})
 
     try:
-        outcome = await stripe_events.process_event(db, event)
+        outcome = await stripe_events.process_event(db, event, bus)
     except billing_service.IllegalTransitionError as exc:
         # Verified but inapplicable (e.g. out-of-order delivery): log + ack.
         logger.warning("stripe event %s rejected by state machine: %s", event_id, exc)
