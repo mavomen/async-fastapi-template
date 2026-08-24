@@ -45,9 +45,9 @@ context; routers mount via `app/api/__init__.py`; model modules register in
 - Inbound Stripe webhook endpoint with signature verification
 - Idempotent event processing (safe against Stripe retries)
 
-**`feat/billing-invoicing`** ⏳ open
+**`feat/billing-invoicing`** ✅ done (2026-08-24)
 - Invoice generation from subscription periods
-- PDF rendering and authenticated download endpoints
+- ~~PDF rendering~~ deferred — invoice row + line items are the document of record; binary rendering lands with a later item
 - Invoice list/detail API with tax/VAT fields
 
 **`feat/billing-usage-metering`** ⏳ open

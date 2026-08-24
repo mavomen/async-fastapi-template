@@ -8,6 +8,7 @@ prefixes/tags/order here define the public HTTP surface — keep stable.
 from fastapi import APIRouter
 
 from app.api.endpoints import cms, csp, events, files, tasks
+from app.billing.api.endpoints import invoices as billing_invoices
 from app.billing.api.endpoints import plans as billing_plans
 from app.billing.api.endpoints import stripe as billing_stripe
 from app.billing.api.endpoints import subscriptions as billing_subscriptions
@@ -34,3 +35,4 @@ api_router.include_router(
     billing_subscriptions.router, prefix="/billing/subscriptions", tags=["billing"]
 )
 api_router.include_router(billing_stripe.router, prefix="/billing/stripe", tags=["billing"])
+api_router.include_router(billing_invoices.router, prefix="/billing/invoices", tags=["billing"])

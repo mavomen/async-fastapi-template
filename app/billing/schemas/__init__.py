@@ -1,5 +1,11 @@
 """Billing bounded-context Pydantic schemas."""
 
+from app.billing.schemas.invoice import (
+    GenerateInvoiceRequest,
+    InvoiceLineResponse,
+    InvoiceListResponse,
+    InvoiceResponse,
+)
 from app.billing.schemas.plan import (
     PlanCreate,
     PlanListResponse,
@@ -18,6 +24,10 @@ from app.billing.schemas.subscription import (
 __all__ = [
     "CancelRequest",
     "ChangePlanRequest",
+    "GenerateInvoiceRequest",
+    "InvoiceLineResponse",
+    "InvoiceListResponse",
+    "InvoiceResponse",
     "PlanChangePreview",
     "PlanCreate",
     "PlanListResponse",

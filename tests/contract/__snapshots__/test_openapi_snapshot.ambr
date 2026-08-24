@@ -869,6 +869,42 @@
           'title': 'FileResponse',
           'type': 'object',
         }),
+        'GenerateInvoiceRequest': dict({
+          'description': '''
+            Generate an invoice for the live subscription's current period.
+            
+            Explicit dates are optional; they default to the subscription's
+            ``current_period_start`` / ``current_period_end``.
+          ''',
+          'properties': dict({
+            'period_end': dict({
+              'anyOf': list([
+                dict({
+                  'format': 'date-time',
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Period End',
+            }),
+            'period_start': dict({
+              'anyOf': list([
+                dict({
+                  'format': 'date-time',
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Period Start',
+            }),
+          }),
+          'title': 'GenerateInvoiceRequest',
+          'type': 'object',
+        }),
         'HTTPValidationError': dict({
           'properties': dict({
             'detail': dict({
@@ -1022,6 +1058,187 @@
           }),
           'title': 'IPRuleUpdate',
           'type': 'object',
+        }),
+        'InvoiceLineResponse': dict({
+          'properties': dict({
+            'amount_cents': dict({
+              'title': 'Amount Cents',
+              'type': 'integer',
+            }),
+            'description': dict({
+              'title': 'Description',
+              'type': 'string',
+            }),
+            'id': dict({
+              'title': 'Id',
+              'type': 'integer',
+            }),
+            'quantity': dict({
+              'title': 'Quantity',
+              'type': 'integer',
+            }),
+            'tax_rate_bps': dict({
+              'description': 'Tax/VAT rate in basis points',
+              'title': 'Tax Rate Bps',
+              'type': 'integer',
+            }),
+            'unit_amount_cents': dict({
+              'title': 'Unit Amount Cents',
+              'type': 'integer',
+            }),
+          }),
+          'required': list([
+            'id',
+            'description',
+            'quantity',
+            'unit_amount_cents',
+            'tax_rate_bps',
+            'amount_cents',
+          ]),
+          'title': 'InvoiceLineResponse',
+          'type': 'object',
+        }),
+        'InvoiceListResponse': dict({
+          'properties': dict({
+            'items': dict({
+              'items': dict({
+                '$ref': '#/components/schemas/InvoiceResponse',
+              }),
+              'title': 'Items',
+              'type': 'array',
+            }),
+          }),
+          'required': list([
+            'items',
+          ]),
+          'title': 'InvoiceListResponse',
+          'type': 'object',
+        }),
+        'InvoiceResponse': dict({
+          'properties': dict({
+            'created_at': dict({
+              'format': 'date-time',
+              'title': 'Created At',
+              'type': 'string',
+            }),
+            'currency': dict({
+              'title': 'Currency',
+              'type': 'string',
+            }),
+            'id': dict({
+              'title': 'Id',
+              'type': 'integer',
+            }),
+            'issued_at': dict({
+              'anyOf': list([
+                dict({
+                  'format': 'date-time',
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Issued At',
+            }),
+            'lines': dict({
+              'items': dict({
+                '$ref': '#/components/schemas/InvoiceLineResponse',
+              }),
+              'title': 'Lines',
+              'type': 'array',
+            }),
+            'paid_at': dict({
+              'anyOf': list([
+                dict({
+                  'format': 'date-time',
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Paid At',
+            }),
+            'period_end': dict({
+              'format': 'date-time',
+              'title': 'Period End',
+              'type': 'string',
+            }),
+            'period_start': dict({
+              'format': 'date-time',
+              'title': 'Period Start',
+              'type': 'string',
+            }),
+            'status': dict({
+              '$ref': '#/components/schemas/InvoiceStatus',
+            }),
+            'subscription_id': dict({
+              'title': 'Subscription Id',
+              'type': 'integer',
+            }),
+            'subtotal_cents': dict({
+              'title': 'Subtotal Cents',
+              'type': 'integer',
+            }),
+            'tax_cents': dict({
+              'title': 'Tax Cents',
+              'type': 'integer',
+            }),
+            'tenant_id': dict({
+              'anyOf': list([
+                dict({
+                  'type': 'integer',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Tenant Id',
+            }),
+            'total_cents': dict({
+              'title': 'Total Cents',
+              'type': 'integer',
+            }),
+          }),
+          'required': list([
+            'id',
+            'tenant_id',
+            'subscription_id',
+            'status',
+            'currency',
+            'subtotal_cents',
+            'tax_cents',
+            'total_cents',
+            'period_start',
+            'period_end',
+            'issued_at',
+            'paid_at',
+            'created_at',
+            'lines',
+          ]),
+          'title': 'InvoiceResponse',
+          'type': 'object',
+        }),
+        'InvoiceStatus': dict({
+          'description': '''
+            Lifecycle states for an invoice.
+            
+            Allowed transitions (enforced by app/billing/services/invoicing.py):
+            
+                draft -> open | void
+                open  -> paid | void
+                paid  -> (terminal)
+                void  -> (terminal)
+          ''',
+          'enum': list([
+            'draft',
+            'open',
+            'paid',
+            'void',
+          ]),
+          'title': 'InvoiceStatus',
+          'type': 'string',
         }),
         'NotificationCursorResponse': dict({
           'properties': dict({
@@ -5347,6 +5564,358 @@
           'summary': 'Webauthn Register Complete',
           'tags': list([
             'auth',
+          ]),
+        }),
+      }),
+      '/api/v1/billing/invoices': dict({
+        'get': dict({
+          'operationId': 'list_invoices_api_v1_billing_invoices_get',
+          'parameters': list([
+            dict({
+              'description': 'Filter by status (draft/open/paid/void)',
+              'in': 'query',
+              'name': 'status',
+              'required': False,
+              'schema': dict({
+                'anyOf': list([
+                  dict({
+                    'type': 'string',
+                  }),
+                  dict({
+                    'type': 'null',
+                  }),
+                ]),
+                'description': 'Filter by status (draft/open/paid/void)',
+                'title': 'Status',
+              }),
+            }),
+            dict({
+              'in': 'query',
+              'name': 'limit',
+              'required': False,
+              'schema': dict({
+                'default': 50,
+                'maximum': 200,
+                'minimum': 1,
+                'title': 'Limit',
+                'type': 'integer',
+              }),
+            }),
+            dict({
+              'in': 'query',
+              'name': 'offset',
+              'required': False,
+              'schema': dict({
+                'default': 0,
+                'minimum': 0,
+                'title': 'Offset',
+                'type': 'integer',
+              }),
+            }),
+          ]),
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/InvoiceListResponse',
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+          ]),
+          'summary': "List the tenant's invoices",
+          'tags': list([
+            'billing',
+          ]),
+        }),
+      }),
+      '/api/v1/billing/invoices/generate': dict({
+        'post': dict({
+          'operationId': 'generate_invoice_api_v1_billing_invoices_generate_post',
+          'requestBody': dict({
+            'content': dict({
+              'application/json': dict({
+                'schema': dict({
+                  '$ref': '#/components/schemas/GenerateInvoiceRequest',
+                }),
+              }),
+            }),
+            'required': True,
+          }),
+          'responses': dict({
+            '201': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/InvoiceResponse',
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+            dict({
+              'APIKeyHeader': list([
+              ]),
+            }),
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+          ]),
+          'summary': "Generate a draft invoice for the live subscription's period",
+          'tags': list([
+            'billing',
+          ]),
+        }),
+      }),
+      '/api/v1/billing/invoices/{invoice_id}': dict({
+        'get': dict({
+          'operationId': 'get_invoice_api_v1_billing_invoices__invoice_id__get',
+          'parameters': list([
+            dict({
+              'in': 'path',
+              'name': 'invoice_id',
+              'required': True,
+              'schema': dict({
+                'title': 'Invoice Id',
+                'type': 'integer',
+              }),
+            }),
+          ]),
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/InvoiceResponse',
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+          ]),
+          'summary': 'Invoice detail with line items',
+          'tags': list([
+            'billing',
+          ]),
+        }),
+      }),
+      '/api/v1/billing/invoices/{invoice_id}/issue': dict({
+        'post': dict({
+          'operationId': 'issue_invoice_api_v1_billing_invoices__invoice_id__issue_post',
+          'parameters': list([
+            dict({
+              'in': 'path',
+              'name': 'invoice_id',
+              'required': True,
+              'schema': dict({
+                'title': 'Invoice Id',
+                'type': 'integer',
+              }),
+            }),
+          ]),
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/InvoiceResponse',
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+            dict({
+              'APIKeyHeader': list([
+              ]),
+            }),
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+          ]),
+          'summary': 'Issue a draft invoice (draft -> open)',
+          'tags': list([
+            'billing',
+          ]),
+        }),
+      }),
+      '/api/v1/billing/invoices/{invoice_id}/pay': dict({
+        'post': dict({
+          'description': 'Manual payment capture until a payment provider drives this state.',
+          'operationId': 'pay_invoice_api_v1_billing_invoices__invoice_id__pay_post',
+          'parameters': list([
+            dict({
+              'in': 'path',
+              'name': 'invoice_id',
+              'required': True,
+              'schema': dict({
+                'title': 'Invoice Id',
+                'type': 'integer',
+              }),
+            }),
+          ]),
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/InvoiceResponse',
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+            dict({
+              'APIKeyHeader': list([
+              ]),
+            }),
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+          ]),
+          'summary': 'Mark an open invoice paid (open -> paid)',
+          'tags': list([
+            'billing',
+          ]),
+        }),
+      }),
+      '/api/v1/billing/invoices/{invoice_id}/void': dict({
+        'post': dict({
+          'operationId': 'void_invoice_api_v1_billing_invoices__invoice_id__void_post',
+          'parameters': list([
+            dict({
+              'in': 'path',
+              'name': 'invoice_id',
+              'required': True,
+              'schema': dict({
+                'title': 'Invoice Id',
+                'type': 'integer',
+              }),
+            }),
+          ]),
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/InvoiceResponse',
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+            dict({
+              'APIKeyHeader': list([
+              ]),
+            }),
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+          ]),
+          'summary': 'Void an invoice (releases its period for re-issue)',
+          'tags': list([
+            'billing',
           ]),
         }),
       }),

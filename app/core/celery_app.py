@@ -35,4 +35,8 @@ celery_app.conf.beat_schedule = {
         "task": "app.tasks.purge.purge_soft_deleted",
         "schedule": crontab(hour=4, minute=0, day_of_week=0),  # Sunday 04:00 UTC
     },
+    "generate-due-invoices-daily": {
+        "task": "app.tasks.invoicing.generate_due_invoices",
+        "schedule": crontab(hour=5, minute=0),
+    },
 }

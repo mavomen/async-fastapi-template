@@ -24,6 +24,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   `customer.subscription.updated/deleted`, and `invoice.payment_failed` drive the local
   subscription lifecycle. Disabled (503) until `STRIPE_SECRET_KEY` /
   `STRIPE_WEBHOOK_SECRET` are set; migration `019_add_stripe_integration`
+- Invoicing (`app/billing/services/invoicing.py`, `/api/v1/billing/invoices/*`): invoices
+  generated from subscription periods with plan pricing snapshotted into line items,
+  VAT/tax captured per line in basis points, and a draft → open → paid state machine
+  (void reachable from draft/open; a partial unique index allows re-issue after voiding).
+  Invoice numbers are derived from the primary key (`INV-{year}-{id}`); PDF rendering is
+  deferred. Daily Celery sweep issues invoices for ended periods (idempotent);
+  `billing:read` / `billing:write` permissions; migration `020_add_invoicing`
 
 ## [3.5.0] - 2026-08-21
 
