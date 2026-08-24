@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased]
+
+### Added
+
+- Billing foundation (`app/billing/`): plan catalog (prices in minor units, monthly/yearly
+  intervals, trial days) and per-tenant subscriptions with an enforced lifecycle state
+  machine (trialing → active → past_due → canceled), at most one live subscription per
+  tenant (partial unique index), hybrid proration (upgrades apply immediately with
+  unused-time credit; downgrades schedule at period end), cancel/resume, and lifecycle
+  events on the event bus. REST surface: `/api/v1/billing/plans`,
+  `/api/v1/billing/subscriptions`; `billing:read` / `billing:write` permissions;
+  migration `018_add_billing_tables`
+
 ## [3.5.0] - 2026-08-21
 
 ### Changed

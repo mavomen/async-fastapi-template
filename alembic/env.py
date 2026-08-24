@@ -6,6 +6,7 @@ from sqlalchemy import pool
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from alembic import context
+from app.billing.models import plan, subscription  # noqa: F401
 from app.identity.models import (  # noqa: F401
     api_key,
     auth_audit_log,

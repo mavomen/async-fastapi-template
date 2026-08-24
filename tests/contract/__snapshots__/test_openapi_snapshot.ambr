@@ -460,6 +460,22 @@
           'title': 'Body_verify_magic_link_api_v1_auth_magic_link_verify_post',
           'type': 'object',
         }),
+        'CancelRequest': dict({
+          'description': '''
+            Cancel the tenant's subscription.
+            
+            Default is at period end; ``immediate=True`` cancels right now.
+          ''',
+          'properties': dict({
+            'immediate': dict({
+              'default': False,
+              'title': 'Immediate',
+              'type': 'boolean',
+            }),
+          }),
+          'title': 'CancelRequest',
+          'type': 'object',
+        }),
         'CategoryCreate': dict({
           'properties': dict({
             'description': dict({
@@ -588,6 +604,20 @@
             }),
           }),
           'title': 'CategoryUpdate',
+          'type': 'object',
+        }),
+        'ChangePlanRequest': dict({
+          'properties': dict({
+            'plan_id': dict({
+              'exclusiveMinimum': 0.0,
+              'title': 'Plan Id',
+              'type': 'integer',
+            }),
+          }),
+          'required': list([
+            'plan_id',
+          ]),
+          'title': 'ChangePlanRequest',
           'type': 'object',
         }),
         'EmailTaskRequest': dict({
@@ -1590,6 +1620,257 @@
           'title': 'PermissionRead',
           'type': 'object',
         }),
+        'PlanChangePreview': dict({
+          'description': 'Proration details for an immediate plan change.',
+          'properties': dict({
+            'charge_cents': dict({
+              'description': 'Prorated charge for the remainder of the period on the new plan',
+              'title': 'Charge Cents',
+              'type': 'integer',
+            }),
+            'credit_cents': dict({
+              'description': 'Credit granted for unused time on the old plan',
+              'title': 'Credit Cents',
+              'type': 'integer',
+            }),
+            'net_cents': dict({
+              'description': 'charge - credit; may be negative',
+              'title': 'Net Cents',
+              'type': 'integer',
+            }),
+          }),
+          'required': list([
+            'credit_cents',
+            'charge_cents',
+            'net_cents',
+          ]),
+          'title': 'PlanChangePreview',
+          'type': 'object',
+        }),
+        'PlanCreate': dict({
+          'properties': dict({
+            'currency': dict({
+              'default': 'usd',
+              'maxLength': 3,
+              'minLength': 3,
+              'pattern': '^[a-z]{3}$',
+              'title': 'Currency',
+              'type': 'string',
+            }),
+            'description': dict({
+              'anyOf': list([
+                dict({
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Description',
+            }),
+            'interval': dict({
+              '$ref': '#/components/schemas/PlanInterval',
+            }),
+            'is_active': dict({
+              'default': True,
+              'title': 'Is Active',
+              'type': 'boolean',
+            }),
+            'name': dict({
+              'maxLength': 100,
+              'minLength': 1,
+              'title': 'Name',
+              'type': 'string',
+            }),
+            'price_cents': dict({
+              'maximum': 10000000000.0,
+              'minimum': 0.0,
+              'title': 'Price Cents',
+              'type': 'integer',
+            }),
+            'slug': dict({
+              'description': 'URL-safe unique identifier',
+              'maxLength': 100,
+              'minLength': 1,
+              'pattern': '^[a-z0-9]+(?:-[a-z0-9]+)*$',
+              'title': 'Slug',
+              'type': 'string',
+            }),
+            'trial_days': dict({
+              'default': 0,
+              'maximum': 365.0,
+              'minimum': 0.0,
+              'title': 'Trial Days',
+              'type': 'integer',
+            }),
+          }),
+          'required': list([
+            'name',
+            'slug',
+            'price_cents',
+            'interval',
+          ]),
+          'title': 'PlanCreate',
+          'type': 'object',
+        }),
+        'PlanInterval': dict({
+          'description': 'Billing cadence for a plan.',
+          'enum': list([
+            'monthly',
+            'yearly',
+          ]),
+          'title': 'PlanInterval',
+          'type': 'string',
+        }),
+        'PlanListResponse': dict({
+          'properties': dict({
+            'items': dict({
+              'items': dict({
+                '$ref': '#/components/schemas/PlanResponse',
+              }),
+              'title': 'Items',
+              'type': 'array',
+            }),
+          }),
+          'required': list([
+            'items',
+          ]),
+          'title': 'PlanListResponse',
+          'type': 'object',
+        }),
+        'PlanResponse': dict({
+          'properties': dict({
+            'currency': dict({
+              'title': 'Currency',
+              'type': 'string',
+            }),
+            'description': dict({
+              'anyOf': list([
+                dict({
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Description',
+            }),
+            'id': dict({
+              'title': 'Id',
+              'type': 'integer',
+            }),
+            'interval': dict({
+              '$ref': '#/components/schemas/PlanInterval',
+            }),
+            'is_active': dict({
+              'title': 'Is Active',
+              'type': 'boolean',
+            }),
+            'name': dict({
+              'title': 'Name',
+              'type': 'string',
+            }),
+            'price_cents': dict({
+              'title': 'Price Cents',
+              'type': 'integer',
+            }),
+            'slug': dict({
+              'title': 'Slug',
+              'type': 'string',
+            }),
+            'trial_days': dict({
+              'title': 'Trial Days',
+              'type': 'integer',
+            }),
+          }),
+          'required': list([
+            'id',
+            'name',
+            'slug',
+            'description',
+            'price_cents',
+            'currency',
+            'interval',
+            'trial_days',
+            'is_active',
+          ]),
+          'title': 'PlanResponse',
+          'type': 'object',
+        }),
+        'PlanUpdate': dict({
+          'description': '''
+            Partial plan update.
+            
+            ``currency`` and ``interval`` are intentionally immutable — changing
+            them would silently alter terms for existing subscribers. Create a new
+            plan and migrate subscriptions instead.
+          ''',
+          'properties': dict({
+            'description': dict({
+              'anyOf': list([
+                dict({
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Description',
+            }),
+            'is_active': dict({
+              'anyOf': list([
+                dict({
+                  'type': 'boolean',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Is Active',
+            }),
+            'name': dict({
+              'anyOf': list([
+                dict({
+                  'maxLength': 100,
+                  'minLength': 1,
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Name',
+            }),
+            'price_cents': dict({
+              'anyOf': list([
+                dict({
+                  'maximum': 10000000000.0,
+                  'minimum': 0.0,
+                  'type': 'integer',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Price Cents',
+            }),
+            'trial_days': dict({
+              'anyOf': list([
+                dict({
+                  'maximum': 365.0,
+                  'minimum': 0.0,
+                  'type': 'integer',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Trial Days',
+            }),
+          }),
+          'title': 'PlanUpdate',
+          'type': 'object',
+        }),
         'PostCreate': dict({
           'properties': dict({
             'body_md': dict({
@@ -2064,6 +2345,171 @@
           ]),
           'title': 'RoleRead',
           'type': 'object',
+        }),
+        'SubscribeRequest': dict({
+          'properties': dict({
+            'plan_id': dict({
+              'exclusiveMinimum': 0.0,
+              'title': 'Plan Id',
+              'type': 'integer',
+            }),
+          }),
+          'required': list([
+            'plan_id',
+          ]),
+          'title': 'SubscribeRequest',
+          'type': 'object',
+        }),
+        'SubscriptionActionResponse': dict({
+          'description': 'Response for subscribe / change-plan / cancel / resume actions.',
+          'properties': dict({
+            'applied_plan_id': dict({
+              'anyOf': list([
+                dict({
+                  'type': 'integer',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'description': 'For scheduled changes, the plan that will apply at period end',
+              'title': 'Applied Plan Id',
+            }),
+            'preview': dict({
+              'anyOf': list([
+                dict({
+                  '$ref': '#/components/schemas/PlanChangePreview',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'description': 'Present only for immediate plan changes',
+            }),
+            'subscription': dict({
+              '$ref': '#/components/schemas/SubscriptionResponse',
+            }),
+          }),
+          'required': list([
+            'subscription',
+          ]),
+          'title': 'SubscriptionActionResponse',
+          'type': 'object',
+        }),
+        'SubscriptionResponse': dict({
+          'properties': dict({
+            'cancel_at_period_end': dict({
+              'title': 'Cancel At Period End',
+              'type': 'boolean',
+            }),
+            'canceled_at': dict({
+              'anyOf': list([
+                dict({
+                  'format': 'date-time',
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Canceled At',
+            }),
+            'created_at': dict({
+              'format': 'date-time',
+              'title': 'Created At',
+              'type': 'string',
+            }),
+            'current_period_end': dict({
+              'format': 'date-time',
+              'title': 'Current Period End',
+              'type': 'string',
+            }),
+            'current_period_start': dict({
+              'format': 'date-time',
+              'title': 'Current Period Start',
+              'type': 'string',
+            }),
+            'id': dict({
+              'title': 'Id',
+              'type': 'integer',
+            }),
+            'pending_plan_id': dict({
+              'anyOf': list([
+                dict({
+                  'type': 'integer',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Pending Plan Id',
+            }),
+            'plan_id': dict({
+              'title': 'Plan Id',
+              'type': 'integer',
+            }),
+            'status': dict({
+              '$ref': '#/components/schemas/SubscriptionStatus',
+            }),
+            'tenant_id': dict({
+              'anyOf': list([
+                dict({
+                  'type': 'integer',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Tenant Id',
+            }),
+            'trial_end': dict({
+              'anyOf': list([
+                dict({
+                  'format': 'date-time',
+                  'type': 'string',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Trial End',
+            }),
+          }),
+          'required': list([
+            'id',
+            'tenant_id',
+            'plan_id',
+            'status',
+            'current_period_start',
+            'current_period_end',
+            'trial_end',
+            'cancel_at_period_end',
+            'pending_plan_id',
+            'canceled_at',
+            'created_at',
+          ]),
+          'title': 'SubscriptionResponse',
+          'type': 'object',
+        }),
+        'SubscriptionStatus': dict({
+          'description': '''
+            Lifecycle states for a subscription.
+            
+            Allowed transitions (enforced by app/billing/services/billing.py):
+            
+                trialing  -> active | past_due | canceled
+                active    -> past_due | canceled
+                past_due  -> active | canceled
+                canceled  -> (terminal)
+          ''',
+          'enum': list([
+            'trialing',
+            'active',
+            'past_due',
+            'canceled',
+          ]),
+          'title': 'SubscriptionStatus',
+          'type': 'string',
         }),
         'TOTPDisableRequest': dict({
           'properties': dict({
@@ -4871,6 +5317,402 @@
           'summary': 'Webauthn Register Complete',
           'tags': list([
             'auth',
+          ]),
+        }),
+      }),
+      '/api/v1/billing/plans': dict({
+        'get': dict({
+          'operationId': 'list_plans_api_v1_billing_plans_get',
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/PlanListResponse',
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+          ]),
+          'summary': 'List active plans',
+          'tags': list([
+            'billing',
+          ]),
+        }),
+        'post': dict({
+          'operationId': 'create_plan_api_v1_billing_plans_post',
+          'requestBody': dict({
+            'content': dict({
+              'application/json': dict({
+                'schema': dict({
+                  '$ref': '#/components/schemas/PlanCreate',
+                }),
+              }),
+            }),
+            'required': True,
+          }),
+          'responses': dict({
+            '201': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/PlanResponse',
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+            dict({
+              'APIKeyHeader': list([
+              ]),
+            }),
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+          ]),
+          'summary': 'Create a plan',
+          'tags': list([
+            'billing',
+          ]),
+        }),
+      }),
+      '/api/v1/billing/plans/{plan_id}': dict({
+        'delete': dict({
+          'description': 'Soft-deactivation: plans with subscribers must not vanish; we flag instead.',
+          'operationId': 'deactivate_plan_api_v1_billing_plans__plan_id__delete',
+          'parameters': list([
+            dict({
+              'in': 'path',
+              'name': 'plan_id',
+              'required': True,
+              'schema': dict({
+                'title': 'Plan Id',
+                'type': 'integer',
+              }),
+            }),
+          ]),
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/PlanResponse',
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+            dict({
+              'APIKeyHeader': list([
+              ]),
+            }),
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+          ]),
+          'summary': 'Deactivate a plan',
+          'tags': list([
+            'billing',
+          ]),
+        }),
+        'patch': dict({
+          'operationId': 'update_plan_api_v1_billing_plans__plan_id__patch',
+          'parameters': list([
+            dict({
+              'in': 'path',
+              'name': 'plan_id',
+              'required': True,
+              'schema': dict({
+                'title': 'Plan Id',
+                'type': 'integer',
+              }),
+            }),
+          ]),
+          'requestBody': dict({
+            'content': dict({
+              'application/json': dict({
+                'schema': dict({
+                  '$ref': '#/components/schemas/PlanUpdate',
+                }),
+              }),
+            }),
+            'required': True,
+          }),
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/PlanResponse',
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+            dict({
+              'APIKeyHeader': list([
+              ]),
+            }),
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+          ]),
+          'summary': 'Update a plan (price/name/trial/active only)',
+          'tags': list([
+            'billing',
+          ]),
+        }),
+      }),
+      '/api/v1/billing/subscriptions': dict({
+        'post': dict({
+          'operationId': 'subscribe_api_v1_billing_subscriptions_post',
+          'requestBody': dict({
+            'content': dict({
+              'application/json': dict({
+                'schema': dict({
+                  '$ref': '#/components/schemas/SubscribeRequest',
+                }),
+              }),
+            }),
+            'required': True,
+          }),
+          'responses': dict({
+            '201': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/SubscriptionActionResponse',
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+          ]),
+          'summary': "Subscribe the caller's tenant to a plan",
+          'tags': list([
+            'billing',
+          ]),
+        }),
+      }),
+      '/api/v1/billing/subscriptions/cancel': dict({
+        'post': dict({
+          'operationId': 'cancel_subscription_api_v1_billing_subscriptions_cancel_post',
+          'requestBody': dict({
+            'content': dict({
+              'application/json': dict({
+                'schema': dict({
+                  '$ref': '#/components/schemas/CancelRequest',
+                }),
+              }),
+            }),
+            'required': True,
+          }),
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/SubscriptionActionResponse',
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+          ]),
+          'summary': 'Cancel the subscription (at period end unless immediate=True)',
+          'tags': list([
+            'billing',
+          ]),
+        }),
+      }),
+      '/api/v1/billing/subscriptions/change-plan': dict({
+        'post': dict({
+          'operationId': 'change_plan_api_v1_billing_subscriptions_change_plan_post',
+          'requestBody': dict({
+            'content': dict({
+              'application/json': dict({
+                'schema': dict({
+                  '$ref': '#/components/schemas/ChangePlanRequest',
+                }),
+              }),
+            }),
+            'required': True,
+          }),
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/SubscriptionActionResponse',
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+          ]),
+          'summary': "Change the tenant's plan (upgrades immediate, downgrades at period end)",
+          'tags': list([
+            'billing',
+          ]),
+        }),
+      }),
+      '/api/v1/billing/subscriptions/current': dict({
+        'get': dict({
+          'operationId': 'get_current_subscription_api_v1_billing_subscriptions_current_get',
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/SubscriptionResponse',
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+          ]),
+          'summary': "Get the tenant's current subscription",
+          'tags': list([
+            'billing',
+          ]),
+        }),
+      }),
+      '/api/v1/billing/subscriptions/resume': dict({
+        'post': dict({
+          'operationId': 'resume_subscription_api_v1_billing_subscriptions_resume_post',
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/SubscriptionActionResponse',
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+          ]),
+          'summary': 'Undo a scheduled cancellation',
+          'tags': list([
+            'billing',
           ]),
         }),
       }),

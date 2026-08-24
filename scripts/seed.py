@@ -9,6 +9,7 @@ os.environ["SECRET_KEY"] = "dev-secret-key-min-32-characters!!!"
 
 from sqlalchemy import select
 
+from app.billing.schemas.plan import PlanCreate
 from app.core.config import settings
 from app.core.database import sessionmanager
 from app.identity.crud.user import user as crud_user
@@ -37,6 +38,29 @@ SEED_PERMISSIONS = [
     "webhook:read",
     "webhook:write",
     "notification:admin",
+    "billing:read",
+    "billing:write",
+]
+
+SEED_PLANS = [
+    {
+        "name": "Free",
+        "slug": "free",
+        "description": "Kick the tyres — community support.",
+        "price_cents": 0,
+        "currency": "usd",
+        "interval": "monthly",
+        "trial_days": 0,
+    },
+    {
+        "name": "Pro",
+        "slug": "pro",
+        "description": "For growing teams.",
+        "price_cents": 4900,
+        "currency": "usd",
+        "interval": "monthly",
+        "trial_days": 14,
+    },
 ]
 
 
@@ -82,6 +106,13 @@ async def main():
                 if user_data["username"] == "admin":
                     user.roles.append(role)
                     await db.commit()
+
+        # Seed billing plans
+        from app.billing.crud.plan import plan as crud_plan
+
+        for plan_data in SEED_PLANS:
+            if await crud_plan.get_by_slug(db, slug=plan_data["slug"]) is None:
+                await crud_plan.create(db, PlanCreate(**plan_data))
 
     await sessionmanager.close()
 

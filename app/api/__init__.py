@@ -8,6 +8,8 @@ prefixes/tags/order here define the public HTTP surface — keep stable.
 from fastapi import APIRouter
 
 from app.api.endpoints import cms, csp, events, files, tasks
+from app.billing.api.endpoints import plans as billing_plans
+from app.billing.api.endpoints import subscriptions as billing_subscriptions
 from app.identity.api.endpoints import api_keys, auth, tenant_ip_rules, tenants, totp, users
 from app.notifications.api.endpoints import notifications, webhooks
 
@@ -26,3 +28,7 @@ api_router.include_router(events.router, prefix="/events", tags=["events"])
 api_router.include_router(webhooks.router, prefix="/webhooks", tags=["webhooks"])
 api_router.include_router(notifications.router, prefix="/notifications", tags=["notifications"])
 api_router.include_router(cms.router, prefix="/cms", tags=["cms"])
+api_router.include_router(billing_plans.router, prefix="/billing/plans", tags=["billing"])
+api_router.include_router(
+    billing_subscriptions.router, prefix="/billing/subscriptions", tags=["billing"]
+)

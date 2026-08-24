@@ -1,10 +1,12 @@
-# TODO — Phase II
+# TODO — Phase III
 
-> Items already shipped in the current template have been removed (SSE, full-text search,
-> feature flags, scaffolding CLI, OTel tracing, Grafana dashboards, slowapi rate limiting,
-> CSV/Excel export, Redis caching, K8s + Helm, Celery, audit logging, WebAuthn, email
-> verification, security headers, outgoing webhooks, notification preferences). Everything
-> below is net-new work.
+> Phase II shipped complete in v3.5.0 (46/46 items): webhooks, notification inbox &
+> preferences, k8s operator + hardening, chaos engineering CI, bounded-context
+> restructure, and everything listed in CHANGELOG.
+>
+> Phase III focuses on three themes — **billing**, **event reliability**, and
+> **compliance** — plus net-new fill-out work across the existing sections.
+> Everything below is net-new; nothing duplicates shipped features.
 
 ---
 
@@ -24,264 +26,172 @@
 
 ---
 
+## 💰 Billing
+
+Implements the reserved `app/billing/` scaffold (see docs/ARCHITECTURE.md bounded
+contexts). All billing models/schemas/crud/services/tasks/endpoints live inside the
+context; routers mount via `app/api/__init__.py`; model modules register in
+`alembic/env.py`.
+
+**`feat/billing-plans-subscriptions`** ✅
+- Plan and subscription models in `app/billing/models/` (tenant-scoped via TenantBaseModel)
+- Lifecycle states: trial → active → past_due → canceled, with state-machine transitions
+- Plan changes with proration logic (upgrades immediate + credit, downgrades at period end)
+- REST endpoints under `/api/v1/billing/` (plans catalog + subscriptions lifecycle)
+
+**`feat/billing-stripe-integration`** ⏳ open
+- Stripe customer sync per tenant/user
+- Checkout sessions for plan purchase and upgrades
+- Inbound Stripe webhook endpoint with signature verification
+- Idempotent event processing (safe against Stripe retries)
+
+**`feat/billing-invoicing`** ⏳ open
+- Invoice generation from subscription periods
+- PDF rendering and authenticated download endpoints
+- Invoice list/detail API with tax/VAT fields
+
+**`feat/billing-usage-metering`** ⏳ open
+- Usage counters (Redis-backed) for metered dimensions
+- Metered line items rolled into invoices
+- Quota-enforcement middleware: plan limits applied to API traffic
+
+**`feat/billing-dunning`** ⏳ open
+- Payment retry schedule with exponential backoff
+- Grace periods and automated account suspension on final failure
+- Dunning emails through the notifications context (existing channel gating applies)
+
+**`feat/billing-admin-ui`** ⏳ open
+- HTMX admin views: subscriptions, invoices, payment history
+- Manual plan override and refund trigger actions
+
+---
+
+## 📨 Event Reliability
+
+Closes the at-least-once gaps in the existing event bus (`app/events/`) and Celery
+delivery paths.
+
+**`feat/transactional-outbox`** ⏳ open
+- Outbox table written in the same transaction as domain changes
+- Relay worker publishes to the EventBus after commit — no lost events on crash
+- Per-aggregate ordering guarantees
+
+**`feat/idempotency-keys`** ⏳ open
+- `Idempotency-Key` header support for POST/PATCH endpoints
+- Stored responses replayed for duplicate keys
+- 409 Conflict when key is reused with a different payload
+
+**`feat/consumer-inbox`** ⏳ open
+- Inbox table deduplicating processed event IDs
+- Effectively-once handlers for bus consumers and webhook deliveries
+
+**`ops/event-replay-cli`** ⏳ open
+- CLI to replay events by topic/timeframe into a target environment
+- Dry-run mode with diff preview before actual replay
+
+**`obs/event-lag-monitoring`** ⏳ open
+- Consumer lag metrics for bus consumers and Celery queues
+- Alert rules + Grafana panel for lag thresholds
+
+---
+
+## 🔐 Security & Compliance
+
+**`sec/gdpr-data-toolkit`** ⏳ open
+- Self-service data export: machine-readable JSON archive of a user's data
+- Erasure request workflow with anonymisation job (reuses `cli anonymise-db` logic)
+- Admin queue for reviewing/approving erasure requests
+
+**`sec/retention-policies`** ⏳ open
+- Configurable retention windows per data class (audit logs, notifications, files)
+- Scheduled purge tasks wired into Celery beat
+- Legal-hold flag exempting records from purge
+
+**`sec/audit-hash-chain`** ⏳ open
+- Tamper-evident audit log: per-tenant hash chaining of audit entries
+- Periodic chain anchoring and a verification CLI command
+
+**`sec/siem-streaming`** ⏳ open
+- Stream auth/audit events to SIEM sinks (Splunk/Elastic HTTP JSON endpoints)
+- Configurable sink URL, batching, and failure buffering
+
+**`sec/consent-management`** ⏳ open
+- Versioned consent records (ToS, marketing) with timestamped acceptance
+- Consent enforcement hooks in the notifications email channel gating
+
+**`test/tenant-isolation-fuzz`** ⏳ open
+- Automated fuzzer asserting zero cross-tenant reads/writes across all endpoints
+- RLS bypass detection: every endpoint exercised under two tenants with swapped tokens
+
+**`ops/sbom-supply-chain`** ⏳ open
+- CycloneDX SBOM generated per container image in CI
+- SLSA provenance attestation; sample sigstore policy-controller admission config
+
+---
+
 ## 🗄️ Database & Storage
 
-**`perf/db-read-write-split`** ✅
-- Route reads to asyncpg replica pool, writes to primary
-- Asyncpg pool min/max tuning per environment via config
-- Alert when pool saturation exceeds 80%
-- Expose active/idle/waiting connections as Prometheus gauges
+**`perf/table-partitioning`** ⏳ open
+- Declarative monthly range partitions for `audit_logs` and high-volume event tables
+- Automated partition rotation and retention-aware detach/drop
+- Migration guide for existing deployments
 
-**`perf/db-query-optimization`** ✅
-- Keyset (cursor) pagination for high-traffic endpoints
-- Auto-capture `EXPLAIN ANALYZE` when a query exceeds a configurable threshold
-- Materialized views or Redis sorted sets for expensive aggregations
-- Bulk insert/update for CSV import and audit log writes
-
-**`ops/db-backup-automation`** ✅
-- `pg_dump` to S3 on a schedule with 30-day retention
-- Automated restore drill in CI
+**`perf/pgbouncer-k8s`** ⏳ open
+- PgBouncer deployment added to Helm chart (transaction pooling mode)
+- Pooler-aware SQLAlchemy settings per environment
 
 ---
 
 ## ⚡ Performance
 
-**`perf/redis-rate-limiting`** ✅
-- Replace slowapi with a Redis sliding-window counter
-- Per-endpoint rate limit tiers (public / authenticated / admin)
-- Expose `X-RateLimit-Remaining` and related headers to API consumers
+**`perf/etag-caching`** ⏳ open
+- ETag / If-None-Match support on GET collection endpoints
+- 304 Not Modified responses to cut payload costs
 
-**`perf/response-compression`** ✅
-- Brotli/gzip middleware for API responses
-- 20 tests
-
-**`perf/http-connection-pooling`** ✅
-- Shared httpx.AsyncClient singleton with keep-alive connection pool
-- OAuth2 `exchange_code` and `get_user_info` use shared client instead of per-call clients
-- Lazy-load heavy modules: webauthn (app/auth), aioboto3 (app/storage/s3), openpyxl (app/utils/export_excel), kafka-python (app/events/kafka_bus)
-- 7 tests for HttpClient lifecycle
-
-**`perf/cdn-static-assets`** ✅
-- `CDN_DOMAIN` setting + `get_url()` on `StorageBackend` / `S3Storage`
-- Upload endpoints return optional `url` field when CDN is configured
-- 5 tests for CDN URL generation with and without CDN domain, plus special-character encoding
-
----
-
-## 🔐 Security
-
-**`sec/oauth2-social-login`** ✅
-- Google, GitHub, and GitLab OAuth2 providers
-- Account linking for users who sign up with multiple providers
-- 29 tests
-
-**`sec/totp-2fa`** ✅
-- Time-based one-time passwords (TOTP)
-- Recovery code generation and storage
-- 40 tests
-
-**`sec/session-management`** ✅
-- List active sessions per user in the API and admin UI
-- Force-logout individual sessions
-- 15 tests
-
-**`sec/api-key-auth`** ✅
-- Service-to-service API keys with scoped RBAC permissions
-- 16 tests
-
-**`sec/passwordless-magic-links`** ✅
-- Email-based login with short-lived signed tokens (distinct from WebAuthn)
-- 10 tests
-
-**`sec/access-control`** ✅
-- IP allow/deny list middleware per tenant
-- Brute-force account lockout after N failed attempts
-- Audit trail entries for auth events (login, MFA enrollment, password change)
-- 17 tests
-
-**`sec/jwt-hardening`** ✅
-- JWT revocation list (blacklist compromised tokens before expiry)
-- Secrets rotation endpoint — rotate `SECRET_KEY` and re-sign active JWTs
-- 7 tests
-
-**`sec/csp-headers`** ✅
-- Strict Content Security Policy with `report-uri` endpoint
-- 5 tests
+**`perf/cache-single-flight`** ⏳ open
+- Single-flight locking so concurrent cache misses trigger one backend query
+- Thundering-herd protection for hot keys
 
 ---
 
 ## 📡 Observability
 
-**`obs/distributed-tracing`** ✅
-- Complete Grafana Tempo ingestion for the existing OTel spans
+**`obs/continuous-profiling`** ⏳ open
+- Pyroscope agent wired into the app image (env-gated, off by default)
+- Flamegraph dashboards linked from latency alert rules
 
-**`obs/slo-dashboards`** ✅
-- Prometheus recording rules for SLO burn rates (5m/30m) and latency percentiles
-- SLO Grafana dashboard: availability % gauge, p50/p95/p99 latency, error budget burn rate, 5xx rate
-- Added db_active_queries + db_query_duration_seconds metrics (fixed broken DB dashboard)
-- Removed duplicate http_requests_total / http_request_duration_seconds from metrics.py
-
-**`obs/alerting`** ✅
-- Prometheus alert rules: HighErrorRate, HighLatencyP99, DBPoolSaturated, RedisDown, PostgresDown, ErrorBudgetBurnFast/Slow
-- Alertmanager with severity-based routing to Slack and PagerDuty
-- /health/ready and /health/dependencies now check event bus (Redis or Kafka)
-- SLACK_WEBHOOK_URL and PAGERDUTY_KEY config fields
-
-**`obs/synthetic-monitoring`** ✅
-- k6 smoke test (1 VU, 30s) and load test (10-50 VU ramp, 5min) in benchmarks/k6/
-- Monthly CI workflow with pass/fail thresholds and benchmark trend reports
-- Fixed compare_benchmarks.py to actually fail on >20% regression
-
-**`obs/log-sampling`** ✅
-- Adaptive sampling for high-throughput endpoints
-- Full capture retained for errors
-
-**`obs/error-catalog`** ✅
-- Unique error codes in responses with links to internal playbooks
-
----
-
-## 🚀 New Features
-
-**`feat/webhook-engine`** ✅
-- Outgoing webhooks for domain events
-- Retry with exponential backoff and HMAC signature verification
-- Delivery history, per-webhook management endpoints, and ping/test endpoint
-
-**`feat/cms-module`** ✅
-- Markdown pages with version history and draft/publish workflow
-
-**`feat/file-thumbnailing`** ✅
-- Automatic thumbnail generation for uploaded images
-
-**`feat/i18n`** ✅
-- Locale support for API error messages and email templates
-
-**`feat/notification-preferences`** ✅
-- Per-user opt-in/opt-out for email, in-app, and webhook channels
-- Persisted in-app inbox with list/mark-read/mark-all-read/delete endpoints and WebSocket push
-- Channel gating in the event-bus dispatcher, including actor-level webhook suppression
-
-**`feat/soft-delete`** ✅
-- Soft-delete pattern with restore endpoint and configurable auto-purge
+*(event-lag monitoring lives under 📨 Event Reliability)*
 
 ---
 
 ## ☸️ Infrastructure & Deployment
 
-**`ops/k8s-autoscaling`** ✅
-- Horizontal Pod Autoscaler with scale-down stabilization window
-- Graceful shutdown: preStop sleep 5, terminationGracePeriodSeconds 45, in-flight drain flag
-- Canonical /healthz (liveness) + /readyz (readiness) probes; startupProbe for slow starts
-- RollingUpdate strategy (maxSurge 1, maxUnavailable 0) — zero-downtime deploys
-- Network policy: DNS egress (port 53) added
-- Dockerfiles: HEALTHCHECK /healthz + --timeout-graceful-shutdown 30
-- Helm chart v0.2.0: HPA, PDB, ConfigMap/Secret templates, resources, TLS ingress
-- Secrets template uses Helm placeholders — no plaintext credentials
-- 29 tests (probe endpoints, drain flag, YAML structure, Helm templates)
+**`ops/vault-secrets`** ⏳ open
+- External Secrets Operator integration with Vault provider
+- Migration path off Helm-placeholder secrets for production installs
 
-**`ops/k8s-operator`** ✅
-- Kopf-based operator managing Deployment/Service/HPA/PDB via the FastAPIApp CRD (`operator/`)
-- Hardened: explicit `app.example.com/v1` handler registration, resume-on-restart reconcile,
-  RBAC manifests, non-root Dockerfile with HEALTHCHECK, in-cluster Deployment manifest,
-  example CR, docs (docs/operator.md), CI build/sign/scan for the operator image
+**`ops/ws-presence-scale`** ⏳ open
+- Redis-backed WebSocket presence and channel fan-out across replicas
+- Multi-worker chat scale-out with connection draining on shutdown
 
-**`ops/k8s-hardening`** ✅
-- Pod/container securityContext (runAsNonRoot, readOnlyRootFilesystem, drop ALL caps, seccomp RuntimeDefault)
-- Dedicated ServiceAccount with automountServiceAccountToken: false
-- NetworkPolicy ingress restricted to ingress-nginx namespace only
-- Ingress uses ingressClassName: nginx
-- cosign keyless signing for supply chain security
-- Trivy image scanning workflow (SARIF + table + fail on CRITICAL/HIGH)
-- emptyDir volumes for /tmp and /data/uploads with readOnlyRootFilesystem
-- 21 tests validating all K8s manifests and Helm templates
-
-**`ops/terraform-module`** ✅
-- Reusable Terraform module for the full stack (DB, Redis, Kafka, app)
-- Cost allocation tags propagated to all cloud resources
-
-**`ops/canary-deployments`** ✅
-- Flagger or Argo Rollouts with metric-based promotion gates
-
-**`ops/multi-region-failover`** ✅
-- Active-passive region configuration with DNS failover
-- Route53 health checks + failover routing policies, cross-region Aurora replica (terraform/modules/multi_region)
-
-**`ops/chaos-engineering`** ✅
-- Chaos Mesh scenarios with safety defaults in k8s/chaos/ (cpu-stress, dns-error, http-timeout, network-latency, pod-kill)
-- Weekly automated chaos experiments as a CI job: ephemeral kind cluster, full app stack
-  (deps + Helm chart + migrations), pinned Chaos Mesh, recovery assertions
-  (rollout status + /healthz) per experiment — see docs/chaos.md
+*(SBOM/supply-chain lives under 🔐 Security & Compliance)*
 
 ---
 
 ## 🛠️ Developer Experience
 
-**`dx/domain-restructure`** ✅
-- Split `app/` into bounded contexts: `identity/`, `billing/`, `notifications/`
-- `identity/` owns users, RBAC, tenants, API keys, TOTP, WebAuthn, OAuth2, auth audit, user GraphQL
-- `notifications/` owns inbox, preferences, email delivery, webhooks; templates stay in `app/templates/email/`
-- `billing/` reserved as documented scaffold; shared kernel (base models, CMS, files, task status, audit log) stays in `app/models|schemas|crud`
-- HTTP surface byte-identical (OpenAPI snapshot unchanged); seams documented in docs/ARCHITECTURE.md
+**`dx/project-generator`** ⏳ open
+- Copier template to instantiate downstream projects from this template
+- Interactive rename, module selection (billing/CMS/webhooks optional), secret generation
 
-**`dx/local-dev`** ✅
-- `docker compose up` provisions everything in under 10 seconds
-- Celery auto-restart on code changes in dev (live reload for workers)
-- Hot-reloadable Jinja2 templates in the admin dashboard
-
-**`dx/pre-commit-expansion`** ✅
-- Add `poetry check`, `pip-audit`, and `detect-secrets` hooks
-
-**`dx/openapi-sdk-generation`** ✅
-- Auto-publish typed client SDKs for Python and TypeScript from the OpenAPI schema
-- Python SDK via openapi-python-client (>=0.25), TypeScript via openapi-typescript (npx)
-- `generate-sdks` CLI command (--python, --ts flags), release-triggered CI workflow
-- .gitignore keeps generated output out of VCS; .gitkeep preserves directories
-- 13 tests
-
-**`dx/api-versioning`** ✅
-- Formal `Accept: application/vnd.app.v2+json` header strategy
-- Auto-detect breaking OpenAPI changes in CI and post a diff on PRs
-
-**`dx/mypy-stubs`** ✅
-- Generate mypy stub files for untyped third-party dependencies
+**`dx/devcontainer`** ⏳ open
+- Devcontainer with prebuilt services image (Postgres, Redis, Kafka)
+- Preinstalled toolchain: poetry, pre-commit hooks ready, task runner defaults
 
 ---
 
 ## 🧪 Testing & Quality Gates
 
-**`test/e2e-playwright`** ✅
-- Full admin dashboard flows via Playwright in CI
-- JWT auth injection via page.route() header manipulation (no login form)
-- Tests: dashboard load, user list/search/detail/pagination, role list, trashed list, sessions, profile
-- Auto-started dev server via multiprocessing (session-scoped), 30s timeout
-- CI workflow with Docker services, migrations, seed, Chromium install
-- 14 tests, excluded from default pytest run (-m e2e required)
-
-**`test/fuzz-and-contract`** ✅
-- Schemathesis fuzz testing against every registered endpoint
-- Hypothesis property-based tests for User schemas
-- Pact-style consumer-driven contracts + provider verification
-- Schema comparison test to detect breaking API changes against baseline
-- OpenAPI baseline generation script
-- CI workflow for weekly + PR fuzz/contract runs
-- 25+ tests total (fuzz, property, pact, schema compare)
-
-**`test/performance-budgets`** ✅
-- Fail CI if p95 latency exceeds a configured threshold
-- k6 regression suite compared against a stored baseline
-- Block deploys if SLO error budget is exhausted
-
-**`test/mutation-coverage`** ✅
-- Expand mutmut mutation testing scope
-- Publish test coverage badge to README via CI
-- Migration smoke tests against a throwaway DB in CI
-
-**`test/security-scanning`** ✅
-- `bandit` + `safety` + Trivy as mandatory CI gates
-- Dependency vulnerability scanning via `poetry audit`
-- Weekly automated dependency update PRs (Dependabot-style)
-
-**`test/smoke-pipeline`** ✅
-- Post-deploy smoke suite with canary detection
-- Slack PR bot: auto-post lint score, coverage delta, and perf impact
+**`test/soak-nightly`** ⏳ open
+- Nightly 2h low-VU soak profile (k6) detecting memory leaks and connection drift
+- Trend report comparing RSS/pool metrics across runs; fail on sustained growth
