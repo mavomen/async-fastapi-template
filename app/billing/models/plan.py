@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import enum
 
-from sqlalchemy import Boolean, Integer, String, Text
+from sqlalchemy import JSON, Boolean, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import BaseModel
@@ -35,6 +35,13 @@ class Plan(BaseModel):
     interval: Mapped[PlanInterval] = mapped_column(String(20), nullable=False)
     trial_days: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    #: Metered dimensions for usage-based billing, e.g.
+    #: ``{"api_requests": {"unit_amount_cents": 1, "included_quantity": 10000}}``.
+    #: ``None`` means the plan is not metered. Shape is validated by
+    #: ``DimensionConfig`` in app/billing/schemas/plan.py.
+    metering: Mapped[dict[str, dict[str, int]] | None] = mapped_column(
+        JSON, nullable=True, default=None
+    )
 
     def __repr__(self) -> str:
         return (

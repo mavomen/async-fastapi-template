@@ -50,10 +50,10 @@ context; routers mount via `app/api/__init__.py`; model modules register in
 - ~~PDF rendering~~ deferred — invoice row + line items are the document of record; binary rendering lands with a later item
 - Invoice list/detail API with tax/VAT fields
 
-**`feat/billing-usage-metering`** ⏳ open
-- Usage counters (Redis-backed) for metered dimensions
-- Metered line items rolled into invoices
-- Quota-enforcement middleware: plan limits applied to API traffic
+**`feat/billing-usage-metering`** ✅ done
+- Usage counters (Redis-backed) for metered dimensions — period-scoped keys, TTL with grace, fail-open reads/writes
+- Metered line items rolled into invoices — overage-only billing (`max(0, used - included)` × unit price)
+- Quota enforcement as a router-level dependency on authenticated v1 routes (429 over quota), gated behind `BILLING_QUOTA_ENABLED`; `GET /billing/subscriptions/usage` endpoint
 
 **`feat/billing-dunning`** ⏳ open
 - Payment retry schedule with exponential backoff
