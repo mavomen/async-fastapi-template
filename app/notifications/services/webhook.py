@@ -1,65 +1,19 @@
 """Outgoing webhook dispatch and HMAC signature utilities."""
 
-import hashlib
-import hmac
 import logging
-import time
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
+from app.core.signing import build_signature_header, sign_payload, verify_signature_header
 from app.events.base import Event
 from app.notifications.crud.webhook import webhook as webhook_crud
 
 logger = logging.getLogger("app.webhooks")
 
-
-# -------- HMAC signatures (Stripe-style: t=<ts>,v1=<hex>) --------
-def sign_payload(body: bytes, secret: str, timestamp: int) -> str:
-    """Sign a request body with HMAC-SHA256, binding it to a timestamp."""
-    message = f"{timestamp}.{body.decode()}".encode()
-    return hmac.new(secret.encode("utf-8"), message, hashlib.sha256).hexdigest()
-
-
-def build_signature_header(body: bytes, secret: str, timestamp: int) -> str:
-    """Build the ``X-Webhook-Signature`` header value for a payload."""
-    return f"t={timestamp},v1={sign_payload(body, secret, timestamp)}"
-
-
-def verify_signature_header(
-    body: bytes,
-    secret: str,
-    signature_header: str | None,
-    *,
-    tolerance_seconds: int | None = None,
-) -> bool:
-    """Verify a ``t=<ts>,v1=<sig>`` signature header, rejecting stale timestamps."""
-    if not signature_header:
-        return False
-    parts: dict[str, str] = {}
-    for item in signature_header.split(","):
-        if "=" in item:
-            key, value = item.split("=", 1)
-            parts[key.strip()] = value.strip()
-    timestamp_str = parts.get("t")
-    signature = parts.get("v1")
-    if not timestamp_str or not signature:
-        return False
-    try:
-        timestamp = int(timestamp_str)
-    except ValueError:
-        return False
-    tolerance = (
-        tolerance_seconds
-        if tolerance_seconds is not None
-        else settings.WEBHOOK_SIGNATURE_TOLERANCE_SECONDS
-    )
-    if abs(int(time.time()) - timestamp) > tolerance:
-        return False
-    expected = sign_payload(body, secret, timestamp)
-    return hmac.compare_digest(expected, signature)
+__all__ = ["build_signature_header", "sign_payload", "verify_signature_header"]
 
 
 # -------- retry backoff --------

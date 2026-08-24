@@ -39,7 +39,7 @@ context; routers mount via `app/api/__init__.py`; model modules register in
 - Plan changes with proration logic (upgrades immediate + credit, downgrades at period end)
 - REST endpoints under `/api/v1/billing/` (plans catalog + subscriptions lifecycle)
 
-**`feat/billing-stripe-integration`** ⏳ open
+**`feat/billing-stripe-integration`** ✅ done (2026-08-24)
 - Stripe customer sync per tenant/user
 - Checkout sessions for plan purchase and upgrades
 - Inbound Stripe webhook endpoint with signature verification

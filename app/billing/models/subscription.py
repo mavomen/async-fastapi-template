@@ -5,7 +5,7 @@ from __future__ import annotations
 import enum
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, Index, text
+from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, Index, String, text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.billing.models.plan import Plan, PlanInterval
@@ -67,6 +67,9 @@ class Subscription(TenantBaseModel):
         ForeignKey("plans.id", ondelete="SET NULL"), nullable=True
     )
     canceled_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    stripe_subscription_id: Mapped[str | None] = mapped_column(
+        String(255), nullable=True, unique=True, doc="Stripe subscription object id (sub_...)"
+    )
 
     plan: Mapped[Plan] = relationship(foreign_keys=[plan_id])
     pending_plan: Mapped[Plan | None] = relationship(foreign_keys=[pending_plan_id])
