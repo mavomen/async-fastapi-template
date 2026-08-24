@@ -18,6 +18,7 @@ from app.billing.crud.invoice import invoice as crud_invoice
 from app.billing.models.invoice import Invoice, InvoiceLine, InvoiceStatus
 from app.billing.models.plan import Plan
 from app.billing.models.subscription import Subscription
+from app.billing.services import usage as usage_service
 from app.core.exceptions import ConflictException, NotFoundException
 from app.events.base import Event
 
@@ -60,6 +61,40 @@ def apply_totals(invoice: Invoice) -> Invoice:
     invoice.subtotal_cents, invoice.tax_cents = compute_totals(list(invoice.lines))
     invoice.total_cents = invoice.subtotal_cents + invoice.tax_cents
     return invoice
+
+
+async def append_metered_lines(
+    invoice: Invoice,
+    plan: Plan,
+    tenant_id: int | None,
+    period_start: datetime,
+) -> None:
+    """Add one overage-only line per metered dimension with recorded usage.
+
+    ``billable = max(0, used - included_quantity)``; dimensions with no
+    overage are skipped. Counter reads fail open (usage -> 0), matching
+    the metering service's availability-first stance.
+    """
+    if tenant_id is None:
+        return
+    for dimension, cfg in usage_service.extract_metering(plan.metering).items():
+        used = await usage_service.get_usage(tenant_id, dimension, period_start)
+        overage_cents = usage_service.compute_overage(
+            used, cfg["included_quantity"], cfg["unit_amount_cents"]
+        )
+        if overage_cents <= 0:
+            continue
+        billable_units = used - cfg["included_quantity"]
+        invoice.lines.append(
+            InvoiceLine(
+                description=f"{dimension} overage ({billable_units} units @ "
+                f"{cfg['unit_amount_cents']} cents)",
+                quantity=billable_units,
+                unit_amount_cents=cfg["unit_amount_cents"],
+                tax_rate_bps=0,
+                amount_cents=overage_cents,
+            )
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -110,6 +145,7 @@ async def generate_invoice(
         period_end=p_end,
     )
     inv.lines.append(line)
+    await append_metered_lines(inv, plan, subscription.tenant_id, p_start)
     apply_totals(inv)
 
     try:

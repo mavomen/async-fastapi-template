@@ -1,8 +1,19 @@
 """Pydantic schemas for billing plans."""
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from app.billing.models.plan import PlanInterval
+
+
+class DimensionConfig(BaseModel):
+    """Billing parameters for one metered dimension.
+
+    ``included_quantity`` is free per billing period; usage beyond it is
+    invoiced at ``unit_amount_cents`` per unit (overage-only).
+    """
+
+    unit_amount_cents: int = Field(..., ge=0, le=100_000_000)
+    included_quantity: int = Field(0, ge=0)
 
 
 class PlanCreate(BaseModel):
@@ -20,6 +31,13 @@ class PlanCreate(BaseModel):
     interval: PlanInterval
     trial_days: int = Field(0, ge=0, le=365)
     is_active: bool = True
+    metering: dict[str, DimensionConfig] | None = Field(
+        None,
+        description=(
+            "Metered dimensions for usage-based billing, keyed by dimension name "
+            "(e.g. {'api_requests': {'unit_amount_cents': 1, 'included_quantity': 10000}})"
+        ),
+    )
 
 
 class PlanUpdate(BaseModel):
@@ -35,6 +53,15 @@ class PlanUpdate(BaseModel):
     price_cents: int | None = Field(None, ge=0, le=10_000_000_000)
     trial_days: int | None = Field(None, ge=0, le=365)
     is_active: bool | None = None
+    #: Omitted on PATCH = unchanged; explicit ``null`` = clear metering
+    #: (CRUDBase uses ``model_dump(exclude_unset=True)``).
+    metering: dict[str, DimensionConfig] | None = None
+
+
+def _metering_out(value: dict[str, dict[str, int]] | None) -> dict[str, DimensionConfig] | None:
+    if value is None:
+        return None
+    return {name: DimensionConfig.model_validate(cfg) for name, cfg in value.items()}
 
 
 class PlanResponse(BaseModel):
@@ -49,6 +76,16 @@ class PlanResponse(BaseModel):
     interval: PlanInterval
     trial_days: int
     is_active: bool
+    metering: dict[str, DimensionConfig] | None = Field(default=None)
+
+    @model_validator(mode="before")
+    @classmethod
+    def _coerce_metering(cls, data: object) -> object:
+        if isinstance(data, dict):
+            raw = data.get("metering")
+            if isinstance(raw, dict):
+                data["metering"] = _metering_out(raw)
+        return data
 
 
 class PlanListResponse(BaseModel):

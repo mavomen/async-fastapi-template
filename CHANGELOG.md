@@ -31,6 +31,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   Invoice numbers are derived from the primary key (`INV-{year}-{id}`); PDF rendering is
   deferred. Daily Celery sweep issues invoices for ended periods (idempotent);
   `billing:read` / `billing:write` permissions; migration `020_add_invoicing`
+- Usage metering (`app/billing/services/usage.py`, `app/billing/api/deps.py`): Redis-backed
+  period-scoped counters per metered dimension (`plans.metering` JSON, migration
+  `021_add_plan_metering`). Authenticated API routes enforce plan quotas (429 over quota,
+  fail-open on internal errors) behind `BILLING_QUOTA_ENABLED` (default off). Invoices
+  append overage-only lines (`max(0, used - included)` × unit price); new
+  `GET /api/v1/billing/subscriptions/usage` reports current-period usage
 
 ## [3.5.0] - 2026-08-21
 

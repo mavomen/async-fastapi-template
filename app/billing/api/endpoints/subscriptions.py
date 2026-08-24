@@ -23,7 +23,9 @@ from app.billing.schemas.subscription import (
     SubscriptionActionResponse,
     SubscriptionResponse,
 )
+from app.billing.schemas.usage import DimensionUsage, UsageResponse
 from app.billing.services import billing as billing_service
+from app.billing.services import usage as usage_service
 from app.core.exceptions import (
     BadRequestException,
     ConflictException,
@@ -241,3 +243,35 @@ async def resume_subscription(
     await db.refresh(sub)
     await bus.publish(billing_service.subscription_event("resumed", sub, current_user.id))
     return _action_response(sub)
+
+
+@router.get(
+    "/usage",
+    response_model=UsageResponse,
+    summary="Current-period usage vs included quantities",
+)
+async def get_usage(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> UsageResponse:
+    """Per-dimension usage snapshot for the live subscription's period."""
+    if current_user.tenant_id is None:
+        raise BadRequestException(detail="Usage requires a tenant membership")
+    sub = await _require_live_subscription(db, current_user.tenant_id)
+    plan_row = await crud_plan.get(db, sub.plan_id)
+    dimensions = usage_service.extract_metering(plan_row.metering if plan_row else None)
+
+    items: list[DimensionUsage] = []
+    for dimension, cfg in dimensions.items():
+        used = await usage_service.get_usage(
+            current_user.tenant_id, dimension, sub.current_period_start
+        )
+        items.append(
+            DimensionUsage(
+                dimension=dimension,
+                used=used,
+                included_quantity=cfg["included_quantity"],
+                unit_amount_cents=cfg["unit_amount_cents"],
+            )
+        )
+    return UsageResponse(period_start=sub.current_period_start, period_end=sub.current_period_end, dimensions=items)

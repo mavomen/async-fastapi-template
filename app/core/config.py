@@ -220,6 +220,9 @@ class Settings(BaseSettings):
 
     # Outgoing Webhooks
     WEBHOOK_ENABLED: bool = True
+    #: Master switch for plan quota enforcement (app/billing/api/deps.py).
+    #: Off by default — enabling changes API behavior for metered plans.
+    BILLING_QUOTA_ENABLED: bool = False
     STRIPE_SECRET_KEY: str = Field(
         default="",
         description="Stripe API secret key (sk_...). Empty disables the Stripe integration.",

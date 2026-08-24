@@ -650,6 +650,68 @@
           'title': 'CheckoutSessionRequest',
           'type': 'object',
         }),
+        'DimensionConfig': dict({
+          'description': '''
+            Billing parameters for one metered dimension.
+            
+            ``included_quantity`` is free per billing period; usage beyond it is
+            invoiced at ``unit_amount_cents`` per unit (overage-only).
+          ''',
+          'properties': dict({
+            'included_quantity': dict({
+              'default': 0,
+              'minimum': 0.0,
+              'title': 'Included Quantity',
+              'type': 'integer',
+            }),
+            'unit_amount_cents': dict({
+              'maximum': 100000000.0,
+              'minimum': 0.0,
+              'title': 'Unit Amount Cents',
+              'type': 'integer',
+            }),
+          }),
+          'required': list([
+            'unit_amount_cents',
+          ]),
+          'title': 'DimensionConfig',
+          'type': 'object',
+        }),
+        'DimensionUsage': dict({
+          'description': "One metered dimension's current-period snapshot.",
+          'properties': dict({
+            'dimension': dict({
+              'title': 'Dimension',
+              'type': 'string',
+            }),
+            'included_quantity': dict({
+              'description': 'Free allowance per period',
+              'minimum': 0.0,
+              'title': 'Included Quantity',
+              'type': 'integer',
+            }),
+            'unit_amount_cents': dict({
+              'description': 'Overage price per unit',
+              'minimum': 0.0,
+              'title': 'Unit Amount Cents',
+              'type': 'integer',
+            }),
+            'used': dict({
+              'description': 'Units consumed so far this period',
+              'minimum': 0.0,
+              'title': 'Used',
+              'type': 'integer',
+            }),
+          }),
+          'required': list([
+            'dimension',
+            'used',
+            'included_quantity',
+            'unit_amount_cents',
+          ]),
+          'title': 'DimensionUsage',
+          'type': 'object',
+        }),
         'EmailTaskRequest': dict({
           'properties': dict({
             'body': dict({
@@ -1923,6 +1985,21 @@
               'title': 'Is Active',
               'type': 'boolean',
             }),
+            'metering': dict({
+              'anyOf': list([
+                dict({
+                  'additionalProperties': dict({
+                    '$ref': '#/components/schemas/DimensionConfig',
+                  }),
+                  'type': 'object',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'description': "Metered dimensions for usage-based billing, keyed by dimension name (e.g. {'api_requests': {'unit_amount_cents': 1, 'included_quantity': 10000}})",
+              'title': 'Metering',
+            }),
             'name': dict({
               'maxLength': 100,
               'minLength': 1,
@@ -2013,6 +2090,20 @@
               'title': 'Is Active',
               'type': 'boolean',
             }),
+            'metering': dict({
+              'anyOf': list([
+                dict({
+                  'additionalProperties': dict({
+                    '$ref': '#/components/schemas/DimensionConfig',
+                  }),
+                  'type': 'object',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Metering',
+            }),
             'name': dict({
               'title': 'Name',
               'type': 'string',
@@ -2074,6 +2165,20 @@
                 }),
               ]),
               'title': 'Is Active',
+            }),
+            'metering': dict({
+              'anyOf': list([
+                dict({
+                  'additionalProperties': dict({
+                    '$ref': '#/components/schemas/DimensionConfig',
+                  }),
+                  'type': 'object',
+                }),
+                dict({
+                  'type': 'null',
+                }),
+              ]),
+              'title': 'Metering',
             }),
             'name': dict({
               'anyOf': list([
@@ -2975,6 +3080,34 @@
             'access_token',
           ]),
           'title': 'Token',
+          'type': 'object',
+        }),
+        'UsageResponse': dict({
+          'properties': dict({
+            'dimensions': dict({
+              'items': dict({
+                '$ref': '#/components/schemas/DimensionUsage',
+              }),
+              'title': 'Dimensions',
+              'type': 'array',
+            }),
+            'period_end': dict({
+              'format': 'date-time',
+              'title': 'Period End',
+              'type': 'string',
+            }),
+            'period_start': dict({
+              'format': 'date-time',
+              'title': 'Period Start',
+              'type': 'string',
+            }),
+          }),
+          'required': list([
+            'period_start',
+            'period_end',
+            'dimensions',
+          ]),
+          'title': 'UsageResponse',
           'type': 'object',
         }),
         'UserCreate': dict({
@@ -5640,6 +5773,14 @@
               'OAuth2PasswordBearer': list([
               ]),
             }),
+            dict({
+              'APIKeyHeader': list([
+              ]),
+            }),
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
           ]),
           'summary': "List the tenant's invoices",
           'tags': list([
@@ -5739,6 +5880,14 @@
             }),
           }),
           'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+            dict({
+              'APIKeyHeader': list([
+              ]),
+            }),
             dict({
               'OAuth2PasswordBearer': list([
               ]),
@@ -6231,6 +6380,14 @@
               'OAuth2PasswordBearer': list([
               ]),
             }),
+            dict({
+              'APIKeyHeader': list([
+              ]),
+            }),
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
           ]),
           'summary': "Subscribe the caller's tenant to a plan",
           'tags': list([
@@ -6274,6 +6431,14 @@
             }),
           }),
           'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+            dict({
+              'APIKeyHeader': list([
+              ]),
+            }),
             dict({
               'OAuth2PasswordBearer': list([
               ]),
@@ -6325,6 +6490,14 @@
               'OAuth2PasswordBearer': list([
               ]),
             }),
+            dict({
+              'APIKeyHeader': list([
+              ]),
+            }),
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
           ]),
           'summary': "Change the tenant's plan (upgrades immediate, downgrades at period end)",
           'tags': list([
@@ -6348,6 +6521,14 @@
             }),
           }),
           'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+            dict({
+              'APIKeyHeader': list([
+              ]),
+            }),
             dict({
               'OAuth2PasswordBearer': list([
               ]),
@@ -6379,8 +6560,52 @@
               'OAuth2PasswordBearer': list([
               ]),
             }),
+            dict({
+              'APIKeyHeader': list([
+              ]),
+            }),
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
           ]),
           'summary': 'Undo a scheduled cancellation',
+          'tags': list([
+            'billing',
+          ]),
+        }),
+      }),
+      '/api/v1/billing/subscriptions/usage': dict({
+        'get': dict({
+          'description': "Per-dimension usage snapshot for the live subscription's period.",
+          'operationId': 'get_usage_api_v1_billing_subscriptions_usage_get',
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/UsageResponse',
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+            dict({
+              'APIKeyHeader': list([
+              ]),
+            }),
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+          ]),
+          'summary': 'Current-period usage vs included quantities',
           'tags': list([
             'billing',
           ]),
@@ -7250,6 +7475,14 @@
               'OAuth2PasswordBearer': list([
               ]),
             }),
+            dict({
+              'APIKeyHeader': list([
+              ]),
+            }),
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
           ]),
           'summary': 'List uploaded files',
           'tags': list([
@@ -7306,6 +7539,14 @@
               'OAuth2PasswordBearer': list([
               ]),
             }),
+            dict({
+              'APIKeyHeader': list([
+              ]),
+            }),
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
           ]),
           'summary': 'Download a file',
           'tags': list([
@@ -7350,6 +7591,14 @@
             }),
           }),
           'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+            dict({
+              'APIKeyHeader': list([
+              ]),
+            }),
             dict({
               'OAuth2PasswordBearer': list([
               ]),
@@ -7401,6 +7650,14 @@
               'OAuth2PasswordBearer': list([
               ]),
             }),
+            dict({
+              'APIKeyHeader': list([
+              ]),
+            }),
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
           ]),
           'summary': 'Upload a file with SSE progress',
           'tags': list([
@@ -7439,6 +7696,14 @@
             }),
           }),
           'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+            dict({
+              'APIKeyHeader': list([
+              ]),
+            }),
             dict({
               'OAuth2PasswordBearer': list([
               ]),
@@ -7486,6 +7751,14 @@
             }),
           }),
           'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+            dict({
+              'APIKeyHeader': list([
+              ]),
+            }),
             dict({
               'OAuth2PasswordBearer': list([
               ]),
@@ -7568,6 +7841,14 @@
               'OAuth2PasswordBearer': list([
               ]),
             }),
+            dict({
+              'APIKeyHeader': list([
+              ]),
+            }),
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
           ]),
           'summary': 'List notifications',
           'tags': list([
@@ -7592,6 +7873,14 @@
             }),
           }),
           'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+            dict({
+              'APIKeyHeader': list([
+              ]),
+            }),
             dict({
               'OAuth2PasswordBearer': list([
               ]),
@@ -7642,6 +7931,14 @@
               'OAuth2PasswordBearer': list([
               ]),
             }),
+            dict({
+              'APIKeyHeader': list([
+              ]),
+            }),
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
           ]),
           'summary': 'Update notification preferences',
           'tags': list([
@@ -7668,6 +7965,14 @@
             }),
           }),
           'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+            dict({
+              'APIKeyHeader': list([
+              ]),
+            }),
             dict({
               'OAuth2PasswordBearer': list([
               ]),
@@ -7724,6 +8029,14 @@
               'OAuth2PasswordBearer': list([
               ]),
             }),
+            dict({
+              'APIKeyHeader': list([
+              ]),
+            }),
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
           ]),
           'summary': 'Send a test notification',
           'tags': list([
@@ -7762,6 +8075,14 @@
             }),
           }),
           'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+            dict({
+              'APIKeyHeader': list([
+              ]),
+            }),
             dict({
               'OAuth2PasswordBearer': list([
               ]),
@@ -7815,6 +8136,14 @@
               'OAuth2PasswordBearer': list([
               ]),
             }),
+            dict({
+              'APIKeyHeader': list([
+              ]),
+            }),
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
           ]),
           'summary': 'Mark notification as read',
           'tags': list([
@@ -7860,6 +8189,14 @@
             }),
           }),
           'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+            dict({
+              'APIKeyHeader': list([
+              ]),
+            }),
             dict({
               'OAuth2PasswordBearer': list([
               ]),
@@ -8086,6 +8423,14 @@
               'OAuth2PasswordBearer': list([
               ]),
             }),
+            dict({
+              'APIKeyHeader': list([
+              ]),
+            }),
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
           ]),
           'summary': 'List Ip Rules',
           'tags': list([
@@ -8128,6 +8473,14 @@
             }),
           }),
           'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+            dict({
+              'APIKeyHeader': list([
+              ]),
+            }),
             dict({
               'OAuth2PasswordBearer': list([
               ]),
@@ -8185,6 +8538,14 @@
               'OAuth2PasswordBearer': list([
               ]),
             }),
+            dict({
+              'APIKeyHeader': list([
+              ]),
+            }),
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
           ]),
           'summary': 'Delete Ip Rule',
           'tags': list([
@@ -8228,6 +8589,14 @@
             }),
           }),
           'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+            dict({
+              'APIKeyHeader': list([
+              ]),
+            }),
             dict({
               'OAuth2PasswordBearer': list([
               ]),
@@ -8285,6 +8654,14 @@
             }),
           }),
           'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+            dict({
+              'APIKeyHeader': list([
+              ]),
+            }),
             dict({
               'OAuth2PasswordBearer': list([
               ]),
