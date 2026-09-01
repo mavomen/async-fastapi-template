@@ -3914,6 +3914,55 @@
           ]),
         }),
       }),
+      '/admin/invoices/{id}/refund': dict({
+        'post': dict({
+          'description': 'Refund a paid invoice through Stripe (503 when disabled).',
+          'operationId': 'admin_invoice_refund_admin_invoices__id__refund_post',
+          'parameters': list([
+            dict({
+              'in': 'path',
+              'name': 'id',
+              'required': True,
+              'schema': dict({
+                'title': 'Id',
+                'type': 'integer',
+              }),
+            }),
+          ]),
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    'title': 'Response Admin Invoice Refund Admin Invoices  Id  Refund Post',
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+          ]),
+          'summary': 'Admin Invoice Refund',
+          'tags': list([
+            'admin',
+          ]),
+        }),
+      }),
       '/admin/sessions': dict({
         'get': dict({
           'description': 'List active sessions for a user (or prompt to select).',
@@ -3993,6 +4042,104 @@
             }),
           ]),
           'summary': 'Admin Revoke Session',
+          'tags': list([
+            'admin',
+          ]),
+        }),
+      }),
+      '/admin/subscriptions/{id}/override-plan': dict({
+        'post': dict({
+          'description': 'Hard-switch a subscription to another plan immediately.',
+          'operationId': 'admin_subscription_override_plan_admin_subscriptions__id__override_plan_post',
+          'parameters': list([
+            dict({
+              'in': 'path',
+              'name': 'id',
+              'required': True,
+              'schema': dict({
+                'title': 'Id',
+                'type': 'integer',
+              }),
+            }),
+          ]),
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    'title': 'Response Admin Subscription Override Plan Admin Subscriptions  Id  Override Plan Post',
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+          ]),
+          'summary': 'Admin Subscription Override Plan',
+          'tags': list([
+            'admin',
+          ]),
+        }),
+      }),
+      '/admin/subscriptions/{id}/set-status': dict({
+        'post': dict({
+          'description': 'Move a subscription along a validated status transition.',
+          'operationId': 'admin_subscription_set_status_admin_subscriptions__id__set_status_post',
+          'parameters': list([
+            dict({
+              'in': 'path',
+              'name': 'id',
+              'required': True,
+              'schema': dict({
+                'title': 'Id',
+                'type': 'integer',
+              }),
+            }),
+          ]),
+          'responses': dict({
+            '200': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    'title': 'Response Admin Subscription Set Status Admin Subscriptions  Id  Set Status Post',
+                  }),
+                }),
+              }),
+              'description': 'Successful Response',
+            }),
+            '422': dict({
+              'content': dict({
+                'application/json': dict({
+                  'schema': dict({
+                    '$ref': '#/components/schemas/HTTPValidationError',
+                  }),
+                }),
+              }),
+              'description': 'Validation Error',
+            }),
+          }),
+          'security': list([
+            dict({
+              'OAuth2PasswordBearer': list([
+              ]),
+            }),
+          ]),
+          'summary': 'Admin Subscription Set Status',
           'tags': list([
             'admin',
           ]),

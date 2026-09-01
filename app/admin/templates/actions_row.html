@@ -1,0 +1,63 @@
+{# Billing action buttons shown on the detail page when the table declares them #}
+{% if actions %}
+<div class="mt-6 border-t pt-4">
+  <h2 class="text-lg font-semibold mb-3">Actions</h2>
+  {% if "set-status" in actions %}
+  <form
+    hx-post="/admin/subscriptions/{{ id }}/set-status"
+    hx-target="body"
+    class="mb-3 flex items-center gap-2"
+  >
+    <select name="status" class="border rounded px-2 py-1">
+      {% for option in ["active", "past_due", "canceled", "suspended"] %}
+      <option value="{{ option }}">{{ option }}</option>
+      {% endfor %}
+    </select>
+    <button type="submit" class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600">
+      Set status
+    </button>
+  </form>
+  {% endif %}
+  {% if "override-plan" in actions %}
+  <form
+    hx-post="/admin/subscriptions/{{ id }}/override-plan"
+    hx-target="body"
+    class="mb-3 flex items-center gap-2"
+  >
+    <select name="plan_id" class="border rounded px-2 py-1">
+      {% for plan in plans %}
+      <option value="{{ plan.id }}">{{ plan.name }} ({{ plan.slug }})</option>
+      {% endfor %}
+    </select>
+    <button type="submit" class="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700">
+      Override plan
+    </button>
+  </form>
+  {% endif %}
+  {% if "refund" in actions %}
+  <form
+    hx-post="/admin/invoices/{{ id }}/refund"
+    hx-target="body"
+    class="flex items-center gap-2"
+  >
+    <input
+      name="payment_reference"
+      type="text"
+      required
+      placeholder="charge_... or pi_..."
+      class="border rounded px-2 py-1"
+    />
+    <input
+      name="amount_cents"
+      type="number"
+      min="1"
+      placeholder="full refund if empty"
+      class="border rounded px-2 py-1"
+    />
+    <button type="submit" class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">
+      Refund
+    </button>
+  </form>
+  {% endif %}
+</div>
+{% endif %}
