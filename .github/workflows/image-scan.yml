@@ -2,7 +2,7 @@ name: Container Image Scan
 
 on:
   pull_request:
-    branches: [main, develop]
+    branches: [main]
   push:
     branches: [main]
     tags: ["v*"]

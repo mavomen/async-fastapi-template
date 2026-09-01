@@ -1,0 +1,97 @@
+# Safety dependency-scan policy.
+#
+# Known-debt advisory ignore list. The free Safety tier has no CVSS severity
+# data (filtering by severity requires a paid account), so rows are ignored by
+# explicit vulnerability ID. Every entry below is tracked and requires a
+# coordinated dependency upgrade to clear (major bump to Pillow 12.x, Starlette
+# >=1.x which needs a FastAPI major bump, strawberry-graphql >0.315.6, pytest 9.x,
+# plus transitive python-engineio/python-socketio/pyasn1/ecdsa). See TODO.md
+# "Dependency security debt".
+security:
+  ignore-vulnerabilities:
+    # Pillow 11.3.0 (15 advisories) — fixed in Pillow 12.2+/12.3+ (major bump)
+    86269:
+      reason: Pillow 11.x advisory; fix requires major bump to 12.x
+    93093:
+      reason: Pillow 11.x advisory; fix requires major bump to 12.x
+    95893:
+      reason: Pillow 11.x advisory; fix requires major bump to 12.x
+    95895:
+      reason: Pillow 11.x advisory; fix requires major bump to 12.x
+    95896:
+      reason: Pillow 11.x advisory; fix requires major bump to 12.x
+    SFTY-20260720-06182:
+      reason: Pillow 11.x advisory; fix requires major bump to 12.x
+    SFTY-20260720-08003:
+      reason: Pillow 11.x advisory; fix requires major bump to 12.x
+    SFTY-20260720-08025:
+      reason: Pillow 11.x advisory; fix requires major bump to 12.x
+    SFTY-20260720-08227:
+      reason: Pillow 11.x advisory; fix requires major bump to 12.x
+    SFTY-20260720-09763:
+      reason: Pillow 11.x advisory; fix requires major bump to 12.x
+    SFTY-20260720-14393:
+      reason: Pillow 11.x advisory; fix requires major bump to 12.x
+    SFTY-20260720-40232:
+      reason: Pillow 11.x advisory; fix requires major bump to 12.x
+    SFTY-20260720-42709:
+      reason: Pillow 11.x advisory; fix requires major bump to 12.x
+    SFTY-20260720-77502:
+      reason: Pillow 11.x advisory; fix requires major bump to 12.x
+    SFTY-20260720-78690:
+      reason: Pillow 11.x advisory; fix requires major bump to 12.x
+    SFTY-20260720-79633:
+      reason: Pillow 11.x advisory; fix requires major bump to 12.x
+    SFTY-20260720-81593:
+      reason: Pillow 11.x advisory; fix requires major bump to 12.x
+
+    # Starlette 0.46.2 (7 advisories) — fixed in >=0.47.2 / 1.x, blocked by
+    # fastapi pin (<0.116.0 pulls starlette <0.47)
+    78279:
+      reason: blocked by fastapi<0.116 starlette pin
+    80876:
+      reason: blocked by fastapi<0.116 starlette pin
+    99546:
+      reason: blocked by fastapi<0.116 starlette pin
+    SFTY-20260615-22503:
+      reason: blocked by fastapi<0.116 starlette pin
+    SFTY-20260615-32787:
+      reason: blocked by fastapi<0.116 starlette pin
+    SFTY-20260615-83407:
+      reason: blocked by fastapi<0.116 starlette pin
+    SFTY-20260615-86827:
+      reason: blocked by fastapi<0.116 starlette pin
+    SFTY-20260504-37305:
+      reason: blocked by fastapi<0.116 starlette pin
+
+    # strawberry-graphql 0.315.3 (3 advisories) — fixed in >0.315.6 (minor bump)
+    SFTY-20260604-30465:
+      reason: fix requires strawberry-graphql >0.315.6
+    SFTY-20260604-77578:
+      reason: fix requires strawberry-graphql >0.315.6
+    98483:
+      reason: fix requires strawberry-graphql >0.315.6
+
+    # python-engineio 4.13.1 (2) / python-socketio 5.16.1 (1) — transitive
+    SFTY-20260626-39072:
+      reason: transitive; no upstream fix yet
+    SFTY-20260626-60054:
+      reason: transitive; no upstream fix yet
+    SFTY-20260626-04169:
+      reason: transitive; no upstream fix yet
+
+    # pyasn1 0.6.3 (2) / ecdsa 0.19.2 (2) — transitive, latest already affected
+    SFTY-20260721-32890:
+      reason: transitive; latest affected
+    SFTY-20260721-87910:
+      reason: transitive; latest affected
+    64396:
+      reason: ecdsa; no fixed version
+    64459:
+      reason: ecdsa; no fixed version
+
+    # pytest 8.4.2 (1) — fixed only in 9.x (major bump for dev toolchain)
+    SFTY-20260122-20373:
+      reason: fix requires pytest 9.x major bump
+
+  continue-on-vulnerability-error: False

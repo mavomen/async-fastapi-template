@@ -1,7 +1,7 @@
 """add billing plans and subscriptions tables
 
 Revision ID: 018_add_billing_tables
-Revises: 017_add_cms_tables
+Revises: 017_cms
 Create Date: 2026-08-24 00:00:00.000000
 
 """
@@ -13,7 +13,7 @@ import sqlalchemy as sa
 from alembic import op
 
 revision: str = "018_add_billing_tables"
-down_revision: str | None = "017_add_cms_tables"
+down_revision: str | None = "017_cms"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 

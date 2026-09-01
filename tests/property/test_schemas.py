@@ -2,7 +2,7 @@
 
 Tests edge cases in schema validation across the application.
 
-Run with:  poetry run pytest tests/property/test_schemas.py -m slow --no-cov
+Run with:  poetry run pytest tests/property/test_schemas.py --no-cov
 """
 
 from __future__ import annotations

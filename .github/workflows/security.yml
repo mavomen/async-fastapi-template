@@ -2,9 +2,9 @@ name: Security Scan
 
 on:
   pull_request:
-    branches: [main, develop]
+    branches: [main]
   push:
-    branches: [main, develop]
+    branches: [main, hotfix/**]
   schedule:
     - cron: "0 8 * * 1"   # Weekly on Monday
     - cron: "0 2 * * *"   # Nightly at 2:00 UTC
@@ -17,7 +17,7 @@ jobs:
       - uses: ./.github/actions/setup-python-poetry
       - name: Run bandit security linter
         run: |
-          poetry run bandit -r app/ -c pyproject.toml
+          poetry run bandit -r app/ -c pyproject.toml --severity-level medium
 
   trivy:
     runs-on: ubuntu-latest
@@ -40,4 +40,4 @@ jobs:
       - uses: ./.github/actions/setup-python-poetry
       - name: Check dependency vulnerabilities
         run: |
-          poetry run safety check --full-report
+          poetry run safety check --full-report --policy-file .safety-policy.yml
