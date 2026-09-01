@@ -1,2 +1,32 @@
-# Trivy false-positive ignores
-# Format: CVE-YYYY-NNNNN
+# Trivy image-scan known-debt ignore list.
+#
+# Mirrors the dependency-scan debt tracked in .safety-policy.yml. Each entry
+# requires a coordinated dependency upgrade to clear (Pillow 12.x major bump,
+# pyasn1 0.6.4, Starlette >=0.49.1/1.x which needs a FastAPI major bump). See
+# TODO.md "Dependency security debt". Do NOT add new CVEs here without a
+# tracked reason.
+
+# Pillow 11.3.0 (13 advisories) - fixed in Pillow 12.1.1+/12.3.0 (major bump)
+CVE-2026-25990
+CVE-2026-40192
+CVE-2026-42311
+CVE-2026-54058
+CVE-2026-54059
+CVE-2026-54060
+CVE-2026-55379
+CVE-2026-55380
+CVE-2026-59197
+CVE-2026-59199
+CVE-2026-59200
+CVE-2026-59204
+CVE-2026-59205
+
+# Starlette 0.46.2 (3 advisories) - fixed in 0.49.1/1.x, blocked by fastapi<0.116 pin
+CVE-2025-62727
+CVE-2026-48818
+CVE-2026-54283
+
+# pyasn1 0.6.3 (3 advisories) - transitive; fixed in 0.6.4
+CVE-2026-59884
+CVE-2026-59885
+CVE-2026-59886

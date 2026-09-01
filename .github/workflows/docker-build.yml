@@ -51,6 +51,7 @@ jobs:
             type=sha,prefix=
 
       - name: Build and push Docker image
+        id: build
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -63,9 +64,10 @@ jobs:
 
       - name: Sign image with cosign (keyless)
         env:
-          DIGEST: ${{ steps.meta.outputs.digest }}
+          DIGEST: ${{ steps.build.outputs.digest }}
+          TAGS: ${{ steps.meta.outputs.tags }}
         run: |
-          for tag in ${{ steps.meta.outputs.tags }}; do
+          for tag in $(printf '%s' "$TAGS" | tr '\n' ' '); do
             cosign sign --yes "${tag}@${DIGEST}"
           done
 
@@ -107,6 +109,7 @@ jobs:
             type=sha,prefix=
 
       - name: Build and push operator image
+        id: build
         uses: docker/build-push-action@v6
         with:
           context: ./operator
@@ -119,8 +122,9 @@ jobs:
 
       - name: Sign operator image with cosign (keyless)
         env:
-          DIGEST: ${{ steps.meta.outputs.digest }}
+          DIGEST: ${{ steps.build.outputs.digest }}
+          TAGS: ${{ steps.meta.outputs.tags }}
         run: |
-          for tag in ${{ steps.meta.outputs.tags }}; do
+          for tag in $(printf '%s' "$TAGS" | tr '\n' ' '); do
             cosign sign --yes "${tag}@${DIGEST}"
           done

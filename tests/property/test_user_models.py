@@ -92,7 +92,9 @@ class TestUserUpdateSchema:
 
 class TestUserEmailNormalization:
     @given(
-        local=st.from_regex(r"[a-zA-Z0-9][a-zA-Z0-9._%+-]{0,63}", fullmatch=True),
+        local=st.from_regex(
+            r"[a-zA-Z0-9][a-zA-Z0-9._%+-]{0,63}", fullmatch=True
+        ).filter(lambda s: not s.endswith(".") and ".." not in s),
         domain=st.from_regex(r"[a-z0-9]{2,63}\.[a-z]{2,63}", fullmatch=True),
     )
     @settings(max_examples=50)

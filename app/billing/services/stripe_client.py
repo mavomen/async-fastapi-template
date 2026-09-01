@@ -4,6 +4,8 @@ Only the handful of operations this integration needs — no SDK
 dependency. All calls are async-native; errors surface as StripeError.
 """
 
+from __future__ import annotations
+
 from typing import TYPE_CHECKING, Any
 
 import httpx

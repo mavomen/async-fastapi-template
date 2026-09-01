@@ -5,6 +5,7 @@ on:
     - cron: "0 3 * * 0"   # Every Sunday at 3:00 UTC
   workflow_dispatch:
   pull_request:
+    branches: [main]
     paths:
       - "app/**"
       - "tests/**"

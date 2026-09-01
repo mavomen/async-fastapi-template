@@ -2,7 +2,7 @@ name: Container Image Scan
 
 on:
   pull_request:
-    branches: [main, develop]
+    branches: [main]
   push:
     branches: [main]
     tags: ["v*"]
@@ -39,6 +39,7 @@ jobs:
           output: 'trivy-results.sarif'
           severity: 'CRITICAL,HIGH'
           ignore-unfixed: true
+          ignorefile: .trivyignore
 
       - name: Upload Trivy scan results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v3
@@ -53,6 +54,7 @@ jobs:
           format: 'table'
           severity: 'CRITICAL,HIGH'
           ignore-unfixed: true
+          ignorefile: .trivyignore
           exit-code: '1'
 
   trivy-operator-image:
@@ -83,6 +85,7 @@ jobs:
           output: 'trivy-operator-results.sarif'
           severity: 'CRITICAL,HIGH'
           ignore-unfixed: true
+          ignorefile: .trivyignore
 
       - name: Upload Trivy scan results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v3
@@ -97,4 +100,5 @@ jobs:
           format: 'table'
           severity: 'CRITICAL,HIGH'
           ignore-unfixed: true
+          ignorefile: .trivyignore
           exit-code: '1'

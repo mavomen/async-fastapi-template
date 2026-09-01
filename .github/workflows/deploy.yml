@@ -32,7 +32,7 @@ jobs:
           PROMETHEUS_URL: ${{ secrets.PROMETHEUS_URL }}
 
       - name: Deploy to production server (example via SSH)
-        if: ${{ github.ref == 'refs/heads/main' && secrets.SSH_HOST != '' }}
+        if: ${{ github.ref == 'refs/heads/main' }}
         uses: appleboy/ssh-action@v1.2.1
         with:
           host: ${{ secrets.SSH_HOST }}
