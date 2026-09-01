@@ -4,6 +4,54 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased]
+
+### Added
+
+- Billing foundation (`app/billing/`): plan catalog (prices in minor units, monthly/yearly
+  intervals, trial days) and per-tenant subscriptions with an enforced lifecycle state
+  machine (trialing → active → past_due → canceled), at most one live subscription per
+  tenant (partial unique index), hybrid proration (upgrades apply immediately with
+  unused-time credit; downgrades schedule at period end), cancel/resume, and lifecycle
+  events on the event bus. REST surface: `/api/v1/billing/plans`,
+  `/api/v1/billing/subscriptions`; `billing:read` / `billing:write` permissions;
+  migration `018_add_billing_tables`
+- Stripe integration (`app/billing/services/stripe_*`, `/api/v1/billing/stripe/*`):
+  dependency-free async Stripe REST client over httpx (customer provisioning, hosted
+  checkout sessions with inline `price_data`, subscription fetch), signature-verified
+  inbound webhooks (`Stripe-Signature` via shared `app/core/signing.py`), and idempotent
+  event processing backed by a `stripe_events` ledger — `checkout.session.completed`,
+  `customer.subscription.updated/deleted`, and `invoice.payment_failed` drive the local
+  subscription lifecycle. Disabled (503) until `STRIPE_SECRET_KEY` /
+  `STRIPE_WEBHOOK_SECRET` are set; migration `019_add_stripe_integration`
+- Invoicing (`app/billing/services/invoicing.py`, `/api/v1/billing/invoices/*`): invoices
+  generated from subscription periods with plan pricing snapshotted into line items,
+  VAT/tax captured per line in basis points, and a draft → open → paid state machine
+  (void reachable from draft/open; a partial unique index allows re-issue after voiding).
+  Invoice numbers are derived from the primary key (`INV-{year}-{id}`); PDF rendering is
+  deferred. Daily Celery sweep issues invoices for ended periods (idempotent);
+  `billing:read` / `billing:write` permissions; migration `020_add_invoicing`
+- Usage metering (`app/billing/services/usage.py`, `app/billing/api/deps.py`): Redis-backed
+  period-scoped counters per metered dimension (`plans.metering` JSON, migration
+  `021_add_plan_metering`). Authenticated API routes enforce plan quotas (429 over quota,
+  fail-open on internal errors) behind `BILLING_QUOTA_ENABLED` (default off). Invoices
+  append overage-only lines (`max(0, used - included)` × unit price); new
+  `GET /api/v1/billing/subscriptions/usage` reports current-period usage
+- Dunning (`app/billing/services/dunning.py`, `app/tasks/dunning.py`): payment-failure
+  retry schedule with exponential backoff (`base * 2**(N-1)`, 7-day cap), reminder and
+  suspension sweeps every 15 minutes behind `BILLING_DUNNING_ENABLED` (default off), new
+  terminal `suspended` subscription status, recovery on successful payment (past_due ->
+  active via invoice capture or Stripe sync), and `billing.dunning.*` events fanned out
+  to active tenant users through the notifications pipeline; migration `022_add_dunning`
+- Admin billing actions (`app/admin/__init__.py`, `app/admin/templates/actions_row.html`):
+  `POST /admin/subscriptions/{id}/override-plan` swaps a subscription to another active
+  plan immediately (period reset via `next_period_end`), `POST /admin/subscriptions/{id}/set-status`
+  walks the validated status transition graph (updates `canceled_at`/`suspended_at`, resets
+  dunning bookkeeping), and `POST /admin/invoices/{id}/refund` issues a real Stripe refund
+  (`create_refund` on `pi_`/`charge_` references; 503 when Stripe is unconfigured, 502 on
+  upstream 5xx). New tables register with `deletable=False` and lifecycle fields excluded
+  from generic forms.
+
 ## [3.5.0] - 2026-08-21
 
 ### Changed

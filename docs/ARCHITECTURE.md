@@ -12,7 +12,7 @@ Domain logic lives in self-contained contexts under `app/`. Each context owns it
 |---------|------|------|
 | Identity | `app/identity/` | Users, roles/RBAC, tenants, API keys, TOTP, WebAuthn, OAuth2, auth audit log, user GraphQL schema |
 | Notifications | `app/notifications/` | In-app inbox, notification preferences, transactional email (Jinja2 templates in `app/templates/email/`), outgoing webhooks with HMAC signing |
-| Billing | `app/billing/` | Reserved scaffold — plans/subscriptions/invoices land here |
+| Billing | `app/billing/` | Plans catalog, per-tenant subscriptions with lifecycle state machine (trialing/active/past_due/canceled), hybrid proration, invoices from subscription periods (draft→open→paid, void-and-reissue), Stripe checkout + signed idempotent webhooks, Redis-backed usage metering with quota enforcement (429 over quota, fail-open), overage-only invoice lines, and dunning (exponential-backoff retries, reminders, automatic suspension with terminal `suspended` status) |
 
 **Shared kernel** (`app/models/`, `app/schemas/`, `app/crud/`): base classes and mixins (`BaseModel`, `TimestampMixin`, `SoftDeleteMixin`, `TenantBaseModel`), plus not-yet-contextualized models (audit log, task status, files, CMS pages/posts/categories/tags). Generic `CRUDBase` also lives here.
 
@@ -20,6 +20,7 @@ Domain logic lives in self-contained contexts under `app/`. Each context owns it
 
 **Cross-context imports** are allowed only at documented seams:
 - *Notifications → Identity*: dispatcher resolves recipient email/preferences via the user model.
+- *Billing → Notifications* (planned): dunning emails go through the notifications context.
 - *Orchestrators* (`app/tasks/purge.py`, admin views): coordinate across contexts by importing context-owned modules.
 
 Everything else communicates through the event bus (`app/events/`) or Celery task boundaries.
@@ -35,7 +36,9 @@ Everything else communicates through the event bus (`app/events/`) or Celery tas
 - **Services / Tasks** – Per context (`app/identity/services/`, `app/notifications/tasks/`, …); generic tasks in `app/tasks/`.
 - **Events** (`app/events/`) – Pluggable event bus (Redis Streams / Kafka).
 - **WebSocket** (`app/websocket/`) – Chat with JWT auth.
-- **Admin** (`app/admin/`) – HTMX‑powered dashboard.
+- **Admin** (`app/admin/`) – HTMX‑powered dashboard. Registry-driven generic CRUD plus
+  per-table action routes (`override-plan`, `set-status`, `refund`) rendered as hx-post
+  buttons on detail pages; billing actions call the shared billing services directly.
 - **Middleware** (`app/middleware/`) – Correlation ID, logging, security, tenant resolution, rate limiting.
 - **Utils** (`app/utils/`) – Pagination, export, cache helpers.
 

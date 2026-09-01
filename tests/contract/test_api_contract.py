@@ -43,9 +43,14 @@ class TestOpenAPISchema:
     def test_all_schemas_have_required_fields(self) -> None:
         schema = app.openapi()
         for name, definition in schema.get("components", {}).get("schemas", {}).items():
-            assert "properties" in definition or "oneOf" in definition or "anyOf" in definition, (
-                f"Schema {name} has no properties, oneOf, or anyOf"
-            )
+            assert (
+                "properties" in definition
+                or "oneOf" in definition
+                or "anyOf" in definition
+                # StrEnum fields render as plain string enums (e.g. PlanInterval):
+                # constrained by "enum" rather than composed of properties.
+                or "enum" in definition
+            ), f"Schema {name} has no properties, oneOf, anyOf, or enum"
 
     def test_no_ref_leaks(self) -> None:
         """No dangling $ref that points to non-existent schema."""
