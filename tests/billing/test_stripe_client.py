@@ -154,3 +154,75 @@ class TestCheckoutSessionPayload:
             tenant_id=7,
         )
         assert body["line_items[0][price_data][recurring][interval]"] == ["yearly"]
+
+
+class TestCreateRefund:
+    def test_unconfigured_raises_503(self, monkeypatch):
+        use_secret(monkeypatch, "")
+        import asyncio
+
+        from app.billing.services.stripe_client import create_refund
+
+        with pytest.raises(StripeError) as exc:
+            asyncio.get_event_loop().run_until_complete(create_refund(charge="ch_x"))
+        assert exc.value.status_code == 503
+
+    @pytest.mark.asyncio
+    async def test_no_target_raises_value_error(self, monkeypatch):
+        use_secret(monkeypatch, "sk_test_x")
+        from app.billing.services.stripe_client import create_refund
+
+        with pytest.raises(ValueError):
+            await create_refund()
+
+    @pytest.mark.asyncio
+    async def test_full_refund_by_charge(self, monkeypatch):
+        use_secret(monkeypatch, "sk_test_x")
+        captured = {}
+
+        def _handler(request):
+            captured["url"] = request.url
+            captured["body"] = request.content
+            return httpx.Response(200, json={"id": "re_1", "status": "succeeded"})
+
+        monkeypatch.setattr(httpx, "AsyncClient", transport_with(_handler))
+        from app.billing.services.stripe_client import create_refund
+
+        result = await create_refund(charge="ch_abc")
+        assert result["id"] == "re_1"
+        assert "/refunds" in str(captured["url"])
+        assert b"charge" in captured["body"]
+
+    @pytest.mark.asyncio
+    async def test_partial_refund_by_pi(self, monkeypatch):
+        use_secret(monkeypatch, "sk_test_x")
+        captured = {}
+
+        def _handler(request):
+            captured["body"] = request.content
+            return httpx.Response(200, json={"id": "re_2", "status": "pending"})
+
+        monkeypatch.setattr(httpx, "AsyncClient", transport_with(_handler))
+        from app.billing.services.stripe_client import create_refund
+
+        result = await create_refund(payment_intent="pi_xyz", amount_cents=1500)
+        assert result["id"] == "re_2"
+        assert b"payment_intent" in captured["body"]
+        assert b"amount" in captured["body"]
+
+    @pytest.mark.asyncio
+    async def test_stripe_error_mapping(self, monkeypatch):
+        use_secret(monkeypatch, "sk_test_x")
+
+        def _handler(request):
+            return httpx.Response(
+                404,
+                json={"error": {"message": "No such refund"}},
+            )
+
+        monkeypatch.setattr(httpx, "AsyncClient", transport_with(_handler))
+        from app.billing.services.stripe_client import create_refund
+
+        with pytest.raises(StripeError) as exc:
+            await create_refund(charge="ch_noop")
+        assert exc.value.status_code == 404

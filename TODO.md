@@ -60,9 +60,10 @@ context; routers mount via `app/api/__init__.py`; model modules register in
 - Grace periods and automated account suspension — sweep runs every 15 min; suspension is a new terminal `suspended` status (distinct from user-initiated cancel)
 - Dunning emails through the notifications context — `billing.dunning.payment_failed/payment_reminder/suspended/recovered` events fan out to all active tenant users; channel gating applies
 
-**`feat/billing-admin-ui`** ⏳ open
+**`feat/billing-admin-ui`** ✅ done
 - HTMX admin views: subscriptions, invoices, payment history
 - Manual plan override and refund trigger actions
+- Admin action routes: `POST /admin/subscriptions/{id}/override-plan` (validated active-plan swap resetting the billing period), `POST /admin/subscriptions/{id}/set-status` (transition-validated, updates dunning bookkeeping), `POST /admin/invoices/{id}/refund` (real Stripe refund via `create_refund`, 503 when unconfigured, `pi_`/`charge_` references); `actions_row.html` fragment with hx-post buttons rendered on detail pages for tables that declare actions
 
 ---
 

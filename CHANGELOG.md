@@ -43,6 +43,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   terminal `suspended` subscription status, recovery on successful payment (past_due ->
   active via invoice capture or Stripe sync), and `billing.dunning.*` events fanned out
   to active tenant users through the notifications pipeline; migration `022_add_dunning`
+- Admin billing actions (`app/admin/__init__.py`, `app/admin/templates/actions_row.html`):
+  `POST /admin/subscriptions/{id}/override-plan` swaps a subscription to another active
+  plan immediately (period reset via `next_period_end`), `POST /admin/subscriptions/{id}/set-status`
+  walks the validated status transition graph (updates `canceled_at`/`suspended_at`, resets
+  dunning bookkeeping), and `POST /admin/invoices/{id}/refund` issues a real Stripe refund
+  (`create_refund` on `pi_`/`charge_` references; 503 when Stripe is unconfigured, 502 on
+  upstream 5xx). New tables register with `deletable=False` and lifecycle fields excluded
+  from generic forms.
 
 ## [3.5.0] - 2026-08-21
 

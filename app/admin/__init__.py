@@ -1,5 +1,6 @@
 """HTMX Admin Dashboard - auto-discovery of SQLAlchemy models."""
 
+import contextlib
 import logging
 import os
 from datetime import UTC, datetime
@@ -13,7 +14,14 @@ from sqlalchemy import Boolean, Integer, inspect, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.admin.deps import require_admin
-from app.api.deps import get_db, get_read_db
+from app.api.deps import get_db, get_event_bus, get_read_db
+from app.billing.models.invoice import Invoice, InvoiceLine, InvoiceStatus
+from app.billing.models.plan import Plan
+from app.billing.models.stripe_event import StripeEvent
+from app.billing.models.subscription import Subscription, SubscriptionStatus
+from app.billing.services import billing as billing_service
+from app.billing.services import dunning as dunning_service
+from app.billing.services.stripe_client import StripeError, create_refund
 from app.core.cache import cache as redis_cache
 from app.core.jwt_blacklist import (
     get_session,
@@ -55,6 +63,8 @@ def register_admin(model: type[BaseModel], **options: Any) -> None:
         "form_fields": options.get("form_fields", columns),
         "list_display": options.get("list_display", columns[:4]),
         "permission": options.get("permission", f"{table_name}:admin"),
+        "deletable": options.get("deletable", True),
+        "actions": options.get("actions", []),
     }
 
 
@@ -122,6 +132,100 @@ register_admin(
     form_fields=[],
     permission="file:admin",
 )
+register_admin(
+    Plan,
+    list_display=["name", "slug", "price_cents", "currency", "interval", "is_active"],
+    search_columns=["name", "slug"],
+    form_fields=[
+        "name",
+        "slug",
+        "description",
+        "price_cents",
+        "currency",
+        "interval",
+        "trial_days",
+        "is_active",
+        "metering",
+    ],
+    permission="plan:admin",
+)
+register_admin(
+    Subscription,
+    list_display=[
+        "tenant_id",
+        "plan_id",
+        "status",
+        "current_period_end",
+        "cancel_at_period_end",
+        "failed_payment_count",
+    ],
+    search_columns=["id"],
+    form_fields=[
+        "plan_id",
+        "trial_end",
+        "cancel_at_period_end",
+        "pending_plan_id",
+        "stripe_subscription_id",
+    ],
+    permission="subscription:admin",
+    deletable=False,
+    actions=["override-plan", "set-status"],
+)
+register_admin(
+    Invoice,
+    list_display=[
+        "tenant_id",
+        "subscription_id",
+        "status",
+        "currency",
+        "total_cents",
+        "issued_at",
+        "paid_at",
+    ],
+    search_columns=["id"],
+    form_fields=["currency"],
+    permission="invoice:admin",
+    deletable=False,
+    actions=["refund"],
+)
+register_admin(
+    InvoiceLine,
+    list_display=[
+        "invoice_id",
+        "description",
+        "quantity",
+        "unit_amount_cents",
+        "amount_cents",
+    ],
+    search_columns=["description"],
+    form_fields=[],
+    permission="invoice:admin",
+    deletable=False,
+)
+register_admin(
+    StripeEvent,
+    list_display=["event_type", "stripe_event_id", "stripe_subscription_id", "processed_at"],
+    search_columns=["event_type", "stripe_subscription_id"],
+    form_fields=[],
+    permission="stripe_event:admin",
+    deletable=False,
+)
+
+# ---------- Helpers ----------
+
+
+async def _invalidate_count(table_name: str) -> None:
+    """Best-effort admin count cache invalidation (fail-open without Redis)."""
+    with contextlib.suppress(RuntimeError):
+        await redis_cache.delete(f"admin_count:{table_name}")
+
+
+async def _fetch_active_plans(db: AsyncSession) -> list[dict[str, Any]]:
+    from sqlalchemy import select as _select
+
+    rows = (await db.execute(_select(Plan).where(Plan.is_active.is_(True)))).scalars().all()
+    return [{"id": p.id, "name": p.name, "slug": p.slug} for p in rows]
+
 
 # ---------- Templates ----------
 TEMPLATES_DIR = Path(__file__).parent / "templates"
@@ -270,6 +374,9 @@ async def admin_detail(
         obj=obj,
         columns=config["columns"],
         table_name=table_name,
+        id=id,
+        actions=config.get("actions", []),
+        plans=await _fetch_active_plans(db) if table_name == "subscriptions" else [],
     )
 
 
@@ -409,6 +516,8 @@ async def admin_delete(
         raise HTTPException(status_code=404)
     if not has_permission(user, [config["permission"]]):
         raise HTTPException(status_code=403)
+    if not config["deletable"]:
+        raise HTTPException(status_code=400, detail=f"{table_name} rows cannot be deleted")
 
     obj = await db.get(config["model"], id)
     if obj:
@@ -546,3 +655,163 @@ async def admin_revoke_session(
     exp = int(session_data.get("expires_at", 0))
     await revoke_session(user_id, jti, exp)
     return RedirectResponse(url=f"/admin/sessions?user_id={user_id}", status_code=303)
+
+
+# ---------------------------------------------------------------------------
+# Billing action routes
+# ---------------------------------------------------------------------------
+
+_BILLING_ACTIONS = {
+    "override-plan",
+    "set-status",
+    "refund",
+}
+
+
+def _require_billing_action(
+    table_name: str, action: str, user: User, config: dict[str, Any]
+) -> None:
+    """Reject unknown actions and tables that do not declare them."""
+    if action not in _BILLING_ACTIONS:
+        raise HTTPException(status_code=404, detail="Unknown action")
+    if action not in config.get("actions", []):
+        raise HTTPException(status_code=404, detail="Action not available for this table")
+    if not has_permission(user, [config["permission"]]):
+        raise HTTPException(status_code=403)
+
+
+@router.post("/subscriptions/{id}/override-plan")
+@rate_limit(times=30, seconds=60)  # type: ignore[untyped-decorator]
+async def admin_subscription_override_plan(
+    request: Request,
+    id: int,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(require_admin),
+    bus: Any = Depends(get_event_bus),
+) -> Any:
+    """Hard-switch a subscription to another plan immediately."""
+    config = _registry.get("subscriptions") or {}
+    _require_billing_action("subscriptions", "override-plan", user, config)
+
+    sub = await db.get(config["model"], id)
+    if not sub:
+        raise HTTPException(status_code=404, detail="Subscription not found")
+    form = await request.form()
+    new_plan_id = int(str(form.get("plan_id", "0")))
+    new_plan = await db.get(Plan, new_plan_id)
+    if new_plan is None or not new_plan.is_active:
+        raise HTTPException(status_code=404, detail="Plan not found or inactive")
+
+    now = datetime.now(UTC)
+    sub.plan_id = new_plan.id
+    sub.pending_plan_id = None
+    sub.current_period_start = now
+    sub.current_period_end = billing_service.next_period_end(new_plan, now)
+    db.add(sub)
+    await db.commit()
+    await bus.publish(billing_service.subscription_event("plan_changed", sub, user.id))
+    await _invalidate_count("subscriptions")
+    return RedirectResponse(url=f"/admin/subscriptions/{id}", status_code=303)
+
+
+@router.post("/subscriptions/{id}/set-status")
+@rate_limit(times=30, seconds=60)  # type: ignore[untyped-decorator]
+async def admin_subscription_set_status(
+    request: Request,
+    id: int,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(require_admin),
+    bus: Any = Depends(get_event_bus),
+) -> Any:
+    """Move a subscription along a validated status transition."""
+    config = _registry.get("subscriptions") or {}
+    _require_billing_action("subscriptions", "set-status", user, config)
+
+    sub = await db.get(config["model"], id)
+    if not sub:
+        raise HTTPException(status_code=404, detail="Subscription not found")
+    form = await request.form()
+    raw_status = str(form.get("status", ""))
+    try:
+        target = SubscriptionStatus(raw_status)
+    except ValueError:
+        raise HTTPException(status_code=400, detail=f"Unknown status {raw_status!r}") from None
+
+    try:
+        billing_service.assert_transition(sub.status, target)
+    except billing_service.IllegalTransitionError as exc:
+        allowed = sorted(str(s) for s in billing_service.ALLOWED_TRANSITIONS[sub.status])
+        raise HTTPException(status_code=400, detail=f"Allowed: {', '.join(allowed)}") from exc
+
+    now = datetime.now(UTC)
+    if target == SubscriptionStatus.CANCELED:
+        sub.canceled_at = now
+        sub.cancel_at_period_end = False
+        sub.pending_plan_id = None
+    elif target == SubscriptionStatus.SUSPENDED:
+        sub.suspended_at = now
+        sub.next_retry_at = None
+    elif target == SubscriptionStatus.ACTIVE and sub.status == SubscriptionStatus.PAST_DUE:
+        dunning_service.reset_dunning(sub)
+    sub.status = target
+    db.add(sub)
+    await db.commit()
+    await bus.publish(billing_service.subscription_event("status_changed", sub, user.id))
+    await _invalidate_count("subscriptions")
+    return RedirectResponse(url=f"/admin/subscriptions/{id}", status_code=303)
+
+
+@router.post("/invoices/{id}/refund")
+@rate_limit(times=30, seconds=60)  # type: ignore[untyped-decorator]
+async def admin_invoice_refund(
+    request: Request,
+    id: int,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(require_admin),
+) -> Any:
+    """Refund a paid invoice through Stripe (503 when disabled)."""
+    config = _registry.get("invoices") or {}
+    _require_billing_action("invoices", "refund", user, config)
+
+    inv = await db.get(config["model"], id)
+    if not inv:
+        raise HTTPException(status_code=404, detail="Invoice not found")
+    if inv.status != InvoiceStatus.PAID:
+        raise HTTPException(status_code=400, detail="Only paid invoices can be refunded")
+
+    form = await request.form()
+    payment_ref = str(form.get("payment_reference", "")).strip()
+    if not payment_ref:
+        raise HTTPException(
+            status_code=400, detail="payment_reference required (charge_... or pi_...)"
+        )
+    amount_cents_raw = str(form.get("amount_cents", "")).strip()
+    amount_cents = int(amount_cents_raw) if amount_cents_raw else None
+    if amount_cents is not None and amount_cents <= 0:
+        raise HTTPException(status_code=400, detail="amount_cents must be positive")
+
+    if payment_ref.startswith("pi_"):
+        kwargs: dict[str, Any] = {"payment_intent": payment_ref}
+    elif payment_ref.startswith("charge_"):
+        kwargs = {"charge": payment_ref}
+    else:
+        raise HTTPException(
+            status_code=400, detail="payment_reference must start with pi_ or charge_"
+        )
+
+    if amount_cents is not None:
+        kwargs["amount_cents"] = amount_cents
+    try:
+        await create_refund(**kwargs)
+    except StripeError as exc:
+        logger.warning("refund rejected by stripe: %s", exc.message)
+        status_code = (
+            exc.status_code
+            if exc.status_code == 503
+            else (502 if exc.status_code >= 500 else exc.status_code)
+        )
+        raise HTTPException(status_code=status_code, detail=exc.message) from exc
+
+    logger.info("admin refunded invoice %s (%s)", inv.id, payment_ref)
+    await _invalidate_count("invoices")
+    return RedirectResponse(url=f"/admin/invoices/{id}", status_code=303)
